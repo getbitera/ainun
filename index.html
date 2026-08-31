@@ -243,7 +243,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div class="card"><h3>👥 Teman (<span id="myJumlahTeman2">0</span>)</h3><div id="daftarTemanProfil" class="teman-grid"><p>Belum ada teman</p></div></div>
 </div>
 <div class="modal" id="login"><div class="modal-content"><h2>LOGIN</h2><input class="input" type="email" id="loginEmail" placeholder="Email"><input class="input" type="password" id="loginPass" placeholder="Password"><button class="btn" style="width:100%" onclick="loginUser()">MASUK</button><button class="btn btn-batal" onclick="closeModal('login')">TUTUP</button></div></div>
-<div class="modal" id="daftar"><div class="modal-content"><h2>DAFTAR</h2><input class="input" type="text" id="daftarNama" placeholder="Nama"><input class="input" type="email" id="daftarEmail" placeholder="Email"><input class="input" type="password" id="daftarPass" placeholder="Password"><label><input type="checkbox" id="setujuTOS"> Saya setuju TOS</label><button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button><button class="btn btn-batal" onclick="closeModal('daftar')">TUTUP</button></div></div>
+<div class="modal" id="daftar"><div class="modal-content"><h2>DAFTAR</h2><input class="input" type="text" id="daftarNama" placeholder="Nama"><input class="input" type ="email" id="daftarEmail" placeholder="Email"><input class="input" type="password" id="daftarPass" placeholder="Password"><label><input type="checkbox" id= "setujuTOS"> Saya setuju TOS</label><button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button><button class="btn btn-batal" onclick="closeModal('daftar')">TUTUP</button></div></div>
 <div class="modal" id="topup">
   <div class="modal-content">
     <h2>PILIH PAKET TOP UP</h2>
@@ -702,17 +702,20 @@ window.cariTeman = async function(){
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
 
-window.daftarUser = async function(){
-  const nama = document.getElementById('regNama').value;
-  const email = document.getElementById('regEmail').value;
-  const pass = document.getElementById('regPass').value;
+window.daftarUser = async function(e){
+  e.preventDefault();
+  const nama = document.getElementById('daftarNama').value;
+  const email = document.getElementById('daftarEmail').value;
+  const pass = document.getElementById('daftarPass').value;
+  const setuju = document.getElementById('setujuTOS').checked;
+  
+  if(!setuju) return alert('Centang TOS dulu');
   if(!nama || !email || !pass) return alert('Lengkapi data');
   
   const { data, error } = await supabase.auth.signUp({ email: email, password: pass });
   if(error) return alert(error.message);
   
-  // KASIH JEDA BIAR SESSION MASUK DULU
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500)); // jeda biar session masuk
   
   const { error: err2 } = await supabase.from('users').insert({
     id: data.user.id, nama: nama, email: email, saldo_koin: 0
@@ -720,7 +723,7 @@ window.daftarUser = async function(){
   if(err2) return alert('Gagal simpan ke users: ' + err2.message);
   
   alert('Daftar berhasil! Cek email untuk verifikasi');
-  closeModal('register');
+  closeModal('daftar'); // <-- ini juga diganti jadi 'daftar'
 }
 window.loginUser = async function() {
   const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
