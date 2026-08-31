@@ -275,9 +275,10 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="withdraw">
   <div class="modal-content">
     <h2>WITHDRAW KOIN VIA DANA</h2>
-    <p style="color:gray">Admin 10%. Min withdraw 10.000 Koin</p>
-    <input class="input" id="jumlahWithdraw" type="number" placeholder="Jumlah Koin">
+    <p style="color:gray">Admin 16%. Min withdraw 10.000 Koin</p>
+    <input class="input" id="jumlahWithdraw" type="number" placeholder="Jumlah Koin" oninput="hitungFeeWithdraw()">
     <input class="input" id="noDanaWithdraw" placeholder="No DANA 0812xxxx">
+    <p id="infoWithdrawFee" style="color:gray; font-size:13px; min-height:20px"></p> <!-- TAMBAHIN INI -->
     <button class="btn btn-sukses" onclick="ajukanWithdraw()">AJUKAN WITHDRAW</button>
     <button class="btn btn-batal" onclick="closeModal('withdraw')">TUTUP</button>
   </div>
@@ -397,7 +398,12 @@ window.pilihPaket = function(koin, bayar){
   document.querySelectorAll('.btn-paket').forEach(b=>b.classList.remove('active'));
   event.target.closest('.btn-paket').classList.add('active');
 }
-
+window.hitungFeeWithdraw = function(){
+  const jumlah = parseInt(document.getElementById('jumlahWithdraw').value) || 0;
+  const fee = Math.floor(jumlah * 0.16);
+  const diterima = jumlah - fee;
+  document.getElementById('infoWithdrawFee').innerText = `Fee 16%: ${fee.toLocaleString()} Koin | Diterima: ${diterima.toLocaleString()} Koin`;
+}
 window.requestTopup = async function(){
   if(!userLogin) return alert("Login dulu");
   const jumlah = parseInt(document.getElementById('topupJumlah').value);
@@ -834,22 +840,27 @@ window.buatPost = async function(event) {
   loadJobs();
 }
 
-async function loadPenyedia(){
-  if(!userLogin) return;
-  const { data, error } = await supabase.from('users').select('*').neq('id', userLogin.id).not('skill', 'is', null);
-  if(error){ console.log(error); return }
-  const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
-  data.forEach(u=>{ 
-    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
-    container.innerHTML += `<div class="card">
-      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer; width:100px; height:100px; margin:auto; display:block" onclick="lihatProfilOrang('${u.id}')">
-      <h3 style="text-align:center; cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-      <p style="text-align:center">${u.skill||''}</p>
-      <p style="text-align:center">⭐ ${rating}</p>
-      <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
-      <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ TAMBAH TEMAN</button>
+async function loadKategori(){
+  const kategori = ['Tukang', 'Desain', 'Les Privat', 'Ojek', 'Bersih-bersih'];
+  const container = document.getElementById('daftarPenyedia'); 
+  container.innerHTML = '';
+  kategori.forEach(kat => {
+    container.innerHTML += `<div class="card" onclick="filterJobByKategori('${kat}')" style="cursor:pointer; text-align:center">
+      <h3>${kat}</h3>
+      <p>Lihat job ${kat}</p>
     </div>`
   })
+}
+
+window.filterJobByKategori = async function(kategori){
+  const { data } = await supabase.from('jobs')
+   .select(`*, pemberi_job:users!jobs_user_id_fkey(id, nama, foto)`)
+   .ilike('judul', `%${kategori}%`)
+   .eq('status', 'open')
+   .order('created_at', {ascending:false}); 
+  // ... sisanya sama kayak loadJobs
+  document.getElementById('daftarJob').innerHTML = container.innerHTML;
+  showPage('jobsPage');
 }
 
 async function loadJobs(){ 
@@ -1290,11 +1301,11 @@ window.lihatProfilOrang = async function(idOrang){
 
 window.showPage = function(pageId, el){
   document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
-    const page = document.getElementById(id);
-    if(page) page.style.display='none';
+  document.querySelectorAll('.container').forEach(id=>{
+    if(id.id) id.style.display='none';
   }); 
   document.getElementById(pageId).style.display='block';
+  document.getElementById(pageId).classList.add('active');
   if(el) el.classList.add('active');
   if(pageId==='jobsPage') loadJobs();
   if(pageId==='penyediaPage') loadPenyedia();
