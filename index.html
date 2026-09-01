@@ -743,15 +743,29 @@ window.loginUser = async function() {
   const email = document.getElementById('loginEmail').value; 
   const pass = document.getElementById('loginPass').value;
   
-  if(!email || !pass) return alert('Isi email dan password');
+  if(!email ||!pass) return alert('Isi email dan password');
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-  if(error) return alert('Gagal: ' + error.message);
+  if(error) return alert('Gagal Login: ' + error.message);
 
-  // Ambil data dari tabel users
-  const { data: userData, error: errUser } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+  // 1. Ambil data dari tabel users
+  let { data: userData, error: errUser } = await supabase.from('users').select('*').eq('id', data.user.id).single();
   
-  if(errUser) return alert('Data user tidak ditemukan di tabel users: ' + errUser.message);
+  // 2. Kalau data belum ada, auto bikin. Ini buat jaga2 user lama yg daftar sebelum ada tabel users
+  if(errUser && errUser.code === 'PGRST116'){ // PGRST116 = data tidak ditemukan
+    const { data: newUser, error: errInsert } = await supabase.from('users').insert({
+      id: data.user.id,
+      email: data.user.email,
+      nama: data.user.email.split('@')[0], // default nama dari email
+      saldo_koin: 0,
+      role: 'user'
+    }).select().single();
+
+    if(errInsert) return alert('Gagal buat data user: ' + errInsert.message);
+    userData = newUser;
+  } else if(errUser){
+    return alert('Gagal ambil data user: ' + errUser.message); // ini error 403/RLS
+  }
 
   userLogin = userData; 
   localStorage.setItem('ainun_user', JSON.stringify(userData));
@@ -761,7 +775,7 @@ window.loginUser = async function() {
   updateUI(true); 
   loadMyProfile(); 
   closeModal('login');
-  showPage('dashboardPage') // <-- optional: langsung ke dashboard
+  showPage('dashboardPage');
 }
 
 function updateUI(isLogin) {
@@ -769,14 +783,9 @@ function updateUI(isLogin) {
   if(isLogin){
     menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
     
-    // Cek role admin
     const btnAdmin = document.getElementById('btnAdmin');
-    if(btnAdmin){ // cek dulu elementnya ada apa enggak
-      if(userLogin.role === 'admin'){
-        btnAdmin.style.display = 'block';
-      } else {
-        btnAdmin.style.display = 'none';
-      }
+    if(btnAdmin){
+      btnAdmin.style.display = userLogin.role === 'admin'? 'block' : 'none';
     }
 
   } else {
@@ -787,11 +796,11 @@ function updateUI(isLogin) {
     document.getElementById('daftarVideo').innerHTML = '';
     
     const btnAdmin = document.getElementById('btnAdmin');
-    if(btnAdmin) btnAdmin.style.display = 'none'; // sembunyikan lagi pas logout
+    if(btnAdmin) btnAdmin.style.display = 'none';
     
     saldoSekarang = 0; 
     updateSaldoUI();
-    userLogin = null; // <-- jangan lupa reset
+    userLogin = null;
     showPage('homePage');
   } 
 }
