@@ -272,7 +272,27 @@ async function compressImage(file, maxSize = 800) { // TAMBAH PARAMETER
 }
 let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif = null; let ratingJobId = ''; let skorRating = 0; let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null; let jobSelesaiId = ''; let pekerjaRatingId = '';
 
-
+// ===== TAMBAHIN INI =====
+function updateUI(isLogin) {
+  const menuBtn = document.getElementById('menuBtn'); 
+  if(isLogin){ 
+    // KALO UDAH LOGIN
+    menuBtn.innerHTML = `<div class="saldo-box" style="font-size:14px; padding:8px 15px">💰 <span id="saldoText">${saldoSekarang.toLocaleString()}</span></div>
+    <button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
+  } else { 
+    // KALO BELUM LOGIN
+    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
+    
+    // RESET SEMUA DATA PAS LOGOUT
+    document.getElementById('daftarPenyedia').innerHTML = '';
+    document.getElementById('daftarJob').innerHTML = '';
+    document.getElementById('daftarTeman').innerHTML = '';
+    document.getElementById('daftarVideo').innerHTML = '';
+    saldoSekarang = 0; 
+    updateSaldoUI();
+    showPage('homePage');
+  } 
+}
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
 function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
