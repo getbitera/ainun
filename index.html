@@ -451,16 +451,21 @@ window.daftarUser = async function(event) {
   closeModal('daftar'); 
 }
 window.loginUser = async function() { 
-  const email = document.getElementById('loginEmail').value; // <-- TAMBAH INI
-  const pass = document.getElementById('loginPass').value; // <-- TAMBAH INI
+  const email = document.getElementById('loginEmail').value; 
+  const pass = document.getElementById('loginPass').value; 
   
   if(!email || !pass) return alert('Isi email dan password');
   
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
-  if(error) return alert('Gagal: ' + error.message); 
+  if(error) return alert('Gagal Login: ' + error.message); 
   
-  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
+  const { data: userData, error: dbError } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
   
+  if(dbError || !userData) {
+    console.log(dbError);
+    return alert('Gagal ambil data user. Cek RLS/Policy di Supabase. Error: ' + dbError.message);
+  }
+
   userLogin = userData; 
   localStorage.setItem('bitera_user', JSON.stringify(userData));
   saldoSekarang = userData.saldo || 0; 
@@ -469,22 +474,6 @@ window.loginUser = async function() {
   loadMyProfile(); 
   closeModal('login'); 
 }
-function updateUI(isLogin) {
-  const menuBtn = document.getElementById('menuBtn'); 
-  if(isLogin){ 
-    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
-  } else { 
-    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    // TAMBAH INI BIAR DATA HILANG
-    document.getElementById('daftarPenyedia').innerHTML = '';
-    document.getElementById('daftarJob').innerHTML = '';
-    document.getElementById('daftarTeman').innerHTML = '';
-    document.getElementById('daftarVideo').innerHTML = '';
-    saldoSekarang = 0; updateSaldoUI();
-    showPage('homePage');
-  } 
-}
-
 window.logout = async function() { 
   await supabase.auth.signOut(); 
   localStorage.removeItem('bitera_user'); // HAPUS CACHE
