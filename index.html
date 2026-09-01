@@ -450,29 +450,45 @@ window.daftarUser = async function(event) {
   alert('Daftar berhasil!');
   closeModal('daftar'); 
 }
-window.loginUser = async function() { 
-  const email = document.getElementById('loginEmail').value; 
-  const pass = document.getElementById('loginPass').value; 
-  
-  if(!email || !pass) return alert('Isi email dan password');
-  
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
-  if(error) return alert('Gagal Login: ' + error.message); 
-  
-  const { data: userData, error: dbError } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
-  
-  if(dbError || !userData) {
-    console.log(dbError);
-    return alert('Gagal ambil data user. Cek RLS/Policy di Supabase. Error: ' + dbError.message);
+window.loginUser = async function() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+
+  if(!email ||!pass) return alert('Isi email dan password');
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if(error) return alert('Gagal Login Auth: ' + error.message);
+
+  console.log("Login Auth Sukses, UID:", data.user.id); // LOG BUAT DEBUG
+
+  // 1. COBA AMBIL DATA DARI TABEL USERS
+  let { data: userData, error: dbError } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+
+  // 2. KALAU BELUM ADA, BIKIN OTOMATIS
+  if(dbError && dbError.code === 'PGRST116') {
+    console.log("Data users belum ada, bikin baru...");
+    const { data: newUser, error: insertErr } = await supabase.from('users').insert({
+      id: data.user.id,
+      email: data.user.email,
+      nama: data.user.email.split('@')[0], // nama default dari email
+      saldo: 0,
+      role: 'user'
+    }).select().single();
+
+    if(insertErr) return alert('Gagal bikin data user: ' + insertErr.message);
+    userData = newUser;
+  } else if(dbError) {
+    return alert('Gagal ambil data user: ' + dbError.message);
   }
 
-  userLogin = userData; 
+  userLogin = userData;
   localStorage.setItem('bitera_user', JSON.stringify(userData));
-  saldoSekarang = userData.saldo || 0; 
-  updateSaldoUI(); 
-  updateUI(true); 
-  loadMyProfile(); 
-  closeModal('login'); 
+  saldoSekarang = userData.saldo || 0;
+  updateSaldoUI();
+  updateUI(true);
+  loadMyProfile();
+  closeModal('login');
+  alert('Login Berhasil!');
 }
 window.logout = async function() { 
   await supabase.auth.signOut(); 
