@@ -600,8 +600,8 @@ window.buatPost = async function() {
   if(saldoErr) return alert(saldoErr.message);
   
   const { error } = await supabase.from('jobs').insert({
-    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'
-  });
+  judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open'
+});
   if(error) return alert(error.message);
 
   saldoSekarang = saldoBaru;
@@ -953,9 +953,9 @@ window.buatIklanMarket = async function(){
   const wa = document.getElementById('marketWa').value;
   if(!judul ||!harga ||!bannerFileMarket) return alert("Lengkapi semua + upload foto");
 
-  const { data: ad, error } = await supabase.from('market_ads').insert({
-    user_id: userLogin.id, judul, deskripsi, harga, no_wa: wa, status: 'open'
-  }).select().single();
+ const { data: ad, error } = await supabase.from('market_ads').insert({
+  judul, deskripsi, harga, no_wa: wa, status: 'open'
+}).select().single();
   if(error) return alert(error.message);
 
   const urlBanner = await uploadBannerMarket(bannerFileMarket, ad.id);
