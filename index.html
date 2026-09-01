@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GET BITERA - Dari Nganggur Jadi Ada Kerjaan</title>
+<title>my AINUN - สวัสดีค่ะ </title>
 <style>
 :root{--bg:#E8F0F4;--card:#FFF;--text:#2C3E50;--accent:#4A7C8A;--accent-dark:#3E6A77;--border:#D0E0E7;--shadow:0 4px 15px rgba(74,124,138,0.12);--chat-me:#DCF8C6}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif}
@@ -82,7 +82,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <header>
   <div class="nav">
-    <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>BITERA</span></div></div>
+    <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>my AINUN</span></div></div>
     <div class="menu-atas">
       <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
       <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼 JOBS</button>
@@ -103,11 +103,11 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <div id="homePage" class="container">
   <section class="hero">
-    <h2>Dari Nganggur Jadi Ada Kerjaan</h2>
-    <p>Apapun skill kamu. Jadikan jadi duit di BITERA.</p>
+    <h2>Welcome สวัสดีค่ะ 안녕하세요 selamat datang </h2>
+    <p>my AINUN</p>
     <div class="home-wrapper">
       <div class="home-video">
-        <p style="font-weight:bold;color:var(--accent)">VIDEO BITERA</p>
+        <p style="font-weight:bold;color:var(--accent)">VIDEO my Ainun</p>
         <iframe src="https://www.youtube.com/embed/P6xpN812xck" frameborder="0" allowfullscreen></iframe>
       </div>
       <div class="home-dashboard">
@@ -192,7 +192,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="topup"><div class="modal-content"><h2>TOP UP KOIN VIA DANA</h2><p>Admin 16%</p><button class="btn" onclick="pilihNominal(10000)">10.000 Koin = Rp 11.600</button><button class="btn" onclick="pilihNominal(50000)">50.000 Koin = Rp 58.000</button><button class="btn" onclick="topupKoin()">BAYAR VIA DANA</button><button class="btn btn-batal" onclick="closeModal('topup')">TUTUP</button></div></div>
 <div class="modal" id="post"><div class="modal-content"><h2>POST JOB</h2><input class="input" id="judulPost" placeholder="Judul Job"><input class="input" id="deskripsiPost" placeholder="Detail"><input class="input" type="number" id="hadiahPost" placeholder="Reward Koin"><input class="input" id="noWaPost" placeholder="No WA 628xxx"><button class="btn" onclick="buatPost()">POST & KUNCI DANA</button><button class="btn btn-batal" onclick="closeModal('post')">TUTUP</button></div></div>
 <div class="modal" id="editProfile"><div class="modal-content"><h2>EDIT PROFIL</h2><input class="input" id="editNama" placeholder="Nama"><input class="input" id="editSkill" placeholder="Skill"><input class="input" id="editBio" placeholder="Bio"><input class="input" id="editNoWa" placeholder="No WA 628xxx"><input class="input" type="date" id="editTgl" placeholder="Tanggal Lahir"><input class="input" id="editSekolah" placeholder="Sekolah/Kampus"><input class="input" id="editYoutube" placeholder="Link Youtube"><button class="btn" style="width:100%" onclick="saveProfile()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('editProfile')">TUTUP</button></div></div>
-<div class="modal" id="cs"><div class="modal-content"><h2>💬 CUSTOMER SERVICE</h2><p>Butuh bantuan? Chat admin Bitera</p><a href="https://wa.me/62895623177610" target="_blank" class="btn" style="width:100%;background:#25D366">CHAT WA ADMIN</a><button class="btn btn-batal" onclick="closeModal('cs')">TUTUP</button></div></div>
+<div class="modal" id="cs"><div class="modal-content"><h2>💬 CUSTOMER SERVICE</h2><p>Butuh bantuan? Chat admin my Ainun</p><a href="https://wa.me/62895623177610" target="_blank" class="btn" style="width:100%;background:#25D366">CHAT WA ADMIN</a><button class="btn btn-batal" onclick="closeModal('cs')">TUTUP</button></div></div>
 <div class="modal" id="uploadVideo"><div class="modal-content"><h2>TAMBAH VIDEO</h2><input class="input" id="judulVideo" placeholder="Judul"><input class="input" id="linkVideo" placeholder="Link Youtube Embed"><button class="btn" onclick="simpanVideo()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('uploadVideo')">TUTUP</button></div></div>
 
 
@@ -216,7 +216,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
       </div>
     </div>
 
-<footer>bitera.vercel.app 2026</footer>
+<footer>myainun.vercel.app 2026</footer>
 
 </div>
 
@@ -502,7 +502,7 @@ window.loginUser = async function() {
   }
 
   userLogin = userData;
-  localStorage.setItem('bitera_user', JSON.stringify(userData));
+  localStorage.setItem('myainun_user', JSON.stringify(userData));
   saldoSekarang = userData.saldo || 0;
   updateSaldoUI();
   updateUI(true);
@@ -512,7 +512,7 @@ window.loginUser = async function() {
 }
 window.logout = async function() { 
   await supabase.auth.signOut(); 
-  localStorage.removeItem('bitera_user'); // HAPUS CACHE
+  localStorage.removeItem('myainun_user'); // HAPUS CACHE
   saldoSekarang = 0; // RESET SALDO
   updateSaldoUI(); // UPDATE UI JADI 0
   userLogin = null; // RESET USER
@@ -1081,7 +1081,7 @@ function subscribeRealtime(convId){
 // ========== END SISTEM CHAT ==========
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('bitera_user');
+  const savedUser = localStorage.getItem('myainun_user');
   if(session && savedUser){
     try {
       userLogin = JSON.parse(savedUser); // BACA DARI CACHE BIAR GA LEMOT
