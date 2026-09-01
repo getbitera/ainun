@@ -1428,26 +1428,6 @@ window.kirimPesan = async function() {
   input.value = '';
 }
 
-supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('ainun_user'); // UDAH GANTI JADI AINUN
-  if(session && savedUser){
-    try {
-      userLogin = JSON.parse(savedUser);
-      const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-      if(userData){
-        userLogin = userData;
-        localStorage.setItem('ainun_user', JSON.stringify(userData));
-      }
-    } catch(e) { console.log(e) }
-    saldoSekarang = userLogin.saldo_koin || 0;
-    updateSaldoUI();
-    updateUI(true);
-    loadMyProfile(); 
-  } else {
-    localStorage.removeItem('ainun_user');
-    updateUI(false); 
-  }
-})
 
 }); 
 </script>
