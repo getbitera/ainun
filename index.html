@@ -334,13 +334,15 @@ async function loadDaftarTeman(){
   </div>` 
   })
 }
-async function uploadKeStorage(file, bucket, path) {
-  const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-  if(error) throw error;
-  
-  const { data } = await supabase.storage.from(bucket).getPublicUrl(path); // UDAH PAKE AWAIT
-  return data.publicUrl;
-}
+    async function uploadKeStorage(file, bucket, path){
+      const { data, error } = await supabase.storage
+       .from(bucket)
+       .upload(path, file, { upsert: true }); // upsert: true wajib biar bisa nimpa foto lama
+      
+      if(error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+      return publicUrl;
+    }
 document.getElementById('uploadFoto').onchange = async (e) => {
   if(!userLogin) return;
   const file = e.target.files[0];
