@@ -725,15 +725,19 @@ window.daftarUser = async function(e){
   const { data, error } = await supabase.auth.signUp({ email: email, password: pass });
   if(error) return alert(error.message);
   
-  await new Promise(resolve => setTimeout(resolve, 500)); // jeda biar session masuk
+  // HAPUS jeda 500ms. Gak perlu lagi karena langsung confirmed
+  // await new Promise(resolve => setTimeout(resolve, 500)); 
   
   const { error: err2 } = await supabase.from('users').insert({
     id: data.user.id, nama: nama, email: email, saldo_koin: 0
   });
   if(err2) return alert('Gagal simpan ke users: ' + err2.message);
   
-  alert('Daftar berhasil! Cek email untuk verifikasi');
-  closeModal('daftar'); // <-- ini juga diganti jadi 'daftar'
+  alert('Daftar berhasil! Langsung login'); // <-- ganti teksnya
+  closeModal('daftar');
+  
+  // TAMBAH INI biar langsung masuk dashboard
+  window.location.href = '/dashboard.html' 
 }
 window.loginUser = async function() {
   const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
