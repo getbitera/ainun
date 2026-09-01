@@ -740,25 +740,43 @@ window.daftarUser = async function(e){
   window.location.href = '/dashboard.html' 
 }
 window.loginUser = async function() {
-  const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
-  if(!email ||!pass) return alert('Isi email dan password');
+  const email = document.getElementById('loginEmail').value; 
+  const pass = document.getElementById('loginPass').value;
+  
+  if(!email || !pass) return alert('Isi email dan password');
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if(error) return alert('Gagal: ' + error.message);
-  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
-  userLogin = userData; localStorage.setItem('ainun_user', JSON.stringify(userData));
- saldoSekarang = userData.saldo_koin || 0;
- updateSaldoUI(); updateUI(true); loadMyProfile(); closeModal('login');
+
+  // Ambil data dari tabel users
+  const { data: userData, error: errUser } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+  
+  if(errUser) return alert('Data user tidak ditemukan di tabel users: ' + errUser.message);
+
+  userLogin = userData; 
+  localStorage.setItem('ainun_user', JSON.stringify(userData));
+  saldoSekarang = userData.saldo_koin || 0;
+  
+  updateSaldoUI(); 
+  updateUI(true); 
+  loadMyProfile(); 
+  closeModal('login');
+  showPage('dashboardPage') // <-- optional: langsung ke dashboard
 }
+
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn');
   if(isLogin){
     menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
     
-    // TAMBAHIN INI DI SINI
-    if(userLogin.role === 'admin'){
-      document.getElementById('btnAdmin').style.display = 'block';
-    } else {
-      document.getElementById('btnAdmin').style.display = 'none';
+    // Cek role admin
+    const btnAdmin = document.getElementById('btnAdmin');
+    if(btnAdmin){ // cek dulu elementnya ada apa enggak
+      if(userLogin.role === 'admin'){
+        btnAdmin.style.display = 'block';
+      } else {
+        btnAdmin.style.display = 'none';
+      }
     }
 
   } else {
@@ -767,12 +785,16 @@ function updateUI(isLogin) {
     document.getElementById('daftarJob').innerHTML = '';
     document.getElementById('daftarTeman').innerHTML = '';
     document.getElementById('daftarVideo').innerHTML = '';
-    document.getElementById('btnAdmin').style.display = 'none'; // sembunyikan lagi pas logout
-    saldoSekarang = 0; updateSaldoUI();
+    
+    const btnAdmin = document.getElementById('btnAdmin');
+    if(btnAdmin) btnAdmin.style.display = 'none'; // sembunyikan lagi pas logout
+    
+    saldoSekarang = 0; 
+    updateSaldoUI();
+    userLogin = null; // <-- jangan lupa reset
     showPage('homePage');
   } 
 }
-
 window.logout = async function() { 
   await supabase.auth.signOut(); 
   localStorage.removeItem('ainun_user'); // UDAH GANTI JADI AINUN
