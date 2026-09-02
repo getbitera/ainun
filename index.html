@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -443,10 +444,13 @@ window.daftarUser = async function(event) {
   }
   console.log("2. Validasi lolos", email) // LOG
 
-  const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: pass,
-  }); 
+ const { data, error } = await supabase.auth.signUp({
+  email: 'email',
+  password: 'pass',
+  options: {
+    data: { nama: 'Budi' } // ini masuk ke raw_user_meta_data
+  }
+})
   
   console.log("3. Hasil signUp:", data, error) // LOG PENTING
   
