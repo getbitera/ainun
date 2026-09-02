@@ -351,19 +351,19 @@ document.getElementById('uploadFoto').onchange = async (e) => {
     alert('Lagi compress foto...')
     const compressedFile = await compressImage(file, 800)
     const timestamp = Date.now();
-    const path = `${userLogin.id}/avatar.jpg`; // WAJIB ADA /
+    const path = `${userLogin.id}/avatar.jpg`; // HAPUS?v= dari sini
     
-    const url = await uploadKeStorage(compressedFile, 'avatars', path); // WAJIB avatars
+    const url = await uploadKeStorage(compressedFile, 'avatars', path);
     if(!url) throw new Error("Upload gagal")
 
-    await supabase.from('users').update({foto: url + '?t=' + timestamp}).eq('id', userLogin.id);
+    await supabase.from('users').update({foto: url}).eq('id', userLogin.id);
     
-    document.getElementById('myFoto').src = url + '?t=' + timestamp; 
+    document.getElementById('myFoto').src = url + '?t=' + timestamp; // TARUH?t= di sini
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
   } catch(err) {
     alert('Gagal compress: ' + err.message)
   }
-}
+} // <-- TAMBAH KURUNG TUTUP INI
 
 document.getElementById('uploadCover').onchange = async (e) => {
   if(!userLogin) return;
@@ -374,19 +374,17 @@ document.getElementById('uploadCover').onchange = async (e) => {
     alert('Lagi compress cover...')
     const compressedFile = await compressImage(file, 1200)
 
-    const timestamp = Date.now();
-    const path = `${userLogin.id}/cover.jpg`; // HAPUS?v=
+    const timestamp = Date.now(); // biar ga ke-cache
+    const path = `${userLogin.id}/cover.jpg?v=${timestamp}`; // <-- HAPUS "public/"
 
-    const url = await uploadKeStorage(compressedFile, 'covers', path); // bucket = covers
-    await supabase.from('users').update({cover: url + '?t=' + timestamp}).eq('id', userLogin.id);
-    document.getElementById('myCover').src = url + '?t=' + timestamp;
+    const url = await uploadKeStorage(compressedFile, 'covers', path);
+    await supabase.from('users').update({cover: url}).eq('id', userLogin.id);
+    document.getElementById('myCover').src = url + '&t=' + timestamp; // <-- TAMBAH &t biar langsung ganti
     alert('Sukses! Ukuran: ' + (compressedFile.size/1024).toFixed(0) + 'KB')
   } catch(err) {
     alert('Gagal compress: ' + err)
   }
 }
-
-
 window.cariTeman = async function(){
   const keyword = document.getElementById('cariTemanInput').value.toLowerCase();
   if(!keyword) return loadDaftarTeman(); // kalau kosong balikin ke daftar normal
