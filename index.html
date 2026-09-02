@@ -27,7 +27,6 @@ header{background:var(--card)!important;padding:15px 0;border-bottom:4px solid v
 .container{max-width:1100px;margin:auto;padding:20px}
 .hero{text-align:center;padding:60px 20px; background:var(--card); border-radius:15px; margin:20px; border:3px solid var(--accent); box-shadow:var(--shadow)}
 .hero h2{font-size:40px;margin-bottom:15px;color:var(--accent)}
-.saldo-box{background:var(--accent);color:#fff;padding:12px 25px;border-radius:10px;font-weight:900;display:inline-flex;align-items:center;gap:10px;font-size:18px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px}
 .card{background:var(--card);padding:20px;border-radius:15px;border:2px solid var(--border);color:var(--text);box-shadow:var(--shadow)}
 .input{width:100%;padding:12px;margin:10px 0;background:#fff;border:2px solid var(--border);border-radius:8px;color:var(--text)}
@@ -277,9 +276,8 @@ let saldoSekarang = 0; let userLogin = null; let nominalTopup = 0; let convAktif
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn'); 
   if(isLogin){ 
-    // KALO UDAH LOGIN
-    menuBtn.innerHTML = `<div class="saldo-box" style="font-size:14px; padding:8px 15px">💰 <span id="saldoText">${saldoSekarang.toLocaleString()}</span></div>
-    <button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
+    // KALO UDAH LOGIN - VERSI GA ADA SALDO
+    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
   } else { 
     // KALO BELUM LOGIN
     menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
