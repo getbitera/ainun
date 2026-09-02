@@ -1185,21 +1185,26 @@ window.lihatProfilOrang = async function(idOrang){
 
 window.showPage = function(pageId, el){
   document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
+  
+  // 1. SEMBUNYIIN SEMUA PAGE TERMASUK ADMIN
+  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','adminPage','profilOrangPage'].forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
+  
+  // 2. BARU TAMPILIN YG DIKLIK
   document.getElementById(pageId).style.display='block';
   if(el) el.classList.add('active');
+
+  // 3. LOAD DATA SESUAI HALAMAN
   if(pageId==='jobsPage') loadJobs();
   if(pageId==='penyediaPage') loadPenyedia();
   if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
   if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
   if(pageId==='videosPage') loadVideos();
   if(pageId==='chatPage') { loadDaftarChat(); }
-  if(pageId==='adminPage') loadAdminPanel();
+  if(pageId==='adminPage') loadAdminPanel(); // <-- CUMA JALAN DI SINI
 }
-
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
