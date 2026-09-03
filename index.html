@@ -126,6 +126,18 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 .notif-baru{position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:12px 16px;border-radius:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;}
 
+.chat-item{position:relative;} /* wajib biar badge bisa nempel */
+.badge-baru{
+  position:absolute; right:10px; top:15px;
+  background:red; color:white; font-size:11px; font-weight:bold;
+  padding:2px 6px; border-radius:50%;
+}
+.notif-baru{position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:12px 16px;border-radius:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;}
+
+.chat-item{position:relative}
+.badge-baru{position:absolute; right:10px; top:15px; background:red; color:white; font-size:11px; font-weight:bold; padding:2px 6px; border-radius:50%;}
+.notif-baru{position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:12px 16px;border-radius:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;}
+
 </style>
 </head>
 <body>
@@ -1248,27 +1260,33 @@ window.saveProfile = async function(event){ // <-- TAMBAHIN event di sini
 
 let channelRealtime = null; // buat nyimpen channel biar bisa di unsubscribe
 
+
+let lawanChatAktif = null; // <-- 1. TAMBAH INI
+
+
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
   
-  // 1. SET AKTIF
+  lawanChatAktif = lawanId; // <-- 2. SIMPAN LAWAN CHAT
+  
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
   
-  // 2. LOAD HEADER
+  // HAPUS BADGE PAS BUKA CHAT
+  document.getElementById(`chat-${lawanId}`)?.querySelector('.badge-baru')?.remove();
+  
   const { data: users } = await supabase.from('users').select('nama,foto').eq('id', lawanId).single();
   document.getElementById('chatHeader').innerHTML = `<img src="${users.foto||'https://ui-avatars.com/api/?name='+users.nama}" style="width:35px;height:35px;border-radius:50%;vertical-align:middle;margin-right:10px">${users.nama}`
   
-  // 3. CARI / BUAT CONVERSATION
   let { data: conv } = await supabase.from('conversations').select('id').or(`and(user1_id.eq.${userLogin.id},user2_id.eq.${lawanId}),and(user1_id.eq.${lawanId},user2_id.eq.${userLogin.id})`).maybeSingle();
   if(!conv) { const { data: newConv } = await supabase.from('conversations').insert({ user1_id: userLogin.id, user2_id: lawanId }).select().single(); conv = newConv; }
   
   convAktif = conv.id; 
   showPage('chatPage'); 
-  await loadPesan(); // load pesan lama dulu
-  subscribeRealtime(conv.id); // baru nyalain realtime
-  tandaiSudahDibaca(lawanId); // langsung tandai terbaca
+  await loadPesan(); 
+  subscribeRealtime(conv.id);
+  await tandaiSudahDibaca(); // tandai semua
 }
 
 async function loadDaftarChat() {
@@ -1278,7 +1296,7 @@ async function loadDaftarChat() {
   if(!data || data.length === 0){ list.innerHTML += '<p>Belum ada teman</p>'; return; }
   data.forEach(f => { 
     const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
-    list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` 
+    list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')" style="position:relative"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` 
   })
 }
 
@@ -1286,25 +1304,21 @@ async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
   const isi = document.getElementById('isiChat'); isi.innerHTML = '';
-  if(data) data.forEach(m => renderPesan(m)) // pake fungsi render biar sama
+  if(data) data.forEach(m => renderPesan(m))
   isi.scrollTop = isi.scrollHeight;
-  await tandaiSudahDibaca(); // tandai semua yg belum dibaca
+  await tandaiSudahDibaca();
 }
 
-
-// ===== FUNGSI RENDER PESAN + TANGGAL + CENTANG 2 =====
+// ===== RENDER PESAN + TANGGAL + CENTANG 2 =====
 function renderPesan(m){
   const isMe = m.sender_id === userLogin.id;
   const waktu = new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
   
-  // Centang: 1 abu = terkirim, 2 biru = terbaca
   let centang = '';
   if(isMe){
-    if(m.is_read){ 
-      centang = '<span style="color:#3b82f6; letter-spacing:-4px;">✓</span>'; // biru dobel
-    } else { 
-      centang = '<span style="color:#9ca3af; letter-spacing:-4px;">✓</span>'; // abu dobel
-    }
+    centang = m.is_read 
+      ? '<span style="color:#3b82f6; letter-spacing:-4px;">✓</span>' // biru dobel
+      : '<span style="color:#9ca3af; letter-spacing:-4px;">✓</span>'; // abu dobel
   }
 
   document.getElementById('isiChat').innerHTML += `
@@ -1314,7 +1328,7 @@ function renderPesan(m){
     </div>`
 }
 
-// ===== FUNGSI BARU 2: TANDAI SUDAH DIBACA =====
+// ===== TANDAI SUDAH DIBACA =====
 async function tandaiSudahDibaca(){
   if(!convAktif) return;
   await supabase.from('messages')
@@ -1324,21 +1338,18 @@ async function tandaiSudahDibaca(){
     .eq('is_read', false)
 }
 
-// ===== FUNGSI BARU 3: REALTIME + NOTIFIKASI =====
+// ===== REALTIME + NOTIFIKASI =====
 function subscribeRealtime(conversation_id){
-  // matiin channel lama biar ga dobel
   if(channelRealtime) supabase.removeChannel(channelRealtime);
 
   channelRealtime = supabase
-    .channel('chat-' + conversation_id)
+    .channel('chat-room-' + conversation_id)
     .on('postgres_changes', 
       { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation_id}` }, 
       (payload) => {
         const newMsg = payload.new;
-        renderPesan(newMsg); // langsung munculin
+        renderPesan(newMsg);
         document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
-        
-        // Kalau pesan dari lawan, langsung tandai dibaca
         if(newMsg.sender_id !== userLogin.id){
           tandaiSudahDibaca();
         }
@@ -1346,30 +1357,44 @@ function subscribeRealtime(conversation_id){
     .on('postgres_changes', 
       { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation_id}` }, 
       () => {
-        loadPesan(); // reload buat update centang jadi biru
+        loadPesan(); // reload buat update centang biru
       })
     .subscribe();
 
-  // Listener global buat notifikasi di luar chat
   supabase
     .channel('notif-global-' + userLogin.id)
     .on('postgres_changes', 
       { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userLogin.id}` }, 
       (payload) => {
         const newMsg = payload.new;
-        if(newMsg.sender_id !== userLogin.id && newMsg.conversation_id !== convAktif){
+        if(newMsg.conversation_id !== convAktif){
           tampilkanNotifikasi(newMsg);
           playSound();
+          updateBadgeChat(newMsg.sender_id);
         }
       })
     .subscribe();
+}
+
+function updateBadgeChat(senderId){
+  const chatItem = document.getElementById(`chat-${senderId}`);
+  if(!chatItem) return;
+  let badge = chatItem.querySelector('.badge-baru');
+  if(!badge){
+    badge = document.createElement('span');
+    badge.className = 'badge-baru';
+    badge.innerText = '1';
+    chatItem.appendChild(badge);
+  } else {
+    badge.innerText = parseInt(badge.innerText) + 1;
+  }
 }
 
 function tampilkanNotifikasi(msg){
   const notif = document.createElement('div');
   notif.className = 'notif-baru';
   notif.innerHTML = `Pesan baru: ${msg.content.substring(0,30)}...`;
-  notif.onclick = () => bukaChat(msg.sender_id); // klik notif langsung buka chat
+  notif.onclick = () => bukaChat(msg.sender_id);
   document.body.appendChild(notif);
   setTimeout(()=> notif.remove(), 4000);
 }
@@ -1377,15 +1402,30 @@ function tampilkanNotifikasi(msg){
 function playSound(){
   new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_d1718f69ab.mp3').play();
 }
+
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
-  if(!input.value ||!convAktif) return;
-  await supabase.from('messages').insert({ conversation_id: convAktif, sender_id: userLogin.id, content: input.value });
+  if(!input.value.trim() || !convAktif || !lawanChatAktif) return;
+  
+  const pesan = input.value.trim();
   input.value = '';
+  
+  const { data: newMsg, error } = await supabase.from('messages').insert({ 
+    conversation_id: convAktif, 
+    sender_id: userLogin.id,
+    receiver_id: lawanChatAktif, // <-- 3. WAJIB ADA INI
+    content: pesan,
+    is_read: false
+  }).select().single();
+  
+  if(error) return alert('Gagal kirim: ' + error.message);
+  
+  renderPesan(newMsg); // langsung muncul
+  document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
 }
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('ainun_user'); // UDAH GANTI JADI AINUN
+  const savedUser = localStorage.getItem('ainun_user');
   if(session && savedUser){
     try {
       userLogin = JSON.parse(savedUser);
@@ -1399,6 +1439,7 @@ supabase.auth.getSession().then(async ({ data: { session }}) => {
     updateSaldoUI();
     updateUI(true);
     loadMyProfile(); 
+    loadDaftarChat(); // <-- 4. JANGAN LUPA LOAD DAFTAR CHAT
   } else {
     localStorage.removeItem('ainun_user');
     updateUI(false); 
