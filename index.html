@@ -416,24 +416,24 @@ window.pilihPaket = function(koin, bayar){
   event.target.closest('.btn-paket').classList.add('active');
 }
 
-window.requestTopup = async function(){
-  if(!userLogin) return alert("Login dulu");
-  const jumlah = parseInt(document.getElementById('topupJumlah').value);
-  const bayar = parseInt(document.getElementById('topupBayar').value);
-  const file = document.getElementById('inputBuktiTopup').files[0];
-  if(!jumlah ||!bayar ||!file) return alert("Isi semua + upload bukti");
-  try {
-    const compressedFile = await compressImage(file, 1000);
-    const filePath = `topup/${userLogin.id}-${Date.now()}.jpg`;
-    const { error: upErr } = await supabase.storage.from('bukti-topup').upload(filePath, compressedFile);
-    if(upErr) throw upErr;
-    const { data } = supabase.storage.from('bukti-topup').getPublicUrl(filePath);
-    await supabase.from('topup_requests').insert({
-      user_id: userLogin.id, jumlah_koin: jumlah, bayar_rupiah: bayar, bukti_bayar_url: data.publicUrl, status: 'pending'
-    });
-    alert("Request terkirim! Tunggu admin konfirmasi 1x24 jam");
-    closeModal('topup');
-  } catch(err) { alert('Gagal: ' + err.message) }
+window.requestTopup = async function(){ 
+  const { data: { user } = await supabase.auth.getUser(); // AMBIL DARI SINI
+  if(!user) return alert("Login dulu");
+
+  const fileName = `${user.id}/${Date.now()}.jpg`;
+  await supabase.storage.from('bukti-topup').upload(fileName, buktiTopupFile);
+  const { data } = supabase.storage.from('bukti-topup').getPublicUrl(fileName);
+
+  const { error } = await supabase.from('topup_requests').insert({
+    user_id: user.id, // <-- INI PASTI GA NULL LAGI
+    jumlah_koin: nominalTopup,
+    jumlah_bayar: jumlahBayar,
+    bukti_url: data.publicUrl,
+    status: 'pending'
+  });
+  
+  if(error) return alert("Gagal: " + error.message);
+  alert("Berhasil!");
 }
 
 window.ajukanWithdraw = async function(){
@@ -1478,25 +1478,33 @@ window.kirimPesan = async function() {
 }
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('ainun_user');
-  if(session && savedUser){
-    try {
-      userLogin = JSON.parse(savedUser);
-      const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-      if(userData){
-        userLogin = userData;
-        localStorage.setItem('ainun_user', JSON.stringify(userData));
-      }
-    } catch(e) { console.log(e) }
+  if(session){
+    // AMBIL USER DARI SUPABASE DULU. JANGAN DARI LOCALSTORAGE
+    const { data: userData, error } = await supabase.from('users').select('*').eq('id', session.user.id).single();
+    
+    if(error) return console.log("Gagal ambil user:", error);
+    
+    userLogin = userData;
+    localStorage.setItem('ainun_user', JSON.stringify(userData)); // simpan buat cache
+    
     saldoSekarang = userLogin.saldo_koin || 0;
     updateSaldoUI();
     updateUI(true);
     loadMyProfile(); 
-    loadDaftarChat(); // <-- 4. JANGAN LUPA LOAD DAFTAR CHAT
+    loadDaftarChat();
+
   } else {
+    // BARU LOGOUT KALAU SESSION NYA EMG GA ADA
     localStorage.removeItem('ainun_user');
+    userLogin = null;
     updateUI(false); 
   }
+})
+
+// TAMBAH INI BIAR AUTO REFRESH PAS LOGIN
+supabase.auth.onAuthStateChange((event, session) => {
+  if(event == 'SIGNED_IN') window.location.reload();
+  if(event == 'SIGNED_OUT') window.location.reload();
 })
 
 }); 
