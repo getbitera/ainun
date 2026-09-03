@@ -1291,15 +1291,20 @@ async function loadPesan() {
   await tandaiSudahDibaca(); // tandai semua yg belum dibaca
 }
 
-// ===== FUNGSI BARU 1: RENDER PESAN + TANGGAL + CENTANG =====
+
+// ===== FUNGSI RENDER PESAN + TANGGAL + CENTANG 2 =====
 function renderPesan(m){
   const isMe = m.sender_id === userLogin.id;
   const waktu = new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
   
-  // Centang: 1 = terkirim, 2 biru = terbaca
+  // Centang: 1 abu = terkirim, 2 biru = terbaca
   let centang = '';
   if(isMe){
-    centang = m.is_read ? '<span style="color:#3b82f6">✓</span>' : '✓';
+    if(m.is_read){ 
+      centang = '<span style="color:#3b82f6; letter-spacing:-4px;">✓</span>'; // biru dobel
+    } else { 
+      centang = '<span style="color:#9ca3af; letter-spacing:-4px;">✓</span>'; // abu dobel
+    }
   }
 
   document.getElementById('isiChat').innerHTML += `
