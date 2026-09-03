@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -404,18 +405,14 @@ async function compressImage(file, maxSize = 800) {
 let saldoSekarang = 0; let userLogin = null; let convAktif = null; let ratingJobId = ''; let skorRating = 0;
 let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null; let jobSelesaiId = ''; let pekerjaRatingId = '';let fileGambarJob = null;
 
-let nominalTopup = 0;
-let jumlahBayar = 0; // TAMBAH INI
-let buktiTopupFile = null;
-
-document.getElementById('inputBuktiTopup').addEventListener('change', (e)=>{
-  buktiTopupFile = e.target.files[0];
-})
-//
+// KODE BARU TOPUP + WITHDRAW
+let paketTerpilih = null;
 window.pilihPaket = function(koin, bayar){
-  nominalTopup = koin;
-  jumlahBayar = bayar;
-  document.getElementById('infoPaket').innerHTML = `Kamu pilih: <b>${koin.toLocaleString()} Koin</b><br>Total Bayar: <b>Rp ${bayar.toLocaleString()}</b>`;
+  paketTerpilih = koin;
+  document.getElementById('topupJumlah').value = koin;
+  document.getElementById('topupBayar').value = bayar;
+  document.getElementById('infoPaket').innerText = `Kamu pilih ${koin.toLocaleString()} Koin. Transfer Rp ${bayar.toLocaleString()}`;
+  
   document.querySelectorAll('.btn-paket').forEach(b=>b.classList.remove('active'));
   event.target.closest('.btn-paket').classList.add('active');
 }
@@ -437,12 +434,11 @@ window.requestTopup = async function(){
 
     const { data } = supabase.storage.from('bukti-topup').getPublicUrl(fileName);
 
-    // INI YG DIGANTI: bukti_url -> bukti_bayar_url
     const { error } = await supabase.from('topup_requests').insert({
-      user_id: userLogin.id,
+      user_id: userLogin.id, // INI YG BIKIN RLS LULUS
       jumlah_koin: nominalTopup,
-      bayar_rupiah: jumlahBayar, // <-- SAMAIN INI
-      bukti_bayar_url: data.publicUrl, // <-- SAMAIN INI
+      jumlah_bayar: jumlahBayar,
+      bukti_url: data.publicUrl,
       status: 'pending'
     });
 
@@ -457,11 +453,11 @@ window.requestTopup = async function(){
 
   } catch(err){
     alert("Gagal: " + err.message);
-    console.error(err)
   } finally {
     btn.disabled = false; btn.innerText = "KIRIM REQUEST";
   }
 }
+
 window.ajukanWithdraw = async function(){
   const jumlah = parseInt(document.getElementById('jumlahWithdraw').value);
   const noDana = document.getElementById('noDanaWithdraw').value;
@@ -478,36 +474,44 @@ window.ajukanWithdraw = async function(){
 
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 async function loadAdminPanel(){
-  if(!userLogin || userLogin.role!== 'admin') return; // CEK 2X
-
-  const containerTopup = document.getElementById('daftarTopupAdmin');
+  if(!userLogin || userLogin.role !== 'admin') return;
+  
+  const containerTopup = document.getElementById('daftarTopupAdmin'); 
   containerTopup.innerHTML = '<p>Loading...</p>';
 
+  // 1. Ambil semua request pending
   const { data: topup, error } = await supabase
-   .from('topup_requests')
-   .select('*, users!user_id(nama, foto)') // JOIN LANGSUNG BIAR 1 QUERY
-   .eq('status','pending')
-   .order('created_at', {ascending:false});
+    .from('topup_requests')
+    .select('*')
+    .eq('status','pending')
+    .order('created_at', {ascending:false});
+  
+  if(error){ console.error(error); containerTopup.innerHTML = '<p>Error: '+error.message+'</p>'; return; }
 
-  if(error){ containerTopup.innerHTML = '<p>Error: '+error.message+'</p>'; return; }
-  if(!topup || topup.length === 0){ containerTopup.innerHTML = '<p>Tidak ada request topup</p>'; return; }
+  if(!topup || topup.length === 0){ 
+    containerTopup.innerHTML = '<p>Tidak ada request topup</p>'; 
+    return; 
+  }
 
   containerTopup.innerHTML = '';
-  topup.forEach(t => { // GA USAH FOR LOOP + SELECT 1 PER 1
+  // 2. Ambil data user 1 per 1
+  for(const t of topup){
+    const { data: user } = await supabase.from('users').select('nama,foto').eq('id', t.user_id).single();
+    
     containerTopup.innerHTML += `
-    <div class="permintaan-item">
+    <div class="permintaan-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
       <div>
-        <img src="${t.users?.foto || 'https://i.ibb.co/5x1g2zF/default.png'}" style="width:40px;height:40px;border-radius:50%">
-        <b>${t.users?.nama || 'User'}</b><br>
-        Request: <b>${t.jumlah_koin} Koin</b> = Rp <b>${t.jumlah_bayar.toLocaleString()}</b><br>
-        <a href="${t.bukti_url}" target="_blank">LIHAT BUKTI</a>
+        <img src="${user?.foto || 'https://i.ibb.co/5x1g2zF/default.png'}" style="width:40px;height:40px;border-radius:50%; object-fit:cover; margin-right:10px"> 
+        <b>${user?.nama || 'User'}</b><br>
+        Request: <b>${t.jumlah_koin} Koin</b> = Rp <b>${t.bayar_rupiah.toLocaleString()}</b><br>
+        <a href="${t.bukti_bayar_url}" target="_blank">LIHAT BUKTI</a>
       </div>
       <div>
         <button class="btn btn-sukses" onclick="setujuiTopup('${t.id}', '${t.user_id}', ${t.jumlah_koin})">SETUJUI</button>
         <button class="btn btn-batal" onclick="tolakTopup('${t.id}')">TOLAK</button>
       </div>
     </div>`
-  })
+  }
 }
 window.setujuiTopup = async function(requestId){
   const kodeInduk = prompt(`Masukkan Kode Indukan:`);
@@ -644,6 +648,9 @@ window.cariTeman = async function(){
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 
 
+let nominalTopup = 0;
+let buktiTopupFile = null;
+
 window.pilihBukti = function(e){
   buktiTopupFile = e.target.files[0];
 }
@@ -746,19 +753,26 @@ window.loginUser = async function() {
 }
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn');
-  if(isLogin && userLogin){ // TAMBAH && userLogin
+  if(isLogin){
     menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
+    
+    // TAMBAHIN INI DI SINI
     if(userLogin.role === 'admin'){
       document.getElementById('btnAdmin').style.display = 'block';
     } else {
       document.getElementById('btnAdmin').style.display = 'none';
     }
+
   } else {
     menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    document.getElementById('btnAdmin').style.display = 'none';
+    document.getElementById('daftarPenyedia').innerHTML = '';
+    document.getElementById('daftarJob').innerHTML = '';
+    document.getElementById('daftarTeman').innerHTML = '';
+    document.getElementById('daftarVideo').innerHTML = '';
+    document.getElementById('btnAdmin').style.display = 'none'; // sembunyikan lagi pas logout
     saldoSekarang = 0; updateSaldoUI();
     showPage('homePage');
-  }
+  } 
 }
 
 window.logout = async function() { 
@@ -1485,28 +1499,29 @@ window.kirimPesan = async function() {
   document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
 }
 
-// HAPUS 2 BUAH getSession LAMA KAMU. GANTI PAKE INI 1 SAJA
 supabase.auth.getSession().then(async ({ data: { session }}) => {
   if(session){
+    // AMBIL USER DARI SUPABASE DULU. JANGAN DARI LOCALSTORAGE
     const { data: userData, error } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-    if(error){ console.error("Gagal ambil user:", error); updateUI(false); return; }
-
+    
+    if(error) return console.log("Gagal ambil user:", error);
+    
     userLogin = userData;
-    localStorage.setItem('ainun_user', JSON.stringify(userData));
-
+    localStorage.setItem('ainun_user', JSON.stringify(userData)); // simpan buat cache
+    
     saldoSekarang = userLogin.saldo_koin || 0;
     updateSaldoUI();
     updateUI(true);
-    loadMyProfile();
+    loadMyProfile(); 
     loadDaftarChat();
-    loadAdminPanel(); // biar tombol admin langsung muncul
+
   } else {
+    // BARU LOGOUT KALAU SESSION NYA EMG GA ADA
     localStorage.removeItem('ainun_user');
     userLogin = null;
-    updateUI(false);
+    updateUI(false); 
   }
 })
-
 
 // TAMBAH INI BIAR AUTO REFRESH PAS LOGIN
 supabase.auth.onAuthStateChange((event, session) => {
