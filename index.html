@@ -437,11 +437,12 @@ window.requestTopup = async function(){
 
     const { data } = supabase.storage.from('bukti-topup').getPublicUrl(fileName);
 
+    // INI YG DIGANTI: bukti_url -> bukti_bayar_url
     const { error } = await supabase.from('topup_requests').insert({
-      user_id: userLogin.id, // INI YG BIKIN RLS LULUS
+      user_id: userLogin.id,
       jumlah_koin: nominalTopup,
-      jumlah_bayar: jumlahBayar,
-      bukti_url: data.publicUrl,
+      bayar_rupiah: jumlahBayar, // <-- SAMAIN INI
+      bukti_bayar_url: data.publicUrl, // <-- SAMAIN INI
       status: 'pending'
     });
 
@@ -456,6 +457,7 @@ window.requestTopup = async function(){
 
   } catch(err){
     alert("Gagal: " + err.message);
+    console.error(err)
   } finally {
     btn.disabled = false; btn.innerText = "KIRIM REQUEST";
   }
