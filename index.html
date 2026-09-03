@@ -318,7 +318,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="gambarFullModal" onclick="closeModal('gambarFullModal')">
   <img id="gambarFull">
 </div>
-<div class="modal" id="editProfile"><div class="modal-content"><h2>EDIT PROFIL</h2><input class="input" id="editNama" placeholder="Nama"><input class="input" id="editSkill" placeholder="Skill"><input class="input" id="editBio" placeholder="Bio"><input class="input" id="editNoWa" placeholder="No WA 628xxx"><input class="input" type="date" id="editTgl" placeholder="Tanggal Lahir"><input class="input" id="editSekolah" placeholder="Sekolah/Kampus"><input class="input" id="editYoutube" placeholder="Link Youtube"><button class="btn" style="width:100%" onclick="saveProfile(event)">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('editProfile')">TUTUP</button></div></div>
+<div class="modal" id="editProfile"><div class="modal-content"><h2>EDIT PROFIL</h2><input class="input" id="editNama" placeholder="Nama"><input class="input" id="editSkill" placeholder="Skill"><input class="input" id="editBio" placeholder="Bio"><input class="input" id="editNoWa" placeholder="No WA 628xxx"><input class="input" type="date" id="editTgl" placeholder="Tanggal Lahir"><input class="input" id="editSekolah" placeholder="Sekolah/Kampus"><input class="input" id="editYoutube" placeholder="Link Youtube"><button class="btn" style="width:100%" onclick="saveProfile()">SIMPAN</button><button class="btn btn-batal" onclick="closeModal('editProfile')">TUTUP</button></div></div>
 <div class="modal" id="cs"><div class="modal-content"><h2>💬 CUSTOMER SERVICE</h2><p>Butuh bantuan? Chat admin Ainun</p><a href="https://wa.me/62812xxxx" target="_blank" class="btn" style="width:100%;background:#25D366">CHAT WA ADMIN</a><button class="btn btn-batal" onclick="closeModal('cs')">TUTUP</button></div></div>
 <div class="modal" id="uploadVideo">
   <div class="modal-content">
@@ -404,14 +404,8 @@ async function compressImage(file, maxSize = 800) {
 let saldoSekarang = 0; let userLogin = null; let convAktif = null; let ratingJobId = ''; let skorRating = 0;
 let jumlahNotifChat = 0; let jumlahNotifTeman = 0; let channelChat = null; let jobSelesaiId = ''; let pekerjaRatingId = '';let fileGambarJob = null;
 
-let nominalTopup = 0;
-let jumlahBayar = 0; // TAMBAH INI
-let buktiTopupFile = null;
-
-document.getElementById('inputBuktiTopup').addEventListener('change', (e)=>{
-  buktiTopupFile = e.target.files[0];
-})
-//
+// KODE BARU TOPUP + WITHDRAW
+let paketTerpilih = null;
 window.pilihPaket = function(koin, bayar){
   paketTerpilih = koin;
   document.getElementById('topupJumlah').value = koin;
@@ -421,6 +415,7 @@ window.pilihPaket = function(koin, bayar){
   document.querySelectorAll('.btn-paket').forEach(b=>b.classList.remove('active'));
   event.target.closest('.btn-paket').classList.add('active');
 }
+
 window.requestTopup = async function(){
   if(!userLogin) return alert("Login dulu");
   const jumlah = parseInt(document.getElementById('topupJumlah').value);
@@ -629,58 +624,8 @@ window.cariTeman = async function(){
   hasil.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; container.innerHTML += `<div class="card"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')"><h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3><button class="btn" onclick="bukaChat('${lawan.id}')">💬 CHAT</button> <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button></div>` })
 }
 window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
+window.topupKoin = function(){ if(!nominalTopup) return alert("Pilih nominal dulu"); const bayar = Math.ceil(nominalTopup * 1.16); alert(`FITUR TOPUP BELUM AKTIF\nSilahkan transfer Rp ${bayar.toLocaleString()} ke DANA: 0812-xxxx-xxxx\nLalu kirim bukti ke CS`); closeModal('topup'); nominalTopup = 0; }
 
-
-window.pilihBukti = function(e){
-  buktiTopupFile = e.target.files[0];
-}
-
-window.topupKoin = async function(){ 
-  if(!nominalTopup) return alert("Pilih nominal dulu");
-  if(!userLogin) return alert("Login dulu");
-  if(!buktiTopupFile) return alert("Upload bukti transfer dulu");
-  
-  const bayar = Math.ceil(nominalTopup * 1.16); // admin 16%
-  
-  try {
-    // 1. UPLOAD BUKTI DULU KE STORAGE
-    const fileName = `${userLogin.id}-${Date.now()}.jpg`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('bukti-topup')
-    .upload(fileName, buktiTopupFile);
-      
-    if(uploadError) throw uploadError;
-    
-    // INI YG TADI KURANG KURUNG }
-    const { data } = supabase.storage
-    .from('bukti-topup')
-    .getPublicUrl(fileName);
-    const publicUrl = data.publicUrl;
-
-    // 2. INSERT KE topup_requests
-    const { error } = await supabase.from('topup_requests').insert({
-      user_id: userLogin.id, // <-- INI KUNCI BIAR RLS LULUS
-      jumlah_koin: nominalTopup,
-      jumlah_bayar: bayar,
-      bukti_url: publicUrl,
-      status: 'pending'
-      // created_at ga usah, biar default now() aja
-    });
-    
-    if(error) throw error;
-    
-    alert(`Topup Rp ${bayar.toLocaleString()} berhasil diajukan!\nTunggu admin konfirmasi 1x24 jam`);
-    closeModal('topup'); 
-    nominalTopup = 0; 
-    buktiTopupFile = null;
-    document.getElementById('inputBukti').value = '';
-    loadRiwayatTopup(); // refresh riwayat
-
-  } catch(err){
-    alert("Gagal: " + err.message);
-    console.log(err)
-  }
-}
 window.daftarUser = async function(event) {
   const btn = event.target; btn.disabled = true; btn.innerText = "MENDAFTAR...";
   const nama = document.getElementById('daftarNama').value; 
@@ -754,6 +699,7 @@ function updateUI(isLogin) {
     showPage('homePage');
   } 
 }
+
 window.logout = async function() { 
   await supabase.auth.signOut(); 
   localStorage.removeItem('ainun_user'); // UDAH GANTI JADI AINUN
@@ -1108,6 +1054,26 @@ window.simpanVideo = async function(){
   loadVideos();
 }
 
+
+
+async function loadVideos(){
+  const { data, error } = await supabase.from('videos').select('*, users:users!user_id(id, nama, foto)').order('created_at', {ascending:false});
+  if(error){ console.log(error); return; }
+  const container = document.getElementById('daftarVideo'); container.innerHTML = '';
+  if(!data || data.length === 0) return container.innerHTML = '<p>Belum ada video</p>';
+  data.forEach(v=>{
+    container.innerHTML += `<div class="card">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer" onclick="lihatProfilOrang('${v.users.id}')">
+        <img src="${v.users.foto||'https://ui-avatars.com/api/?name='+v.users.nama}" style="width:32px;height:32px;border-radius:50%">
+        <b style="font-size:14px; color:var(--accent)">${v.users.nama}</b>
+      </div>
+      <h3>${v.judul}</h3>
+      <iframe src="${v.link}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%; height:180px; border-radius:10px"></iframe>
+    </div>`
+  })
+}
+
+
 window.cariVideo = async function(){
   const keyword = document.getElementById('cariVideoInput').value.toLowerCase();
   if(!keyword) return loadVideos();
@@ -1254,26 +1220,21 @@ window.lihatProfilOrang = async function(idOrang){
 
 window.showPage = function(pageId, el){
   document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-  
-  // 1. SEMBUNYIIN SEMUA PAGE TERMASUK ADMIN
-  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','adminPage','profilOrangPage'].forEach(id=>{
+  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
-  
-  // 2. BARU TAMPILIN YG DIKLIK
   document.getElementById(pageId).style.display='block';
   if(el) el.classList.add('active');
-
-  // 3. LOAD DATA SESUAI HALAMAN
   if(pageId==='jobsPage') loadJobs();
   if(pageId==='penyediaPage') loadPenyedia();
   if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
   if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
   if(pageId==='videosPage') loadVideos();
   if(pageId==='chatPage') { loadDaftarChat(); }
-  if(pageId==='adminPage') loadAdminPanel(); // <-- CUMA JALAN DI SINI
+  if(pageId==='adminPage') loadAdminPanel();
 }
+
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
@@ -1293,9 +1254,8 @@ window.cariPenyedia = async function(){
   })
 }
 
-window.saveProfile = async function(event){ // <-- TAMBAHIN event di sini
+window.saveProfile = async function(event){
   if(!userLogin) return alert("Login dulu");
-  event.preventDefault(); // <-- TAMBAHIN INI BIAR GA RELOAD
   const btn = event.target; btn.disabled = true; btn.innerText = "MENYIMPAN...";
   const updateData = {
     nama: document.getElementById('editNama').value,
@@ -1312,35 +1272,16 @@ window.saveProfile = async function(event){ // <-- TAMBAHIN event di sini
   closeModal('editProfile'); loadMyProfile(); alert('Profil berhasil disimpan!');
 }
 
-let channelRealtime = null; // buat nyimpen channel biar bisa di unsubscribe
-
-
-let lawanChatAktif = null; // <-- 1. TAMBAH INI
-
-
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
-  
-  lawanChatAktif = lawanId; // <-- 2. SIMPAN LAWAN CHAT
-  
   document.querySelectorAll('.chat-item').forEach(i=>i.classList.remove('active'));
   document.getElementById(`chat-${lawanId}`)?.classList.add('active');
-  
-  // HAPUS BADGE PAS BUKA CHAT
-  document.getElementById(`chat-${lawanId}`)?.querySelector('.badge-baru')?.remove();
-  
   const { data: users } = await supabase.from('users').select('nama,foto').eq('id', lawanId).single();
   document.getElementById('chatHeader').innerHTML = `<img src="${users.foto||'https://ui-avatars.com/api/?name='+users.nama}" style="width:35px;height:35px;border-radius:50%;vertical-align:middle;margin-right:10px">${users.nama}`
-  
   let { data: conv } = await supabase.from('conversations').select('id').or(`and(user1_id.eq.${userLogin.id},user2_id.eq.${lawanId}),and(user1_id.eq.${lawanId},user2_id.eq.${userLogin.id})`).maybeSingle();
   if(!conv) { const { data: newConv } = await supabase.from('conversations').insert({ user1_id: userLogin.id, user2_id: lawanId }).select().single(); conv = newConv; }
-  
-  convAktif = conv.id; 
-  showPage('chatPage'); 
-  await loadPesan(); 
-  subscribeRealtime(conv.id);
-  await tandaiSudahDibaca(); // tandai semua
+  convAktif = conv.id; showPage('chatPage'); loadPesan(); subscribeRealtime(conv.id);
 }
 
 async function loadDaftarChat() {
@@ -1348,134 +1289,26 @@ async function loadDaftarChat() {
   const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
   const list = document.getElementById('daftarChat'); list.innerHTML = '<h3>Daftar Chat</h3>';
   if(!data || data.length === 0){ list.innerHTML += '<p>Belum ada teman</p>'; return; }
-  data.forEach(f => { 
-    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; 
-    list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')" style="position:relative"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` 
-  })
+  data.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; list.innerHTML += `<div class="chat-item" id="chat-${lawan.id}" onclick="bukaChat('${lawan.id}')"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}"><div><b>${lawan.nama}</b></div></div>` })
 }
 
 async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
   const isi = document.getElementById('isiChat'); isi.innerHTML = '';
-  if(data) data.forEach(m => renderPesan(m))
+  if(data) data.forEach(m => {
+    const isMe = m.sender_id === userLogin.id;
+    isi.innerHTML += `<div class="chat-bubble ${isMe? 'chat-me' : 'chat-lawan'}">${m.content}<div class="chat-time">${new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div></div>`
+  })
   isi.scrollTop = isi.scrollHeight;
-  await tandaiSudahDibaca();
-}
-
-// ===== RENDER PESAN + TANGGAL + CENTANG 2 =====
-function renderPesan(m){
-  const isMe = m.sender_id === userLogin.id;
-  const waktu = new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-  
-  let centang = '';
-  if(isMe){
-    centang = m.is_read 
-      ? '<span style="color:#3b82f6; letter-spacing:-4px;">✓</span>' // biru dobel
-      : '<span style="color:#9ca3af; letter-spacing:-4px;">✓</span>'; // abu dobel
-  }
-
-  document.getElementById('isiChat').innerHTML += `
-    <div class="chat-bubble ${isMe? 'chat-me' : 'chat-lawan'}">
-      ${m.content}
-      <div class="chat-time">${waktu} ${centang}</div>
-    </div>`
-}
-
-// ===== TANDAI SUDAH DIBACA =====
-async function tandaiSudahDibaca(){
-  if(!convAktif) return;
-  await supabase.from('messages')
-    .update({is_read: true, read_at: new Date()})
-    .eq('conversation_id', convAktif)
-    .neq('sender_id', userLogin.id)
-    .eq('is_read', false)
-}
-
-// ===== REALTIME + NOTIFIKASI =====
-function subscribeRealtime(conversation_id){
-  if(channelRealtime) supabase.removeChannel(channelRealtime);
-
-  channelRealtime = supabase
-    .channel('chat-room-' + conversation_id)
-    .on('postgres_changes', 
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation_id}` }, 
-      (payload) => {
-        const newMsg = payload.new;
-        renderPesan(newMsg);
-        document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
-        if(newMsg.sender_id !== userLogin.id){
-          tandaiSudahDibaca();
-        }
-      })
-    .on('postgres_changes', 
-      { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation_id}` }, 
-      () => {
-        loadPesan(); // reload buat update centang biru
-      })
-    .subscribe();
-
-  supabase
-    .channel('notif-global-' + userLogin.id)
-    .on('postgres_changes', 
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userLogin.id}` }, 
-      (payload) => {
-        const newMsg = payload.new;
-        if(newMsg.conversation_id !== convAktif){
-          tampilkanNotifikasi(newMsg);
-          playSound();
-          updateBadgeChat(newMsg.sender_id);
-        }
-      })
-    .subscribe();
-}
-
-function updateBadgeChat(senderId){
-  const chatItem = document.getElementById(`chat-${senderId}`);
-  if(!chatItem) return;
-  let badge = chatItem.querySelector('.badge-baru');
-  if(!badge){
-    badge = document.createElement('span');
-    badge.className = 'badge-baru';
-    badge.innerText = '1';
-    chatItem.appendChild(badge);
-  } else {
-    badge.innerText = parseInt(badge.innerText) + 1;
-  }
-}
-
-function tampilkanNotifikasi(msg){
-  const notif = document.createElement('div');
-  notif.className = 'notif-baru';
-  notif.innerHTML = `Pesan baru: ${msg.content.substring(0,30)}...`;
-  notif.onclick = () => bukaChat(msg.sender_id);
-  document.body.appendChild(notif);
-  setTimeout(()=> notif.remove(), 4000);
-}
-
-function playSound(){
-  new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_d1718f69ab.mp3').play();
+  await supabase.from('messages').update({is_read: true}).eq('conversation_id', convAktif).neq('sender_id', userLogin.id)
 }
 
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
-  if(!input.value.trim() || !convAktif || !lawanChatAktif) return;
-  
-  const pesan = input.value.trim();
+  if(!input.value ||!convAktif) return;
+  await supabase.from('messages').insert({ conversation_id: convAktif, sender_id: userLogin.id, content: input.value });
   input.value = '';
-  
-  const { data: newMsg, error } = await supabase.from('messages').insert({ 
-    conversation_id: convAktif, 
-    sender_id: userLogin.id,
-    receiver_id: lawanChatAktif, // <-- 3. WAJIB ADA INI
-    content: pesan,
-    is_read: false
-  }).select().single();
-  
-  if(error) return alert('Gagal kirim: ' + error.message);
-  
-  renderPesan(newMsg); // langsung muncul
-  document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
 }
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
@@ -1497,13 +1330,6 @@ supabase.auth.getSession().then(async ({ data: { session }}) => {
     localStorage.removeItem('ainun_user');
     updateUI(false); 
   }
-})
-
-
-// TAMBAH INI BIAR AUTO REFRESH PAS LOGIN
-supabase.auth.onAuthStateChange((event, session) => {
-  if(event == 'SIGNED_IN') window.location.reload();
-  if(event == 'SIGNED_OUT') window.location.reload();
 })
 
 }); 
