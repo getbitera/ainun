@@ -776,6 +776,8 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
+  if(!ratingJobId || !pekerjaRatingId) return alert("Error: data job/pekerja kosong. Refresh");
+  
   console.log("1. jobId:", ratingJobId, "pekerjaId:", pekerjaRatingId, "skor:", skorRating);
   try {
     const { data: job, error: e1 } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
@@ -787,27 +789,36 @@ window.kirimRating = async function(){
     console.log("3. pekerja:", pekerja);
 
     const total = job.harga;
-    const adminCut = Math.ceil(total * 0.16);
+    const adminCut = Math.ceil(total * 0.16); // dibulatin ke atas biar gak pecahan
     const pekerjaDapat = total - adminCut;
 
+    console.log("4. Hitung:", {total, adminCut, pekerjaDapat})
+
+    // 1. UPDATE SALDO PEKERJA
     const {error: e3} = await supabase.from('users').update({ 
       saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
       total_rating: (pekerja.total_rating||0) + skorRating,
       jumlah_rating: (pekerja.jumlah_rating||0) + 1
     }).eq('id', pekerjaRatingId);
     if(e3) throw "Gagal update pekerja: " + e3.message;
-    console.log("4. update pekerja ok");
+    console.log("5. update pekerja ok");
 
+    // 2. CATAT FEE KE KAS SISTEM
+    console.log("6. Mau insert wallet_sistem:", {user_id: job.user_id, jumlah: adminCut})
     const {error: e4} = await supabase.from('wallet_sistem').insert({
       user_id: job.user_id,
       tipe: 'fee_admin',
-      jumlah: adminCut,
+      jumlah: adminCut, // udah dibulatin jadi int
       keterangan: `Fee 16% Job ID: ${ratingJobId}`,
       relasi_id: ratingJobId
     });
-    if(e4) throw "Gagal insert wallet: " + e4.message;
-    console.log("5. insert wallet ok");
+    if(e4) {
+      console.error("GAGAL INSERT WALLET_SISTEM:", e4) // PENTING BUAT DEBUG
+      throw "Gagal catat fee admin: " + e4.message; 
+    }
+    console.log("7. insert wallet_sistem ok");
 
+    // 3. SELESAIKAN JOB
     const {error: e5} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
     if(e5) throw "Gagal update job: " + e5.message;
     
@@ -815,12 +826,12 @@ window.kirimRating = async function(){
     alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin masuk Kas`);
     loadJobs();
     loadMyProfile();
+
   } catch(err) {
     console.error("DETAIL ERROR:", err);
-    alert(err); // <-- ini yg muncul ke kamu
+    alert(err); // ini yg muncul ke kamu
   }
 }
-
 function getYoutubeEmbed(url){
   if(!url) return '';
   let videoId = '';
