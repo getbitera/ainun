@@ -753,23 +753,22 @@ window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
   try {
     const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
-    // AMBIL SEMUA SEKALIGUS
     const { data: pekerja } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
 
     const total = job.harga;
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
 
-    // 1. CETAK KOIN KE PEKERJA
+    // 1. CETAK KOIN KE PEKERJA + UPDATE RATING
     await supabase.from('users').update({ 
       saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
-      total_rating: pekerja.total_rating + skorRating,
-      jumlah_rating: pekerja.jumlah_rating + 1
+      total_rating: (pekerja.total_rating||0) + skorRating,
+      jumlah_rating: (pekerja.jumlah_rating||0) + 1
     }).eq('id', pekerjaRatingId);
 
-    // 2. CATAT FEE KE wallet_sistem
-   await supabase.from('wallet_sistem').insert({
-      user_id: job.user_id, // <-- JADI INI
+    // 2. CATAT FEE KE wallet_sistem - NAMA KOLOM UDAH BENER
+    await supabase.from('wallet_sistem').insert({
+      user_id: job.user_id, // <-- ini udah bener
       tipe: 'fee_admin',
       jumlah: adminCut,
       keterangan: `Fee 16% Job ID: ${ratingJobId}`,
@@ -1011,25 +1010,24 @@ window.cariPenyedia = async function(){
   })
 }
 
-window.saveProfile = async function(event){ // <-- TAMBAHIN event di sini
+window.saveProfile = async function(event){
   if(!userLogin) return alert("Login dulu");
   
   const btn = event.target; btn.disabled = true; btn.innerText = "MENYIMPAN...";
   const updateData = {
-    nama: document.getElementById('editNama').value,
-    skill: document.getElementById('editSkill').value,
-    bio: document.getElementById('editBio').value,
-    no_wa: document.getElementById('editNoWa').value,
-    tanggal_lahir: document.getElementById('editTgl').value,
-    sekolah: document.getElementById('editSekolah').value,
-    youtube: document.getElementById('editYoutube').value
+    nama: document.getElementById('editNama').value || '',
+    skill: document.getElementById('editSkill').value || '',
+    bio: document.getElementById('editBio').value || '',
+    no_wa: document.getElementById('editNoWa').value || '',
+    tanggal_lahir: document.getElementById('editTgl').value || null, // date boleh null
+    sekolah: document.getElementById('editSekolah').value || '',
+    youtube: document.getElementById('editYoutube').value || ''
   }
   const { error } = await supabase.from('users').update(updateData).eq('id', userLogin.id)
   btn.disabled = false; btn.innerText = "SIMPAN";
   if(error) return alert('Gagal simpan: ' + error.message);
   closeModal('editProfile'); loadMyProfile(); alert('Profil berhasil disimpan!');
 }
-
 let channelRealtime = null; // buat nyimpen channel biar bisa di unsubscribe
 
 
