@@ -752,39 +752,45 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
   try {
-    const { data: job } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
-    const { data: pekerja } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    const { data: job, error: jobErr } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
+    if(jobErr) throw jobErr; // <-- TAMBAH INI
+
+    const { data: pekerja, error: pekerjaErr } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    if(pekerjaErr) throw pekerjaErr; // <-- TAMBAH INI
 
     const total = job.harga;
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
 
-    // 1. CETAK KOIN KE PEKERJA + UPDATE RATING
-    await supabase.from('users').update({ 
+    // 1. CETAK KOIN KE PEKERJA
+    const {error: updatePekerjaErr} = await supabase.from('users').update({ 
       saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
       total_rating: (pekerja.total_rating||0) + skorRating,
       jumlah_rating: (pekerja.jumlah_rating||0) + 1
     }).eq('id', pekerjaRatingId);
+    if(updatePekerjaErr) throw updatePekerjaErr; // <-- TAMBAH INI
 
-    // 2. CATAT FEE KE wallet_sistem - NAMA KOLOM UDAH BENER
-    await supabase.from('wallet_sistem').insert({
-      user_id: job.user_id, // <-- ini udah bener
+    // 2. CATAT FEE KE wallet_sistem
+    const {error: walletErr} = await supabase.from('wallet_sistem').insert({
+      user_id: job.user_id,
       tipe: 'fee_admin',
       jumlah: adminCut,
       keterangan: `Fee 16% Job ID: ${ratingJobId}`,
       relasi_id: ratingJobId
     });
+    if(walletErr) throw walletErr; // <-- TAMBAH INI
 
     // 3. SELESAIKAN JOB
-    await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+    const {error: jobUpdateErr} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+    if(jobUpdateErr) throw jobUpdateErr; // <-- TAMBAH INI
     
     closeModal('ratingModal');
     alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin masuk Kas`);
     loadJobs();
     loadMyProfile();
   } catch(err) {
-    console.error(err);
-    alert('Gagal kirim rating: ' + err.message);
+    console.error("DETAIL ERROR:", err); // <-- LIAT DI CONSOLE F12
+    alert('Gagal kirim rating di bagian: ' + err.message + '\n\nCek Console F12');
   }
 }
 
