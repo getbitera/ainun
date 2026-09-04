@@ -690,22 +690,47 @@ window.previewBukti = function(e){
 window.kirimBukti = async function(){
   const file = document.getElementById('inputBukti').files[0];
   if(!file) return alert("Upload bukti dulu");
+
+  // CEK DULU BIAR GAK UNDEFINED
+  if(!jobSelesaiId) return alert("Error: jobSelesaiId kosong. Refresh halaman");
+  if(!userLogin ||!userLogin.id) return alert("Error: Kamu belum login. Login ulang");
+
   try {
     alert('Lagi compress bukti...');
     const compressedFile = await compressImage(file, 1000);
+    
+    console.log("Size setelah compress:", (compressedFile.size/1024).toFixed(0) + "KB")
+    console.log("userLogin.id:", userLogin.id)
+    console.log("jobSelesaiId:", jobSelesaiId)
+
     const filePath = `${jobSelesaiId}/${userLogin.id}-${Date.now()}.jpg`;
-    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { upsert: true });
-    if(upErr) return alert('Gagal upload: ' + upErr.message);
-    const { data } = await supabase.storage.from('bukti-job').getPublicUrl(filePath);
+    console.log("Upload ke path:", filePath)
+
+    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { 
+      upsert: true,
+      contentType: 'image/jpeg' // tambahin ini biar pasti
+    });
+    if(upErr) {
+      console.error("UPLOAD ERROR:", upErr)
+      return alert('Gagal upload: ' + upErr.message);
+    }
+
+    const { data } = supabase.storage.from('bukti-job').getPublicUrl(filePath);
+    
     const { error } = await supabase.from('jobs').update({
-      status: 'menunggu_konfirmasi', bukti_url: data.publicUrl
+      status: 'menunggu_konfirmasi', 
+      bukti_url: data.publicUrl
     }).eq('id', jobSelesaiId);
+
     if(error) return alert(error.message);
+
     alert("Bukti terkirim! Ukuran: " + (compressedFile.size/1024).toFixed(0) + "KB");
     closeModal('selesaiModal');
     loadJobs();
+
   } catch(err) {
-    alert('Gagal: ' + err)
+    console.error("CATCH ERROR:", err)
+    alert('Gagal: ' + err.message)
   }
 }
 
