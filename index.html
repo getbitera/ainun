@@ -708,7 +708,7 @@ window.kirimBukti = async function(){
 
     const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { 
       upsert: true,
-      contentType: 'image/jpeg' // tambahin ini biar pasti
+      contentType: 'image/jpeg'
     });
     if(upErr) {
       console.error("UPLOAD ERROR:", upErr)
@@ -717,14 +717,17 @@ window.kirimBukti = async function(){
 
     const { data } = supabase.storage.from('bukti-job').getPublicUrl(filePath);
     
+    // UPDATE INI: TAMBAH WAKTU + STATUS DANA DITAHAN
     const { error } = await supabase.from('jobs').update({
       status: 'menunggu_konfirmasi', 
-      bukti_url: data.publicUrl
+      bukti_url: data.publicUrl,
+      bukti_kirim_di: new Date().toISOString(), // <-- 1. CATAT JAM KIRIM BUKTI
+      dana_ditahan: true // <-- 2. TANDAI DANA MASIH DITAHAN
     }).eq('id', jobSelesaiId);
 
     if(error) return alert(error.message);
 
-    alert("Bukti terkirim! Ukuran: " + (compressedFile.size/1024).toFixed(0) + "KB");
+    alert("Bukti terkirim! Dana akan otomatis cair dalam 24 jam jika tidak dirating");
     closeModal('selesaiModal');
     loadJobs();
 
