@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -272,41 +273,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 </div>
 
-<div class="modal" id="topupModal">
-  <div class="modal-content">
-    <h2>💰 TOPUP KOIN</h2>
-    <button class="btn" style="width:100%; margin-bottom:10px" onclick="requestTopup(20000)">20.000 Koin = Rp 23.200</button>
-    <button class="btn" style="width:100%; margin-bottom:10px" onclick="requestTopup(50000)">50.000 Koin = Rp 58.000</button>
-    <button class="btn" style="width:100%; margin-bottom:10px" onclick="requestTopup(100000)">100.000 Koin = Rp 116.000</button>
-    <button class="btn btn-batal" onclick="closeModal('topupModal')">TUTUP</button>
-  </div>
-</div>
-
-<div class="modal" id="bayarTopupModal">
-  <div class="modal-content">
-    <h2>BAYAR TOPUP</h2>
-    <p id="infoBayar"></p>
-    <p><b>Transfer ke: BCA 123456 a.n AINUN</b></p>
-    <input type="file" id="buktiTopup" accept="image/*" class="input">
-    <button class="btn" onclick="kirimBuktiTopup()">KIRIM BUKTI</button>
-    <button class="btn btn-batal" onclick="closeModal('bayarTopupModal')">TUTUP</button>
-  </div>
-</div>
-
-
-<div class="modal" id="withdrawModal">
-  <div class="modal-content">
-    <h2>💸 WITHDRAW KOIN</h2>
-    <p>Saldo kamu: <b id="saldoWithdraw">0 Koin</b></p>
-    <input type="number" id="nominalWithdraw" placeholder="Nominal koin" class="input">
-    <input type="text" id="noRek" placeholder="No Rekening" class="input">
-    <input type="text" id="namaRek" placeholder="Nama Pemilik Rekening" class="input">
-    <p id="infoWithdrawFee"></p>
-    <button class="btn" onclick="requestWithdraw()">AJUKAN WITHDRAW</button>
-    <button class="btn btn-batal" onclick="closeModal('withdrawModal')">TUTUP</button>
-  </div>
-</div>
-
 <div class="modal" id="gambarFullModal" onclick="closeModal('gambarFullModal')">
   <img id="gambarFull">
 </div>
@@ -341,27 +307,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <div id="bintangWrap"></div>
   </div>
 </div>
-
-
-<div class="modal" id="adminPanelModal" style="max-width:1000px">
-  <div class="modal-content">
-    <h2>👑 ADMIN PANEL AINUN</h2>
-    
-    <div style="display:flex; gap:10px; margin-bottom:15px">
-      <button class="btn" onclick="loadAdmin('topup')">TOPUP MASUK</button>
-      <button class="btn" onclick="loadAdmin('withdraw')">WITHDRAW MASUK</button>
-      <button class="btn" onclick="loadAdmin('koin')">DATA KOIN</button>
-    </div>
-
-    <div id="adminContent">
-      <p>Pilih menu di atas</p>
-    </div>
-    
-    <button class="btn btn-batal" onclick="closeModal('adminPanelModal')">TUTUP</button>
-  </div>
-</div>
-
-<button class="btn" style="background:#FFA500" onclick="openModal('adminPanelModal')">👑 ADMIN PANEL</button>
 
 <footer>myainun.vercel.app 2026</footer>
 </div>
@@ -793,46 +738,6 @@ window.kirimBukti = async function(){
   }
 }
 
-let topupData = {};
-
-function generateKodeInduk(nominal){
-  const random = Math.random().toString(36).substring(2, 12);
-  const nominalStr = String(nominal).padStart(5, '0');
-  return `ku2iyebwhqjJ${random}${nominalStr}`;
-}
-
-window.requestTopup = async function(nominalKoin){
-  if(!userLogin) return alert("Login dulu");
-  const fee = Math.ceil(nominalKoin * 0.16);
-  const totalBayar = nominalKoin + fee;
-  topupData = { nominalKoin, fee, totalBayar };
-  document.getElementById('infoBayar').innerHTML = `
-    Dapat: <b>${nominalKoin.toLocaleString()} Koin</b><br>
-    Fee 16%: <b>Rp ${fee.toLocaleString()}</b><br>
-    Total: <b>Rp ${totalBayar.toLocaleString()}</b>
-  `;
-  openModal('bayarTopupModal');
-}
-
-window.kirimBuktiTopup = async function(){
-  const file = document.getElementById('buktiTopup').files[0];
-  if(!file) return alert("Upload bukti dulu");
-  const compressedFile = await compressImage(file, 1000);
-  const filePath = `topup/${userLogin.id}-${Date.now()}.jpg`;
-  const { error: upErr } = await supabase.storage.from('bukti-topup').upload(filePath, compressedFile);
-  if(upErr) return alert('Gagal upload: ' + upErr.message);
-  const { data } = supabase.storage.from('bukti-topup').getPublicUrl(filePath);
-
-  const { error } = await supabase.from('topup_requests').insert({
-    user_id: userLogin.id, nominal_koin: topupData.nominalKoin,
-    total_bayar: topupData.totalBayar, fee: topupData.fee,
-    bukti_url: data.publicUrl, status: 'menunggu'
-  });
-  if(error) return alert(error.message);
-  alert("Bukti terkirim! Tunggu admin 1x24 jam");
-  closeModal('bayarTopupModal');
-}
-
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
   if(!job.bukti_url) return alert("Bukti belum diupload pekerja");
@@ -944,190 +849,6 @@ function getYoutubeEmbed(url){
     return url;
   }
   return videoId? `https://www.youtube.com/embed/${videoId}` : '';
-}
-
-// fungsi buat hitung total saldo dari koin_induk
-async function getSaldoKoin(userId){
-  const { data } = await supabase.from('koin_induk')
-    .select('sisa_nominal')
-    .eq('pemilik_id', userId)
-    .eq('status', 'aktif');
-  return data.reduce((sum, k) => sum + k.sisa_nominal, 0);
-}
-
-window.openWithdrawModal = async function(){
-  if(!userLogin) return alert("Login dulu");
-  const saldo = await getSaldoKoin(userLogin.id);
-  document.getElementById('saldoWithdraw').innerText = saldo.toLocaleString() + ' Koin';
-  openModal('withdrawModal');
-}
-
-document.getElementById('nominalWithdraw').addEventListener('input', function(){
-  const nominal = parseInt(this.value) || 0;
-  const fee = Math.ceil(nominal * 0.16);
-  const diterima = nominal - fee;
-  document.getElementById('infoWithdrawFee').innerText = 
-    `Fee 16%: ${fee.toLocaleString()} Koin | Diterima: Rp ${diterima.toLocaleString()}`;
-})
-
-window.requestWithdraw = async function(){
-  const nominal = parseInt(document.getElementById('nominalWithdraw').value);
-  const noRek = document.getElementById('noRek').value;
-  const namaRek = document.getElementById('namaRek').value;
-  
-  if(!nominal || !noRek || !namaRek) return alert("Isi semua data");
-  
-  const saldo = await getSaldoKoin(userLogin.id);
-  if(nominal > saldo) return alert("Saldo tidak cukup");
-  
-  const fee = Math.ceil(nominal * 0.16);
-  const diterima = nominal - fee;
-
-  const { error } = await supabase.from('withdraw_requests').insert({
-    user_id: userLogin.id,
-    nominal_koin: nominal,
-    fee: fee,
-    nominal_diterima: diterima,
-    no_rek: noRek,
-    nama_rek: namaRek,
-    status: 'menunggu'
-  });
-  
-  if(error) return alert(error.message);
-  alert("Request withdraw terkirim! Dana cair 1x24 jam");
-  closeModal('withdrawModal');
-}
-
-window.loadAdmin = async function(menu){
-  const el = document.getElementById('adminContent');
-  el.innerHTML = 'Loading...';
-  
-  if(menu === 'topup'){
-    const { data } = await supabase.from('topup_requests').select('*, users(nama_lengkap)').eq('status','menunggu').order('created_at', {ascending:false});
-    let html = '<h3>TOPUP MENUNGGU</h3>';
-    data.forEach(d => {
-      html += `
-        <div class="job-card">
-          <b>${d.users.nama_lengkap}</b><br>
-          Dapat Koin: ${d.nominal_koin.toLocaleString()}<br>
-          Bayar: Rp ${d.total_bayar.toLocaleString()} | Fee: Rp ${d.fee.toLocaleString()}<br>
-          <img src="${d.bukti_url}" style="max-width:200px; margin:10px 0"><br>
-          <button class="btn" onclick="approveTopup('${d.id}', '${d.user_id}', ${d.nominal_koin}, ${d.fee})">APPROVE</button>
-          <button class="btn btn-batal" onclick="tolakTopup('${d.id}')">TOLAK</button>
-        </div>
-      `;
-    });
-    el.innerHTML = html;
-  }
-
-  if(menu === 'withdraw'){
-    const { data } = await supabase.from('withdraw_requests').select('*, users(nama_lengkap)').eq('status','menunggu').order('created_at', {ascending:false});
-    let html = '<h3>WITHDRAW MENUNGGU</h3>';
-    data.forEach(d => {
-      html += `
-        <div class="job-card">
-          <b>${d.users.nama_lengkap}</b><br>
-          Tarik: ${d.nominal_koin.toLocaleString()} Koin<br>
-          Diterima: Rp ${d.nominal_diterima.toLocaleString()} | Fee: ${d.fee.toLocaleString()} Koin<br>
-          Rek: ${d.no_rek} a.n ${d.nama_rek}<br>
-          <button class="btn" onclick="approveWithdraw('${d.id}', '${d.user_id}', ${d.nominal_koin})">SUDAH TRANSFER</button>
-          <button class="btn btn-batal" onclick="tolakWithdraw('${d.id}')">TOLAK</button>
-        </div>
-      `;
-    });
-    el.innerHTML = html;
-  }
-
-  if(menu === 'koin'){
-    const { data } = await supabase.from('koin_induk').select('*, users(nama_lengkap)').order('created_at', {ascending:false}).limit(50);
-    let html = '<h3>DATA KOIN INDUK</h3>';
-    data.forEach(d => {
-      html += `
-        <div class="job-card">
-          Kode: ${d.kode}<br>
-          Pemilik: ${d.users.nama_lengkap}<br>
-          Sisa: ${d.sisa_nominal.toLocaleString()} / ${d.nominal_awal.toLocaleString()}<br>
-          Status: ${d.status}
-        </div>
-      `;
-    });
-    el.innerHTML = html;
-  }
-}
-
-// FUNCTION APPROVE TOPUP - INI INTINYA PECAH KODE
-window.approveTopup = async function(reqId, userId, nominalKoin, fee){
-  const kodeInduk = generateKodeInduk(nominalKoin);
-  
-  // 1. Masukin koin ke user
-  await supabase.from('koin_induk').insert({
-    kode: kodeInduk,
-    nominal_awal: nominalKoin,
-    sisa_nominal: nominalKoin,
-    pemilik_id: userId
-  });
-  
-  // 2. Masukin fee ke kas admin. ID admin kamu ganti ya pii
-  const kodeFee = generateKodeInduk(fee);
-  await supabase.from('koin_induk').insert({
-    kode: kodeFee,
-    nominal_awal: fee,
-    sisa_nominal: fee,
-    pemilik_id: 'ID_ADMIN_KAMU_DISINI' 
-  });
-  
-  // 3. Catat mutasi
-  await supabase.from('koin_mutasi').insert({
-    kode_induk: kodeInduk, kode_baru: kodeInduk, nominal: nominalKoin,
-    ke_user_id: userId, tipe: 'topup'
-  });
-  
-  // 4. Update status request
-  await supabase.from('topup_requests').update({status:'disetujui'}).eq('id', reqId);
-  alert('Topup disetujui!');
-  loadAdmin('topup');
-}
-
-window.tolakTopup = async function(reqId){
-  await supabase.from('topup_requests').update({status:'ditolak'}).eq('id', reqId);
-  alert('Topup ditolak');
-  loadAdmin('topup');
-}
-
-// FUNCTION APPROVE WITHDRAW - BAKAR KOIN
-window.approveWithdraw = async function(reqId, userId, nominalKoin){
-  // 1. Ambil kode koin user sampe cukup
-  const { data: koinUser } = await supabase.from('koin_induk')
-    .select('*').eq('pemilik_id', userId).eq('status','aktif').order('created_at');
-  
-  let sisa = nominalKoin;
-  for(let k of koinUser){
-    if(sisa <= 0) break;
-    if(k.sisa_nominal <= sisa){
-      // bakar habis
-      await supabase.from('koin_induk').update({sisa_nominal:0, status:'habis'}).eq('kode', k.kode);
-      sisa -= k.sisa_nominal;
-    } else {
-      // pecah
-      const kodeBaru = generateKodeInduk(sisa);
-      await supabase.from('koin_induk').insert({
-        kode: kodeBaru, nominal_awal: sisa, sisa_nominal: sisa, pemilik_id: 'ID_ADMIN_KAMU_DISINI'
-      });
-      await supabase.from('koin_induk').update({sisa_nominal: k.sisa_nominal - sisa}).eq('kode', k.kode);
-      sisa = 0;
-    }
-  }
-  
-  // 2. Update status
-  await supabase.from('withdraw_requests').update({status:'selesai'}).eq('id', reqId);
-  alert('Withdraw selesai. Koin sudah dibakar. Silahkan transfer uang ke user');
-  loadAdmin('withdraw');
-}
-
-window.tolakWithdraw = async function(reqId){
-  await supabase.from('withdraw_requests').update({status:'ditolak'}).eq('id', reqId);
-  alert('Withdraw ditolak');
-  loadAdmin('withdraw');
 }
 
 window.simpanVideo = async function(){
