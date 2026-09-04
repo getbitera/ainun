@@ -447,11 +447,24 @@ window.ajukanWithdraw = async function(){
   if(!jumlah ||!noDana) return alert("Isi semua dulu");
   if(jumlah < 10000) return alert("Minimal withdraw 10.000 Koin");
   if(jumlah > saldoSekarang) return alert("Saldo tidak cukup");
-  const diterima = Math.floor(jumlah * 0.9);
-  await supabase.from('wallet_sistem').insert({
-    dari_user_id: userLogin.id, tipe: 'withdraw', jumlah: jumlah, keterangan: `Withdraw ke DANA ${noDana}. Diterima: Rp${diterima}`
+
+  const diterima = Math.floor(jumlah * 0.9); // admin 10%
+
+  // 1. POTONG SALDO LANGSUNG
+  const saldoBaru = saldoSekarang - jumlah;
+  await supabase.from('users').update({saldo_koin: saldoBaru}).eq('id', userLogin.id);
+
+  // 2. MASUKIN KE TABEL WITHDRAW
+  await supabase.from('withdraw_requests').insert({
+    user_id: userLogin.id,
+    jumlah_koin: jumlah,
+    no_dana: noDana,
+    diterima_rp: diterima,
+    status: 'pending'
   });
-  alert(`PENGAJUAN DITERIMA\nWithdraw: ${jumlah.toLocaleString()} Koin\nDiterima: Rp ${diterima.toLocaleString()} ke ${noDana}`);
+  
+  saldoSekarang = saldoBaru; updateSaldoUI();
+  alert(`Pengajuan diterima. ${jumlah} Koin dipotong. Diterima: Rp${diterima}`);
   closeModal('withdraw');
 }
 
@@ -628,59 +641,7 @@ window.cariTeman = async function(){
   if(hasil.length === 0){ container.innerHTML = '<p>Teman tidak ditemukan</p>'; return; }
   hasil.forEach(f => { const lawan = f.requester_id === userLogin.id? f.addressee : f.requester; container.innerHTML += `<div class="card"><img src="${lawan.foto||'https://ui-avatars.com/api/?name='+lawan.nama}" class="profil-foto" style="width:80px;height:80px; cursor:pointer" onclick="lihatProfilOrang('${lawan.id}')"><h3 style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${lawan.id}')">${lawan.nama}</h3><button class="btn" onclick="bukaChat('${lawan.id}')">💬 CHAT</button> <button class="btn btn-batal" onclick="batalTeman('${lawan.id}')">Hapus</button></div>` })
 }
-window.pilihNominal = function(j){ nominalTopup = j; alert(`Bayar: Rp ${(j*1.16).toLocaleString()}`) }
 
-
-window.pilihBukti = function(e){
-  buktiTopupFile = e.target.files[0];
-}
-
-window.topupKoin = async function(){ 
-  if(!nominalTopup) return alert("Pilih nominal dulu");
-  if(!userLogin) return alert("Login dulu");
-  if(!buktiTopupFile) return alert("Upload bukti transfer dulu");
-  
-  const bayar = Math.ceil(nominalTopup * 1.16); // admin 16%
-  
-  try {
-    // 1. UPLOAD BUKTI DULU KE STORAGE
-    const fileName = `${userLogin.id}-${Date.now()}.jpg`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('bukti-topup')
-    .upload(fileName, buktiTopupFile);
-      
-    if(uploadError) throw uploadError;
-    
-    // INI YG TADI KURANG KURUNG }
-    const { data } = supabase.storage
-    .from('bukti-topup')
-    .getPublicUrl(fileName);
-    const publicUrl = data.publicUrl;
-
-    // 2. INSERT KE topup_requests
-    const { error } = await supabase.from('topup_requests').insert({
-      user_id: userLogin.id, // <-- INI KUNCI BIAR RLS LULUS
-      jumlah_koin: nominalTopup,
-      jumlah_bayar: bayar,
-      bukti_url: publicUrl,
-      status: 'pending'
-      // created_at ga usah, biar default now() aja
-    });
-    
-    if(error) throw error;
-    
-    alert(`Topup Rp ${bayar.toLocaleString()} berhasil diajukan!\nTunggu admin konfirmasi 1x24 jam`);
-    closeModal('topup'); 
-    nominalTopup = 0; 
-    buktiTopupFile = null;
-    document.getElementById('inputBukti').value = '';
-    loadRiwayatTopup(); // refresh riwayat
-
-  } catch(err){
-    alert("Gagal: " + err.message);
-    console.log(err)
-  }
-}
 window.daftarUser = async function(event) {
   const btn = event.target; btn.disabled = true; btn.innerText = "MENDAFTAR...";
   const nama = document.getElementById('daftarNama').value; 
