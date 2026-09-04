@@ -751,46 +751,48 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
+  console.log("1. jobId:", ratingJobId, "pekerjaId:", pekerjaRatingId, "skor:", skorRating);
   try {
-    const { data: job, error: jobErr } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
-    if(jobErr) throw jobErr; // <-- TAMBAH INI
+    const { data: job, error: e1 } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
+    if(e1) throw "Gagal ambil job: " + e1.message;
+    console.log("2. job:", job);
 
-    const { data: pekerja, error: pekerjaErr } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    if(pekerjaErr) throw pekerjaErr; // <-- TAMBAH INI
+    const { data: pekerja, error: e2 } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    if(e2) throw "Gagal ambil pekerja: " + e2.message;
+    console.log("3. pekerja:", pekerja);
 
     const total = job.harga;
     const adminCut = Math.ceil(total * 0.16);
     const pekerjaDapat = total - adminCut;
 
-    // 1. CETAK KOIN KE PEKERJA
-    const {error: updatePekerjaErr} = await supabase.from('users').update({ 
+    const {error: e3} = await supabase.from('users').update({ 
       saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
       total_rating: (pekerja.total_rating||0) + skorRating,
       jumlah_rating: (pekerja.jumlah_rating||0) + 1
     }).eq('id', pekerjaRatingId);
-    if(updatePekerjaErr) throw updatePekerjaErr; // <-- TAMBAH INI
+    if(e3) throw "Gagal update pekerja: " + e3.message;
+    console.log("4. update pekerja ok");
 
-    // 2. CATAT FEE KE wallet_sistem
-    const {error: walletErr} = await supabase.from('wallet_sistem').insert({
+    const {error: e4} = await supabase.from('wallet_sistem').insert({
       user_id: job.user_id,
       tipe: 'fee_admin',
       jumlah: adminCut,
       keterangan: `Fee 16% Job ID: ${ratingJobId}`,
       relasi_id: ratingJobId
     });
-    if(walletErr) throw walletErr; // <-- TAMBAH INI
+    if(e4) throw "Gagal insert wallet: " + e4.message;
+    console.log("5. insert wallet ok");
 
-    // 3. SELESAIKAN JOB
-    const {error: jobUpdateErr} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
-    if(jobUpdateErr) throw jobUpdateErr; // <-- TAMBAH INI
+    const {error: e5} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+    if(e5) throw "Gagal update job: " + e5.message;
     
     closeModal('ratingModal');
     alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin masuk Kas`);
     loadJobs();
     loadMyProfile();
   } catch(err) {
-    console.error("DETAIL ERROR:", err); // <-- LIAT DI CONSOLE F12
-    alert('Gagal kirim rating di bagian: ' + err.message + '\n\nCek Console F12');
+    console.error("DETAIL ERROR:", err);
+    alert(err); // <-- ini yg muncul ke kamu
   }
 }
 
