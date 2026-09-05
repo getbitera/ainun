@@ -522,19 +522,58 @@ async function loadAdminPanel(){
   }
 }
 
-window.setujuiTopup = async function(requestId, userId, jumlah){
+window.setujuiTopup = async function(topupId, userId, nominal){
+  if(!userLogin) return alert("Login dulu");
+  
+  // 1. DOUBLE CEK ADMIN
+  const { data: admin } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
+  if(admin?.role !== 'admin') return alert("Kamu bukan admin!");
+
+  const btn = event.target; btn.disabled = true; btn.innerText = "MEMPROSES...";
+
   try {
-    const {data: user} = await supabase.from('users').select('saldo_koin').eq('id',userId).single();
-    const saldoBaru = (user.saldo_koin||0) + jumlah;
+    // 2. UPDATE STATUS TOPUP JADI DISETUJUI
+    const { error: e1 } = await supabase.from('topup_requests').update({status: 'disetujui'}).eq('id', topupId);
+    if(e1) throw e1;
 
+    // 3. CETAK KOIN BARU - INI INTINYA
+    const kodeBatch = 'Aainun' + Date.now(); // Aainun1725539201234
+    const nominal5digit = String(nominal).padStart(5, '0'); // 100000 -> 100000, 5000 -> 05000
+    const kodeSeri = kodeBatch + nominal5digit; // Aainun1725539201234100000
+
+    // 3.1 Catat Batch Pencetakan
+    const { error: e2 } = await supabase.from('batch_cetak_koin').insert({
+      kode_batch: kodeBatch, 
+      total_nominal: nominal,
+      created_by: userLogin.id
+    });
+    if(e2) throw e2;
+
+    // 3.2 Masukkan Koin ke Ledger milik user
+    const { error: e3 } = await supabase.from('ledger_koin').insert({
+      kode_seri: kodeSeri, 
+      nominal: nominal, 
+      pemilik_id: userId, 
+      status: 'aktif',
+      asal_transaksi_id: topupId
+    });
+    if(e3) throw e3;
+
+    // 4. UPDATE SALDO_KOIN = SUM DARI LEDGER BIAR TAMPILAN SAMA
+    const { data: totalKoin } = await supabase.from('ledger_koin').select('nominal').eq('pemilik_id', userId).eq('status','aktif');
+    const saldoBaru = totalKoin.reduce((sum, k) => sum + k.nominal, 0);
+    
     await supabase.from('users').update({saldo_koin: saldoBaru}).eq('id', userId);
-    await supabase.from('topup_requests').update({status:'disetujui'}).eq('id',requestId);
 
-    alert(`Berhasil! Saldo ${jumlah.toLocaleString()} Koin sudah masuk`);
-    loadAdminPanel();
-  } catch(err){ alert('Gagal: ' + err.message) }
+    alert(`Topup disetujui! Cetak koin: ${kodeSeri}`);
+    loadAdminPanel(); // refresh panel admin
+    loadMyProfile(); // refresh saldo kalo yg di acc itu kita sendiri
+
+  } catch(err) {
+    alert("Gagal: " + err.message);
+    btn.disabled = false; btn.innerText = "✅ KONFIRMASI";
+  }
 }
-
 
 window.setujuiWithdraw = async function(id, userId, jumlah){
   await supabase.from('users').update({saldo_koin: saldoSekarang - jumlah}).eq('id', userId);
