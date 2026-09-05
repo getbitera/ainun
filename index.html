@@ -464,27 +464,62 @@ window.ajukanWithdraw = async function(){
 
 
 async function loadAdminPanel(){
-  if(!userLogin || userLogin.role!== 'admin') return;
+  if(!userLogin) return;
+  
+  // 1. DOUBLE CEK KE DB BIAR GA BISA DIBOBOL
+  const { data: userData } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
+  if(userData?.role !== 'admin'){
+    alert("Akses ditolak. Kamu bukan admin!");
+    document.getElementById('adminPage').style.display = 'none';
+    document.getElementById('btnAdmin').style.display = 'none';
+    showPage('homePage');
+    return;
+  }
+
   document.getElementById('btnAdmin').style.display = 'block';
 
+  // 2. LOAD TOPUP
   const { data: topup } = await supabase.from('topup_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
-  const container = document.getElementById('daftarTopupAdmin');
-  if(!topup || topup.length===0) { container.innerHTML = '<p>Tidak ada request</p>'; return; }
-
-  container.innerHTML = topup.map(t=>`
-    <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
-      <div style="display:flex; gap:10px; width:100%">
-        <img src="${t.users.foto}" style="width:50px;height:50px;border-radius:50%">
-        <div>
-          <b>${t.users.nama}</b><br>
-          Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br> // <- diganti
-          Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br> // <- diganti
-          Fee: Rp ${t.fee.toLocaleString()}<br>
-          <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a> // <- diganti
+  const containerTopup = document.getElementById('daftarTopupAdmin');
+  if(!topup || topup.length===0) { 
+    containerTopup.innerHTML = '<p>Tidak ada request</p>'; 
+  } else {
+    containerTopup.innerHTML = topup.map(t=>`
+      <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
+        <div style="display:flex; gap:10px; width:100%">
+          <img src="${t.users.foto || 'https://ui-avatars.com/api/?name='+t.users.nama}" style="width:50px;height:50px;border-radius:50%">
+          <div>
+            <b>${t.users.nama}</b><br>
+            Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br>
+            Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br>
+            Fee: Rp ${t.fee.toLocaleString()}<br>
+            <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a>
+          </div>
         </div>
-      </div>
-      <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI</button> // <- diganti
-    </div>`).join('');
+        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI</button>
+      </div>`).join('');
+  }
+
+  // 3. LOAD WITHDRAW
+  const { data: withdraw } = await supabase.from('withdraw_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
+  const containerWithdraw = document.getElementById('daftarWithdrawAdmin');
+  if(!withdraw || withdraw.length===0) { 
+    containerWithdraw.innerHTML = '<p>Tidak ada request</p>'; 
+  } else {
+    containerWithdraw.innerHTML = withdraw.map(w=>`
+      <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
+        <div style="display:flex; gap:10px; width:100%">
+          <img src="${w.users.foto || 'https://ui-avatars.com/api/?name='+w.users.nama}" style="width:50px;height:50px;border-radius:50%">
+          <div>
+            <b>${w.users.nama}</b><br>
+            Withdraw: <b>${w.jumlah_koin.toLocaleString()} Koin</b><br>
+            Diterima: <b>Rp ${w.diterima_rupiah.toLocaleString()}</b><br>
+            No DANA: ${w.no_dana}
+          </div>
+        </div>
+        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiWithdraw('${w.id}','${w.user_id}',${w.jumlah_koin})">✅ SETUJUI</button>
+      </div>`).join('');
+  }
 }
 
 window.setujuiTopup = async function(requestId, userId, jumlah){
@@ -623,8 +658,10 @@ window.loginUser = async function() {
   if(error) return alert('Gagal: ' + error.message);
   const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
   userLogin = userData; localStorage.setItem('ainun_user', JSON.stringify(userData));
- saldoSekarang = userData.saldo_koin || 0;
- updateSaldoUI(); updateUI(true); loadMyProfile(); closeModal('login');
+  saldoSekarang = userData.saldo_koin || 0;
+  updateSaldoUI(); updateUI(true); loadMyProfile(); 
+  cekRoleAdmin(); // <-- TAMBAH INI
+  closeModal('login');
 }
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn');
@@ -1183,27 +1220,41 @@ window.lihatProfilOrang = async function(idOrang){
   showPage('profilOrangPage');
 }
 
-window.showPage = function(pageId, el){
+window.showPage = async function(pageId, el){
   document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
   
-  // 1. SEMBUNYIIN SEMUA PAGE
-  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage'].forEach(id=>{
+  // 1. KUNCI ADMIN PAGE
+  if(pageId === 'adminPage'){
+    if(!userLogin){
+      alert("Login dulu");
+      return;
+    }
+    // CEK LANGSUNG KE DB
+    const { data: userData } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
+    if(userData?.role !== 'admin'){
+      alert("Akses ditolak. Kamu bukan admin!");
+      pageId = 'homePage'; // Paksa balik ke home
+    }
+  }
+
+  // 2. SEMBUNYIIN SEMUA PAGE
+  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'].forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
   
-  // 2. BARU TAMPILIN YG DIKLIK
+  // 3. BARU TAMPILIN YG DIKLIK
   document.getElementById(pageId).style.display='block';
   if(el) el.classList.add('active');
 
-  // 3. LOAD DATA SESUAI HALAMAN
+  // 4. LOAD DATA SESUAI HALAMAN
   if(pageId==='jobsPage') loadJobs();
   if(pageId==='penyediaPage') loadPenyedia();
   if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
   if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
   if(pageId==='videosPage') loadVideos();
   if(pageId==='chatPage') { loadDaftarChat(); }
-  if(pageId==='adminPage') loadAdminPanel();
+  if(pageId==='adminPage') loadAdminPanel(); // cuma admin yg sampe sini
 }
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
@@ -1408,7 +1459,7 @@ window.kirimPesan = async function() {
 }
 
 supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('ainun_user'); // UDAH GANTI JADI AINUN
+  const savedUser = localStorage.getItem('ainun_user');
   if(session && savedUser){
     try {
       userLogin = JSON.parse(savedUser);
@@ -1418,16 +1469,23 @@ supabase.auth.getSession().then(async ({ data: { session }}) => {
         localStorage.setItem('ainun_user', JSON.stringify(userData));
       }
     } catch(e) { console.log(e) }
+    
     saldoSekarang = userLogin.saldo_koin || 0;
     updateSaldoUI();
     updateUI(true);
     loadMyProfile(); 
+    cekRoleAdmin(); // <-- INI TAMBAHANNYA BIAR CEK TOMBOL ADMIN
+    
+    // LOAD DATA AWAL KALO LOGIN
+    loadJobs();
+    loadPenyedia();
+    loadVideos();
+    
   } else {
     localStorage.removeItem('ainun_user');
     updateUI(false); 
   }
 })
-
 
 supabase.auth.onAuthStateChange((event, session) => {
   if(event == 'SIGNED_OUT') { 
@@ -1435,8 +1493,21 @@ supabase.auth.onAuthStateChange((event, session) => {
     updateUI(false);
   }
 })
+async function cekRoleAdmin(){
+  const btnAdmin = document.getElementById('btnAdmin');
+  if(!btnAdmin) return;
+  btnAdmin.style.display = 'none'; // default sembunyiin dulu
+  
+  if(!userLogin) return;
 
-}); 
+  const { data } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
+  
+  if(data?.role === 'admin'){
+    btnAdmin.style.display = 'block'; 
+  }
+}
+
+});
 </script>
 </body>
 </html>
