@@ -424,6 +424,7 @@ window.requestTopup = async function(){
   if(!userLogin) return alert("Login dulu");
   const jumlah = parseInt(document.getElementById('topupJumlah').value);
   const bayar = parseInt(document.getElementById('topupBayar').value);
+  const fee = bayar - jumlah; // 16%
   const file = document.getElementById('inputBuktiTopup').files[0];
   if(!jumlah ||!bayar ||!file) return alert("Pilih paket + upload bukti dulu");
 
@@ -435,19 +436,16 @@ window.requestTopup = async function(){
     const { data } = supabase.storage.from('bukti-topup').getPublicUrl(filePath);
 
     await supabase.from('topup_requests').insert({
-  user_id: userLogin.id, // WAJIB ADA
-  jumlah_koin: jumlah,
-  bayar_rupiah: bayar,
-  bukti_bayar_url: data.publicUrl,
-  status: 'pending'
-}).select();
-    alert("Request terkirim! Tunggu admin konfirmasi 1x24 jam");
+      user_id: userLogin.id,
+      nominal_koin: jumlah, // <- diganti
+      total_bayar: bayar, // <- diganti
+      fee: fee, // <- tambah ini
+      bukti_url: data.publicUrl, // <- diganti
+      status: 'pending'
+    });
+    alert("Request terkirim! Tunggu admin konfirmasi");
     closeModal('topup');
   } catch(err) { alert('Gagal: ' + err.message) }
-
-console.log("userLogin.id:", userLogin.id)
-console.log("jumlah:", jumlah, "bayar:", bayar)
-
 }
 
 window.ajukanWithdraw = async function(){
@@ -463,6 +461,8 @@ window.ajukanWithdraw = async function(){
   closeModal('withdraw');
 }
 
+
+
 async function loadAdminPanel(){
   if(!userLogin || userLogin.role!== 'admin') return;
   document.getElementById('btnAdmin').style.display = 'block';
@@ -477,25 +477,22 @@ async function loadAdminPanel(){
         <img src="${t.users.foto}" style="width:50px;height:50px;border-radius:50%">
         <div>
           <b>${t.users.nama}</b><br>
-          Paket: <b>${t.jumlah_koin.toLocaleString()} Koin</b><br>
-          Bayar: <b>Rp ${t.bayar_rupiah.toLocaleString()}</b><br>
-          <a href="${t.bukti_bayar_url}" target="_blank" class="btn btn-sm" style="padding:5px 10px; margin-top:5px">📷 LIHAT BUKTI</a>
+          Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br> // <- diganti
+          Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br> // <- diganti
+          Fee: Rp ${t.fee.toLocaleString()}<br>
+          <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a> // <- diganti
         </div>
       </div>
-      <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.jumlah_koin})">✅ KONFIRMASI & MASUKAN SALDO</button>
+      <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI</button> // <- diganti
     </div>`).join('');
 }
 
 window.setujuiTopup = async function(requestId, userId, jumlah){
   try {
-    // 1. Ambil saldo user dulu
     const {data: user} = await supabase.from('users').select('saldo_koin').eq('id',userId).single();
     const saldoBaru = (user.saldo_koin||0) + jumlah;
 
-    // 2. Update saldo user
     await supabase.from('users').update({saldo_koin: saldoBaru}).eq('id', userId);
-
-    // 3. Update status request
     await supabase.from('topup_requests').update({status:'disetujui'}).eq('id',requestId);
 
     alert(`Berhasil! Saldo ${jumlah.toLocaleString()} Koin sudah masuk`);
@@ -503,11 +500,6 @@ window.setujuiTopup = async function(requestId, userId, jumlah){
   } catch(err){ alert('Gagal: ' + err.message) }
 }
 
-window.setujuiTopup = async function(id, userId, jumlah){
-  await supabase.from('users').update({saldo_koin: saldoSekarang + jumlah}).eq('id', userId);
-  await supabase.from('topup_requests').update({status:'disetujui'}).eq('id',id);
-  alert("Topup disetujui"); loadAdminPanel();
-}
 
 window.setujuiWithdraw = async function(id, userId, jumlah){
   await supabase.from('users').update({saldo_koin: saldoSekarang - jumlah}).eq('id', userId);
