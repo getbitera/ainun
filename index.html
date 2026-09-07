@@ -544,7 +544,7 @@ window.setujuiTopup = async function(topupId, userId, nominal){
 
     // 3. CETAK KE LEDGER - Yg penting disini ada pemilik_id
     await supabase.from('ledger_koin').insert({
-      kode_seri: kodeSeri, nominal: nominal, pemilik_id: userId, tipe: 'cetak', relasi_id: topupId
+      kode_seri: kodeSeri, nominal: nominal, user_id: userId, tipe: 'cetak', relasi_id: topupId
     });
 
     // 4. UPDATE TOPUP
