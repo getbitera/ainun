@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -485,19 +483,19 @@ async function loadAdminPanel(){
     containerTopup.innerHTML = '<p>Tidak ada request</p>'; 
   } else {
     containerTopup.innerHTML = topup.map(t=>`
-      <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
-        <div style="display:flex; gap:10px; width:100%">
-          <img src="${t.users.foto || 'https://ui-avatars.com/api/?name='+t.users.nama}" style="width:50px;height:50px;border-radius:50%">
-          <div>
-            <b>${t.users.nama}</b><br>
-            Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br>
-            Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br>
-            Fee: Rp ${t.fee.toLocaleString()}<br>
-            <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a>
-          </div>
-        </div>
-        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI</button>
-      </div>`).join('');
+  <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
+    <div style="display:flex; gap:10px; width:100%">
+      <img src="${t.users.foto || 'https://ui-avatars.com/api/?name='+t.users.nama}" style="width:50px;height:50px;border-radius:50%">
+      <div>
+        <b>${t.users.nama}</b><br>
+        Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br>
+        Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br>
+        <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a>
+      </div>
+    </div>
+    <input class="input" id="kodeSeri-${t.id}" placeholder="Paste Kode dari tabel koin_induk" style="margin-top:10px; width:100%">
+    <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI & CETAK KOIN</button>
+  </div>`).join('');
   }
 
   // 3. LOAD WITHDRAW
@@ -523,58 +521,33 @@ async function loadAdminPanel(){
 }
 
 window.setujuiTopup = async function(topupId, userId, nominal){
-  if(!userLogin) return alert("Login dulu");
-  
-  // 1. DOUBLE CEK ADMIN
-  const { data: admin } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
-  if(admin?.role !== 'admin') return alert("Kamu bukan admin!");
+  const kodeSeri = document.getElementById(`kodeSeri-${topupId}`).value.trim();
+  if(!kodeSeri) return alert("Isi Kode Seri Koin Induk dulu!");
 
-  const btn = event.target; btn.disabled = true; btn.innerText = "MEMPROSES...";
+  const { data: koinInduk, error: e0 } = await supabase.from('koin_induk')
+    .select('*').eq('kode_seri', kodeSeri).eq('status', 'tersedia').single();
+  if(e0 || !koinInduk) return alert("Kode Seri tidak ditemukan atau sudah terpakai!");
+  if(koinInduk.nominal !== nominal) return alert(`Nominal tidak sama! Kode ini ${koinInduk.nominal}`);
+
+  const btn = event.target; btn.disabled = true;
 
   try {
-    // 2. UPDATE STATUS TOPUP JADI DISETUJUI
-    const { error: e1 } = await supabase.from('topup_requests').update({status: 'disetujui'}).eq('id', topupId);
-    if(e1) throw e1;
-
-    // 3. CETAK KOIN BARU - INI INTINYA
-    const kodeBatch = 'Aainun' + Date.now(); // Aainun1725539201234
-    const nominal5digit = String(nominal).padStart(5, '0'); // 100000 -> 100000, 5000 -> 05000
-    const kodeSeri = kodeBatch + nominal5digit; // Aainun1725539201234100000
-
-    // 3.1 Catat Batch Pencetakan
-    const { error: e2 } = await supabase.from('batch_cetak_koin').insert({
-      kode_batch: kodeBatch, 
-      total_nominal: nominal,
-      created_by: userLogin.id
+    await supabase.from('koin_induk').update({status: 'terpakai'}).eq('kode_seri', kodeSeri);
+    await supabase.from('ledger_koin').insert({
+      kode_seri: kodeSeri, nominal: nominal, pemilik_id: userId, tipe: 'cetak', relasi_id: topupId
     });
-    if(e2) throw e2;
+    await supabase.from('topup_requests').update({
+      status: 'disetujui', kode_seri_dipakai: kodeSeri
+    }).eq('id', topupId);
 
-    // 3.2 Masukkan Koin ke Ledger milik user
-    const { error: e3 } = await supabase.from('ledger_koin').insert({
-      kode_seri: kodeSeri, 
-      nominal: nominal, 
-      pemilik_id: userId, 
-      status: 'aktif',
-      asal_transaksi_id: topupId
-    });
-    if(e3) throw e3;
-
-    // 4. UPDATE SALDO_KOIN = SUM DARI LEDGER BIAR TAMPILAN SAMA
-    const { data: totalKoin } = await supabase.from('ledger_koin').select('nominal').eq('pemilik_id', userId).eq('status','aktif');
-    const saldoBaru = totalKoin.reduce((sum, k) => sum + k.nominal, 0);
-    
-    await supabase.from('users').update({saldo_koin: saldoBaru}).eq('id', userId);
-
-    alert(`Topup disetujui! Cetak koin: ${kodeSeri}`);
-    loadAdminPanel(); // refresh panel admin
-    loadMyProfile(); // refresh saldo kalo yg di acc itu kita sendiri
+    alert(`Sukses! Koin ${kodeSeri} senilai ${nominal} sudah dicetak ke user`);
+    loadAdminPanel();
 
   } catch(err) {
     alert("Gagal: " + err.message);
-    btn.disabled = false; btn.innerText = "✅ KONFIRMASI";
+    btn.disabled = false;
   }
 }
-
 window.setujuiWithdraw = async function(id, userId, jumlah){
   await supabase.from('users').update({saldo_koin: saldoSekarang - jumlah}).eq('id', userId);
   await supabase.from('withdraw_requests').update({status:'disetujui'}).eq('id',id);
