@@ -524,7 +524,7 @@ window.setujuiTopup = async function(topupId, userId, nominal){
   const kodeSeri = document.getElementById(`kodeSeri-${topupId}`).value.trim();
   if(!kodeSeri) return alert("Isi Kode Seri Koin Induk dulu!");
 
-  // 1. AMBIL DATA USER DULU BUAT NAMA
+  // 1. AMBIL DATA USER DULU BUAT NAMA DOANG
   const { data: userData } = await supabase.from('users').select('nama').eq('id', userId).single();
   const namaUser = userData?.nama || 'Anonim';
 
@@ -536,14 +536,13 @@ window.setujuiTopup = async function(topupId, userId, nominal){
   const btn = event.target; btn.disabled = true;
 
   try {
-    // 2. UPDATE KOIN INDUK + ISI NAMA + USER_ID
+    // 2. UPDATE KOIN INDUK + ISI NAMA DOANG
     await supabase.from('koin_induk').update({
       status: 'terpakai',
-      nama_pemilik: namaUser, // <-- INI TAMBAHAN
-      user_id: userId // <-- INI TAMBAHAN
+      nama_pemilik: namaUser // <-- CUMA INI
     }).eq('kode_seri', kodeSeri);
 
-    // 3. CETAK KE LEDGER
+    // 3. CETAK KE LEDGER - Yg penting disini ada pemilik_id
     await supabase.from('ledger_koin').insert({
       kode_seri: kodeSeri, nominal: nominal, pemilik_id: userId, tipe: 'cetak', relasi_id: topupId
     });
