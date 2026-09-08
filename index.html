@@ -140,7 +140,35 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 </head>
 <body>
 <div class="main">
+<!-- MODAL SYARAT & KETENTUAN -->
+<div class="modal" id="tos">
+  <div class="modal-content">
+    <h2>📄 SYARAT & KETENTUAN MY AINUN</h2>
+    <div style="max-height:400px; overflow-y:auto; text-align:left; font-size:14px; line-height:1.6">
+      <p>1. Dengan mendaftar kamu setuju menggunakan koin sebagai alat transaksi.</p>
+      <p>2. Dilarang melakukan penipuan. Akun akan diblokir permanen.</p>
+      <p>3. Admin berhak memotong fee 16% untuk topup dan 10% untuk withdraw.</p>
+      <p>4. Sengketa job diselesaikan oleh Admin. Keputusan Admin final.</p>
+      <p>5. My Ainun tidak bertanggung jawab atas kerugian di luar platform.</p>
+    </div>
+    <button class="btn btn-sukses" onclick="closeModal('tos')">SAYA MENGERTI</button>
+  </div>
+</div>
 
+<!-- MODAL KEBIJAKAN PRIVASI -->
+<div class="modal" id="privasi">
+  <div class="modal-content">
+    <h2>🔒 KEBIJAKAN PRIVASI</h2>
+    <div style="max-height:400px; overflow-y:auto; text-align:left; font-size:14px; line-height:1.6">
+      <p>1. Data kamu seperti nama, email, WA hanya untuk keperluan platform.</p>
+      <p>2. Foto dan video yang kamu upload menjadi tanggung jawab kamu.</p>
+      <p>3. Kami tidak akan menjual data kamu ke pihak ketiga.</p>
+      <p>4. Chat dan bukti job disimpan untuk keamanan transaksi.</p>
+      <p>5. Kamu bisa minta hapus data dengan hubungi CS.</p>
+    </div>
+    <button class="btn btn-sukses" onclick="closeModal('privasi')">SAYA MENGERTI</button>
+  </div>
+</div>
 <header>
   <div class="nav">
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
@@ -258,8 +286,40 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
   <div class="card"><h3>👥 Teman (<span id="myJumlahTeman2">0</span>)</h3><div id="daftarTemanProfil" class="teman-grid"><p>Belum ada teman</p></div></div>
 </div>
-<div class="modal" id="login"><div class="modal-content"><h2>LOGIN</h2><input class="input" type="email" id="loginEmail" placeholder="Email"><input class="input" type="password" id="loginPass" placeholder="Password"><button class="btn" style="width:100%" onclick="loginUser()">MASUK</button><button class="btn btn-batal" onclick="closeModal('login')">TUTUP</button></div></div>
-<div class="modal" id="daftar"><div class="modal-content"><h2>DAFTAR</h2><input class="input" type="text" id="daftarNama" placeholder="Nama"><input class="input" type="email" id="daftarEmail" placeholder="Email"><input class="input" type="password" id="daftarPass" placeholder="Password"><label><input type="checkbox" id="setujuTOS"> Saya setuju TOS</label><button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button><button class="btn btn-batal" onclick="closeModal('daftar')">TUTUP</button></div></div>
+<div class="modal" id="login">
+  <div class="modal-content">
+    <h2>LOGIN</h2>
+    <input class="input" type="email" id="loginEmail" placeholder="Email">
+    <input class="input" type="password" id="loginPass" placeholder="Password">
+    <p style="text-align:right; font-size:13px; margin:-5px 0 10px 0">
+      <a href="#" onclick="lupaPassword()" style="color:var(--accent)">Lupa Password?</a>
+    </p>
+    <button class="btn" style="width:100%" onclick="loginUser()">MASUK</button>
+    <button class="btn btn-batal" onclick="closeModal('login')">TUTUP</button>
+  </div>
+</div>
+<div class="modal" id="daftar">
+  <div class="modal-content">
+    <h2>DAFTAR</h2>
+    <input class="input" type="text" id="daftarNama" placeholder="Nama">
+    <input class="input" type="email" id="daftarEmail" placeholder="Email">
+    <input class="input" type="password" id="daftarPass" placeholder="Password">
+    
+    <div style="text-align:left; margin:15px 0; font-size:13px">
+      <label style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px">
+        <input type="checkbox" id="setujuTOS"> 
+        <span>Saya setuju <a href="#" onclick="openModal('tos');return false" style="color:var(--accent); font-weight:bold">Syarat & Ketentuan</a></span>
+      </label>
+      <label style="display:flex; gap:8px; align-items:flex-start">
+        <input type="checkbox" id="setujuPrivasi"> 
+        <span>Saya setuju <a href="#" onclick="openModal('privasi');return false" style="color:var(--accent); font-weight:bold">Kebijakan Privasi</a></span>
+      </label>
+    </div>
+
+    <button class="btn" style="width:100%" onclick="daftarUser(event)">DAFTAR</button>
+    <button class="btn btn-batal" onclick="closeModal('daftar')">TUTUP</button>
+  </div>
+</div>
 
 <div class="modal" id="post">
   <div class="modal-content">
@@ -640,19 +700,24 @@ window.daftarUser = async function(event) {
   const nama = document.getElementById('daftarNama').value; 
   const email = document.getElementById('daftarEmail').value; 
   const pass = document.getElementById('daftarPass').value;
+  const setujuTOS = document.getElementById('setujuTOS').checked;
+  const setujuPrivasi = document.getElementById('setujuPrivasi').checked;
   
   if(!nama ||!email ||!pass) { 
     alert("Isi semua dulu"); 
-    btn.disabled = false; 
-    btn.innerText = "DAFTAR"; 
+    btn.disabled = false; btn.innerText = "DAFTAR"; 
     return; 
+  }
+  if(!setujuTOS || !setujuPrivasi) {
+    alert("Kamu harus setuju Syarat & Ketentuan dan Kebijakan Privasi dulu");
+    btn.disabled = false; btn.innerText = "DAFTAR";
+    return;
   }
 
   const { data, error } = await supabase.auth.signUp({ email: email, password: pass });
   if(error) { 
     alert('Gagal Daftar Auth: ' + error.message); 
-    btn.disabled = false; 
-    btn.innerText = "DAFTAR"; 
+    btn.disabled = false; btn.innerText = "DAFTAR"; 
     return; 
   }
 
@@ -661,18 +726,19 @@ window.daftarUser = async function(event) {
     nama: nama, 
     email: email, 
     saldo_koin: 0, 
-    role: 'user' 
-  }); // <-- INI WAJIB ADA ; 
+    role: 'user',
+    setuju_tos: true, // <-- simpan ke DB
+    setuju_privasi: true // <-- simpan ke DB
+  });
 
-  btn.disabled = false;  // <-- BARU LANJUT KE SINI
-  btn.innerText = "DAFTAR";
+  btn.disabled = false; btn.innerText = "DAFTAR";
 
   if(insertError) {
     alert('Gagal simpan ke users: ' + insertError.message);
     return;
   }
   
-  alert('Daftar berhasil!'); 
+  alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar');
 }
 window.loginUser = async function() {
@@ -709,6 +775,21 @@ function updateUI(isLogin) {
   document.getElementById('btnAdmin').style.display = 'block';
 }
 }
+
+window.lupaPassword = async function(){
+  const email = document.getElementById('loginEmail').value;
+  if(!email) return alert("Isi email kamu dulu di kolom email");
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://myainun.vercel.app/' // ganti sesuai domain kamu
+  });
+
+  if(error) return alert("Gagal: " + error.message);
+  
+  alert("Link reset password sudah dikirim ke email kamu. Cek inbox/spam");
+  closeModal('login');
+}
+
 window.logout = async function() { 
   await supabase.auth.signOut(); 
   localStorage.removeItem('ainun_user');
