@@ -597,48 +597,33 @@ async function loadAdminPanel(){
 }
 
 window.setujuiTopup = async function(topupId, userId, nominal){
-  const inputEl = document.getElementById(`kodeSeri-${topupId}`);
-  const kodeSeri = inputEl.value.trim();
-  if(!kodeSeri) return alert("Isi kode dulu");
-
+  const kodeSeri = document.getElementById(`kodeSeri-${topupId}`).value.trim();
   const { data: koinInduk } = await supabase.from('koin_induk').select('*').eq('kode_seri', kodeSeri).maybeSingle();
   if(!koinInduk) return alert("Kode gak ada");
-
-  // INI KUNCINYA BIAR GAK BISA DIPAKAI 2x
-  if(koinInduk.dipakai_pada !== null || koinInduk.status === 'terpakai'){
-    return alert(`KODE INI SUDAH TERPAKAI!\nDipakai pada: ${koinInduk.dipakai_pada}\nOleh: ${koinInduk.dipakai_oleh}`);
+  if(koinInduk.dipakai_pada !== null){
+    return alert("SUDAH TERPAKAI PADA: " + koinInduk.dipakai_pada);
   }
 
-  if(Number(koinInduk.nominal) !== Number(nominal)){
-    return alert(`Nominal gak sama!`);
+  const { error: errUpdate } = await supabase.from('koin_induk').update({ 
+    status: 'terpakai',
+    dipakai_pada: new Date().toISOString(),
+    dipakai_oleh: userId,
+    sisa_nominal: 0
+  }).eq('id', koinInduk.id);
+
+  if(errUpdate){
+    alert("GAGAL UPDATE KOIN_INDUK: " + errUpdate.message + "\nIni penyebab bisa dipakai 2x!");
+    console.error(errUpdate);
+    return;
   }
 
-  try {
-    const { data: userData } = await supabase.from('users').select('nama, saldo_koin').eq('id', userId).single();
-
-    // Tandai langsung TERPAKAI + isi siapa yang pakai
-    await supabase.from('koin_induk').update({ 
-      status: 'terpakai',
-      dipakai_pada: new Date().toISOString(),
-      dipakai_oleh: userId,
-      sisa_nominal: 0
-    }).eq('id', koinInduk.id);
-
-    await supabase.from('users').update({ 
-      saldo_koin: (userData.saldo_koin || 0) + Number(nominal)
-    }).eq('id', userId);
-
-    await supabase.from('topup_requests').update({ 
-      status: 'disetujui', 
-      kode_seri_dipakai: kodeSeri 
-    }).eq('id', topupId);
-
-    alert("BERHASIL! Koin tidak bisa dipakai lagi");
-    loadAdminPanel();
-
-  } catch(err){
-    alert("Gagal: " + err.message);
-  }
+  // baru lanjut tambah saldo
+  const { data: userData } = await supabase.from('users').select('saldo_koin').eq('id', userId).single();
+  await supabase.from('users').update({ saldo_koin: (userData.saldo_koin||0)+Number(nominal) }).eq('id', userId);
+  await supabase.from('topup_requests').update({ status: 'disetujui', kode_seri_dipakai: kodeSeri }).eq('id', topupId);
+  
+  alert("BERHASIL DAN SUDAH DIKUNCI");
+  loadAdminPanel();
 }
 window.setujuiWithdraw = async function(id, userId, jumlah){
   await supabase.from('users').update({saldo_koin: saldoSekarang - jumlah}).eq('id', userId);
