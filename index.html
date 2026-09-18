@@ -451,6 +451,19 @@ async function compressImage(file, maxSize = 800) {
   });
 }
 
+// <-- TARUH DI SINI
+async function getSignedUrl(bucket, filePath, expires = 3600) {
+  if (!filePath) return null;
+  let path = filePath;
+  if (filePath.includes(bucket)) {
+    path = filePath.split(bucket + '/')[1];
+  }
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expires);
+  if (error) { console.error(error); return null; }
+  return data.signedUrl;
+}
+
+
 // CUMA 1X DI SINI
 let saldoSekarang = 0; let userLogin = null; let convAktif = null; let ratingJobId = ''; let skorRating = 0;
 let jumlahNotifChat = 0; let jumlahNotifTeman = 0;  let jobSelesaiId = ''; let pekerjaRatingId = '';let fileGambarJob = null;
@@ -482,7 +495,7 @@ window.requestTopup = async function(){
   if(!userLogin) return alert("Login dulu");
   const jumlah = parseInt(document.getElementById('topupJumlah').value);
   const bayar = parseInt(document.getElementById('topupBayar').value);
-  const fee = bayar - jumlah; // 16%
+  const fee = bayar - jumlah;
   const file = document.getElementById('inputBuktiTopup').files[0];
   if(!jumlah ||!bayar ||!file) return alert("Pilih paket + upload bukti dulu");
 
@@ -491,21 +504,21 @@ window.requestTopup = async function(){
     const filePath = `topup/${userLogin.id}-${Date.now()}.jpg`;
     const { error: upErr } = await supabase.storage.from('bukti-topup').upload(filePath, compressedFile);
     if(upErr) throw upErr;
-    const { data } = supabase.storage.from('bukti-topup').getPublicUrl(filePath);
 
+    // FIX: JANGAN PAKAI getPublicUrl KALAU BUCKET PRIVATE
+    // Simpan filePath nya aja, nanti admin liat pake signedUrl
     await supabase.from('topup_requests').insert({
       user_id: userLogin.id,
-      nominal_koin: jumlah, // <- diganti
-      total_bayar: bayar, // <- diganti
-      fee: fee, // <- tambah ini
-      bukti_url: data.publicUrl, // <- diganti
+      nominal_koin: jumlah,
+      total_bayar: bayar,
+      fee: fee,
+      bukti_url: filePath, // <-- INI YANG DIRUBAH
       status: 'pending'
     });
     alert("Request terkirim! Tunggu admin konfirmasi");
     closeModal('topup');
   } catch(err) { alert('Gagal: ' + err.message) }
 }
-
 window.ajukanWithdraw = async function(){
   const jumlah = parseInt(document.getElementById('jumlahWithdraw').value);
   const noDana = document.getElementById('noDanaWithdraw').value;
@@ -536,28 +549,31 @@ async function loadAdminPanel(){
 
   document.getElementById('btnAdmin').style.display = 'block';
 
-  // 2. LOAD TOPUP
+ // 2. LOAD TOPUP
   const { data: topup } = await supabase.from('topup_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
   const containerTopup = document.getElementById('daftarTopupAdmin');
   if(!topup || topup.length===0) { 
     containerTopup.innerHTML = '<p>Tidak ada request</p>'; 
   } else {
-    containerTopup.innerHTML = topup.map(t=>`
-  <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
-    <div style="display:flex; gap:10px; width:100%">
-      <img src="${t.users.foto || 'https://ui-avatars.com/api/?name='+t.users.nama}" style="width:50px;height:50px;border-radius:50%">
-      <div>
-        <b>${t.users.nama}</b><br>
-        Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br>
-        Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br>
-        <a href="${t.bukti_url}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a>
-      </div>
-    </div>
-    <input class="input" id="kodeSeri-${t.id}" placeholder="Paste Kode dari tabel koin_induk" style="margin-top:10px; width:100%">
-    <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI & CETAK KOIN</button>
-  </div>`).join('');
+    containerTopup.innerHTML = ''; // kosongin dulu
+    for (const t of topup) {
+      const signedUrl = await getSignedUrl('bukti-topup', t.bukti_url, 3600); // <-- TARUH DI SINI
+      containerTopup.innerHTML += `
+      <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
+        <div style="display:flex; gap:10px; width:100%">
+          <img src="${t.users.foto || 'https://ui-avatars.com/api/?name='+t.users.nama}" style="width:50px;height:50px;border-radius:50%">
+          <div>
+            <b>${t.users.nama}</b><br>
+            Paket: <b>${t.nominal_koin.toLocaleString()} Koin</b><br>
+            Bayar: <b>Rp ${t.total_bayar.toLocaleString()}</b><br>
+            <a href="${signedUrl}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI</a>
+          </div>
+        </div>
+        <input class="input" id="kodeSeri-${t.id}" placeholder="Paste Kode dari tabel koin_induk" style="margin-top:10px; width:100%">
+        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI & CETAK KOIN</button>
+      </div>`;
+    }
   }
-
   // 3. LOAD WITHDRAW
   const { data: withdraw } = await supabase.from('withdraw_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
   const containerWithdraw = document.getElementById('daftarWithdrawAdmin');
@@ -998,64 +1014,52 @@ window.previewBukti = function(e){
 window.kirimBukti = async function(){
   const file = document.getElementById('inputBukti').files[0];
   if(!file) return alert("Upload bukti dulu");
-
-  // CEK DULU BIAR GAK UNDEFINED
   if(!jobSelesaiId) return alert("Error: jobSelesaiId kosong. Refresh halaman");
   if(!userLogin ||!userLogin.id) return alert("Error: Kamu belum login. Login ulang");
 
   try {
     alert('Lagi compress bukti...');
     const compressedFile = await compressImage(file, 1000);
-    
-    console.log("Size setelah compress:", (compressedFile.size/1024).toFixed(0) + "KB")
-    console.log("userLogin.id:", userLogin.id)
-    console.log("jobSelesaiId:", jobSelesaiId)
-
     const filePath = `${jobSelesaiId}/${userLogin.id}-${Date.now()}.jpg`;
-    console.log("Upload ke path:", filePath)
 
-    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, { 
+    const { error: upErr } = await supabase.storage.from('bukti-job').upload(filePath, compressedFile, {
       upsert: true,
       contentType: 'image/jpeg'
     });
-    if(upErr) {
-      console.error("UPLOAD ERROR:", upErr)
-      return alert('Gagal upload: ' + upErr.message);
-    }
+    if(upErr) return alert('Gagal upload: ' + upErr.message);
 
-    const { data } = supabase.storage.from('bukti-job').getPublicUrl(filePath);
-    
-    // UPDATE INI: TAMBAH WAKTU + STATUS DANA DITAHAN
+    // FIX PRIVATE: simpan filePath, bukan publicUrl
     const { error } = await supabase.from('jobs').update({
-      status: 'menunggu_konfirmasi', 
-      bukti_url: data.publicUrl,
-      bukti_kirim_di: new Date().toISOString(), // <-- 1. CATAT JAM KIRIM BUKTI
-      dana_ditahan: true // <-- 2. TANDAI DANA MASIH DITAHAN
+      status: 'menunggu_konfirmasi',
+      bukti_url: filePath, // <-- DIRUBAH
+      bukti_kirim_di: new Date().toISOString(),
+      dana_ditahan: true
     }).eq('id', jobSelesaiId);
 
     if(error) return alert(error.message);
-
     alert("Bukti terkirim! Dana akan otomatis cair dalam 24 jam jika tidak dirating");
     closeModal('selesaiModal');
     loadJobs();
-
   } catch(err) {
-    console.error("CATCH ERROR:", err)
     alert('Gagal: ' + err.message)
   }
 }
-
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
   if(!job.bukti_url) return alert("Bukti belum diupload pekerja");
+
+  // FIX PRIVATE BUCKET
+  const buktiSigned = await getSignedUrl('bukti-job', job.bukti_url, 3600);
+  if(!buktiSigned) return alert("Gagal buka bukti, coba refresh. Path: " + job.bukti_url);
+
   pekerjaRatingId = pekerjaId;
   ratingJobId = jobId;
   skorRating = 0;
   openModal('ratingModal');
-  
+
   const textRating = ['','Sangat Jelek','Jelek','Cukup','Bagus','Sangat Bagus'];
   document.getElementById('ratingJobJudul').innerHTML = `
-    <img src="${job.bukti_url}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
+    <img src="${buktiSigned}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
     <p style="text-align:center; font-weight:bold; margin-bottom:10px">Beri rating untuk pekerja</p>
     <div class="rating-wrap">
       <div class="bintang-container" id="bintangContainer">
@@ -1065,7 +1069,7 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
     </div>
   `;
   document.getElementById('bintangWrap').innerHTML = '';
-  const bintangEls = document.querySelectorAll('#bintangContainer .bintang');
+  const bintangEls = document.querySelectorAll('#bintangContainer.bintang');
   const bintangText = document.getElementById('bintangText');
   bintangEls.forEach(bintang => {
     bintang.addEventListener('mouseenter', function() {
@@ -1076,7 +1080,7 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
     bintang.addEventListener('click', async function() {
       skorRating = parseInt(this.dataset.star);
       bintangText.innerText = 'Mengirim rating...';
-      await kirimRating(); 
+      await kirimRating();
     })
   })
   document.getElementById('bintangContainer').addEventListener('mouseleave', function(){
@@ -1084,7 +1088,6 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
     bintangText.innerText = 'Klik bintang untuk memberi rating';
   })
 }
-
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
   if(!ratingJobId || !pekerjaRatingId) return alert("Error: data job/pekerja kosong. Refresh");
