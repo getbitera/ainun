@@ -598,26 +598,29 @@ async function loadAdminPanel(){
 
 window.setujuiTopup = async function(topupId, userId, nominal){
   const inputEl = document.getElementById(`kodeSeri-${topupId}`);
-  const kodeSeri = inputEl.value.trim().replace(/\s/g,''); // buang spasi & enter pas paste
-  if(!kodeSeri) return alert("Paste dulu Kode dari tabel koin_induk!");
+  const kodeSeri = inputEl.value.trim();
+  if(!kodeSeri) return alert("Isi kode seri dulu");
 
-  console.log("Kode yang di paste:", kodeSeri);
-
-  // 1. CARI DULU TANPA FILTER STATUS BIAR TAU ADA ATAU GAK
+  // Cari koin, gak peduli status dulu
   const { data: koinInduk, error } = await supabase.from('koin_induk')
     .select('*')
     .eq('kode_seri', kodeSeri)
     .maybeSingle();
 
-  if(error) return alert("Error DB koin_induk: " + error.message);
-  if(!koinInduk) return alert(`Kode ${kodeSeri} TIDAK ADA di tabel koin_induk. Cek kolomnya bener kode_seri bukan kode?`);
-  
-  // 2. BARU CEK STATUS
-  if(koinInduk.status !== 'tersedia'){
-    return alert(`Kode ketemu tapi statusnya '${koinInduk.status}'. Harusnya 'tersedia'. Ubah dulu di Supabase!`);
+  if(error) return alert("Error DB: " + error.message);
+  if(!koinInduk) return alert(`Kode ${kodeSeri} gak ada di koin_induk`);
+
+  console.log("Koin ketemu:", koinInduk);
+
+  // CEK STATUS - kamu pakainya 'aktif' bukan 'tersedia'
+  if(koinInduk.status !== 'aktif' && koinInduk.status !== 'tersedia'){
+    return alert(`Kode ini statusnya '${koinInduk.status}', harusnya 'aktif' / 'tersedia'`);
   }
-  if(Number(koinInduk.nominal) !== Number(nominal)){
-    return alert(`Nominal gak sama! Topup minta ${nominal}, koin ini ${koinInduk.nominal}`);
+
+  // CEK NOMINAL - kamu pakainya sisa_nominal
+  const nominalDB = koinInduk.nominal || koinInduk.sisa_nominal || koinInduk.nominal_awal;
+  if(Number(nominalDB) !== Number(nominal)){
+    return alert(`Nominal gak sama! Topup minta ${nominal}, tapi koin ini ${nominalDB}`);
   }
 
   const btn = inputEl.nextElementSibling;
@@ -627,34 +630,34 @@ window.setujuiTopup = async function(topupId, userId, nominal){
   try {
     const { data: userData } = await supabase.from('users').select('nama, saldo_koin').eq('id', userId).single();
 
-    // A. Tandai koin induk terpakai
-    await supabase.from('koin_induk').update({
+    // 1. Tandai terpakai
+    await supabase.from('koin_induk').update({ 
       status: 'terpakai',
       nama_pemilik: userData.nama,
       dipakai_pada: new Date().toISOString()
-    }).eq('kode_seri', kodeSeri);
+    }).eq('id', koinInduk.id);
 
-    // B. Cetak ke ledger
+    // 2. Tambah saldo user (INI YANG KEMARIN HILANG)
+    await supabase.from('users').update({ 
+      saldo_koin: (userData.saldo_koin || 0) + Number(nominal)
+    }).eq('id', userId);
+
+    // 3. Catat ledger
     await supabase.from('ledger_koin').insert({
       kode_seri: kodeSeri,
-      nominal: nominal,
+      nominal: Number(nominal),
       user_id: userId,
       tipe: 'cetak',
       relasi_id: topupId
     });
 
-    // C. INI YANG KURANG TADI - TAMBAH SALDO USER
-    await supabase.from('users').update({
-      saldo_koin: (userData.saldo_koin || 0) + nominal
-    }).eq('id', userId);
-
-    // D. Setujui request
-    await supabase.from('topup_requests').update({
-      status: 'disetujui',
-      kode_seri_dipakai: kodeSeri
+    // 4. Selesaikan topup
+    await supabase.from('topup_requests').update({ 
+      status: 'disetujui', 
+      kode_seri_dipakai: kodeSeri 
     }).eq('id', topupId);
 
-    alert(`Sukses! ${nominal} koin untuk ${userData.nama} sudah dicetak`);
+    alert(`BERHASIL! ${nominal} koin untuk ${userData.nama} sudah masuk`);
     loadAdminPanel();
 
   } catch(err){
