@@ -1081,11 +1081,9 @@ window.kirimBukti = async function(){
 }
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
-  if(!job.bukti_url) return alert("Bukti belum diupload pekerja");
+  if(!job?.bukti_url) return alert("Bukti belum diupload pekerja");
 
-  // FIX PRIVATE BUCKET
   const buktiSigned = await getSignedUrl('bukti-job', job.bukti_url, 3600);
-  if(!buktiSigned) return alert("Gagal buka bukti, coba refresh. Path: " + job.bukti_url);
 
   pekerjaRatingId = pekerjaId;
   ratingJobId = jobId;
@@ -1094,7 +1092,7 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
 
   const textRating = ['','Sangat Jelek','Jelek','Cukup','Bagus','Sangat Bagus'];
   document.getElementById('ratingJobJudul').innerHTML = `
-    <img src="${buktiSigned}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
+    ${buktiSigned? `<img src="${buktiSigned}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">` : '<p>Bukti: '+job.bukti_url+'</p>'}
     <p style="text-align:center; font-weight:bold; margin-bottom:10px">Beri rating untuk pekerja</p>
     <div class="rating-wrap">
       <div class="bintang-container" id="bintangContainer">
@@ -1103,83 +1101,58 @@ window.konfirmasiSelesai = async function(jobId, pekerjaId){
       <div class="bintang-text" id="bintangText">Klik bintang untuk memberi rating</div>
     </div>
   `;
-  document.getElementById('bintangWrap').innerHTML = '';
-  const bintangEls = document.querySelectorAll('#bintangContainer.bintang');
-  const bintangText = document.getElementById('bintangText');
-  bintangEls.forEach(bintang => {
-    bintang.addEventListener('mouseenter', function() {
-      const val = parseInt(this.dataset.star);
-      bintangEls.forEach(b => { b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd'; })
-      bintangText.innerText = textRating[val];
+
+  // FIX SELECTOR DISINI - pakai spasi
+  setTimeout(()=>{
+    const bintangEls = document.querySelectorAll('#bintangContainer.bintang');
+    const bintangText = document.getElementById('bintangText');
+
+    bintangEls.forEach(bintang => {
+      bintang.addEventListener('mouseenter', function() {
+        const val = parseInt(this.dataset.star);
+        bintangEls.forEach(b => { b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd'; })
+        bintangText.innerText = textRating[val];
+      })
+      bintang.addEventListener('click', async function() {
+        skorRating = parseInt(this.dataset.star);
+        bintangText.innerText = 'Mengirim rating...';
+        await kirimRating();
+      })
     })
-    bintang.addEventListener('click', async function() {
-      skorRating = parseInt(this.dataset.star);
-      bintangText.innerText = 'Mengirim rating...';
-      await kirimRating();
+    document.getElementById('bintangContainer')?.addEventListener('mouseleave', function(){
+      bintangEls.forEach(b => { b.style.color = '#ddd' })
+      bintangText.innerText = 'Klik bintang untuk memberi rating';
     })
-  })
-  document.getElementById('bintangContainer').addEventListener('mouseleave', function(){
-    bintangEls.forEach(b => { b.style.color = '#ddd' })
-    bintangText.innerText = 'Klik bintang untuk memberi rating';
-  })
+  }, 100);
 }
+
+// INI YANG FIX TOTAL - PAKAI RPC BUKAN UPDATE LANGSUNG
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu");
-  if(!ratingJobId || !pekerjaRatingId) return alert("Error: data job/pekerja kosong. Refresh");
-  
-  console.log("1. jobId:", ratingJobId, "pekerjaId:", pekerjaRatingId, "skor:", skorRating);
-  try {
-    const { data: job, error: e1 } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
-    if(e1) throw "Gagal ambil job: " + e1.message;
-    console.log("2. job:", job);
+  if(!ratingJobId ||!pekerjaRatingId) return alert("Error: refresh halaman");
 
-    const { data: pekerja, error: e2 } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    if(e2) throw "Gagal ambil pekerja: " + e2.message;
-    console.log("3. pekerja:", pekerja);
+  const btn = document.querySelector('#ratingModal.bintang-text');
+  if(btn) btn.innerText = 'Memproses...';
 
-    const total = job.harga;
-    const adminCut = Math.ceil(total * 0.16); // dibulatin ke atas biar gak pecahan
-    const pekerjaDapat = total - adminCut;
+  const { error } = await supabase.rpc('rpc_confirm_job', {
+    p_job_id: ratingJobId,
+    p_skor: skorRating
+  });
 
-    console.log("4. Hitung:", {total, adminCut, pekerjaDapat})
-
-    // 1. UPDATE SALDO PEKERJA
-    const {error: e3} = await supabase.from('users').update({ 
-      saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
-      total_rating: (pekerja.total_rating||0) + skorRating,
-      jumlah_rating: (pekerja.jumlah_rating||0) + 1
-    }).eq('id', pekerjaRatingId);
-    if(e3) throw "Gagal update pekerja: " + e3.message;
-    console.log("5. update pekerja ok");
-
-    // 2. CATAT FEE KE KAS SISTEM
-    console.log("6. Mau insert wallet_sistem:", {user_id: job.user_id, jumlah: adminCut})
-    const {error: e4} = await supabase.from('wallet_sistem').insert({
-      user_id: job.user_id,
-      tipe: 'fee_admin',
-      jumlah: adminCut, // udah dibulatin jadi int
-      keterangan: `Fee 16% Job ID: ${ratingJobId}`,
-      relasi_id: ratingJobId
-    });
-    if(e4) {
-      console.error("GAGAL INSERT WALLET_SISTEM:", e4) // PENTING BUAT DEBUG
-      throw "Gagal catat fee admin: " + e4.message; 
-    }
-    console.log("7. insert wallet_sistem ok");
-
-    // 3. SELESAIKAN JOB
-    const {error: e5} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
-    if(e5) throw "Gagal update job: " + e5.message;
-    
-    closeModal('ratingModal');
-    alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin masuk Kas`);
-    loadJobs();
-    loadMyProfile();
-
-  } catch(err) {
-    console.error("DETAIL ERROR:", err);
-    alert(err); // ini yg muncul ke kamu
+  if(error){
+    alert("Gagal cair: " + error.message);
+    console.error(error);
+    if(btn) btn.innerText = 'Gagal, klik lagi';
+    return;
   }
+
+  closeModal('ratingModal');
+  alert(`✅ Selesai! Saldo pekerja sudah cair (84%) & fee 16% masuk kas admin.`);
+
+  const { data: freshUser } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
+  if(freshUser){ saldoSekarang = freshUser.saldo_koin; updateSaldoUI(); }
+  loadJobs();
+  loadMyProfile();
 }
 function getYoutubeEmbed(url){
   if(!url) return '';
