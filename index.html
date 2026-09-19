@@ -1081,78 +1081,52 @@ window.kirimBukti = async function(){
 }
 window.konfirmasiSelesai = async function(jobId, pekerjaId){
   const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
-  if(!job?.bukti_url) return alert("Bukti belum diupload pekerja");
-
-  const buktiSigned = await getSignedUrl('bukti-job', job.bukti_url, 3600);
+  let buktiHtml = '<p style="color:red">Bukti tidak ada</p>';
+  if(job?.bukti_url){
+    const signed = await getSignedUrl('bukti-job', job.bukti_url, 3600);
+    if(signed) buktiHtml = `<img src="${signed}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:10px">`;
+    else buktiHtml = `<p>Bukti: ${job.bukti_url} (gagal buat link)</p>`;
+  }
 
   pekerjaRatingId = pekerjaId;
   ratingJobId = jobId;
   skorRating = 0;
   openModal('ratingModal');
 
-  const textRating = ['','Sangat Jelek','Jelek','Cukup','Bagus','Sangat Bagus'];
   document.getElementById('ratingJobJudul').innerHTML = `
-    ${buktiSigned? `<img src="${buktiSigned}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">` : '<p>Bukti: '+job.bukti_url+'</p>'}
-    <p style="text-align:center; font-weight:bold; margin-bottom:10px">Beri rating untuk pekerja</p>
+    ${buktiHtml}
+    <p style="text-align:center;font-weight:bold">Beri rating untuk pekerja</p>
     <div class="rating-wrap">
-      <div class="bintang-container" id="bintangContainer">
-        ${[5,4,3,2,1].map(i=>`<span class="bintang" data-star="${i}">★</span>`).join('')}
+      <div class="bintang-container" id="bintangContainer" style="display:flex;gap:8px;justify-content:center;flex-direction:row-reverse">
+        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(5)" data-star="5">★</span>
+        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(4)" data-star="4">★</span>
+        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(3)" data-star="3">★</span>
+        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(2)" data-star="2">★</span>
+        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(1)" data-star="1">★</span>
       </div>
       <div class="bintang-text" id="bintangText">Klik bintang untuk memberi rating</div>
     </div>
   `;
-
-  // FIX SELECTOR DISINI - pakai spasi
-  setTimeout(()=>{
-    const bintangEls = document.querySelectorAll('#bintangContainer.bintang');
-    const bintangText = document.getElementById('bintangText');
-
-    bintangEls.forEach(bintang => {
-      bintang.addEventListener('mouseenter', function() {
-        const val = parseInt(this.dataset.star);
-        bintangEls.forEach(b => { b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd'; })
-        bintangText.innerText = textRating[val];
-      })
-      bintang.addEventListener('click', async function() {
-        skorRating = parseInt(this.dataset.star);
-        bintangText.innerText = 'Mengirim rating...';
-        await kirimRating();
-      })
-    })
-    document.getElementById('bintangContainer')?.addEventListener('mouseleave', function(){
-      bintangEls.forEach(b => { b.style.color = '#ddd' })
-      bintangText.innerText = 'Klik bintang untuk memberi rating';
-    })
-  }, 100);
 }
 
-// INI YANG FIX TOTAL - PAKAI RPC BUKAN UPDATE LANGSUNG
-window.kirimRating = async function(){
-  if(skorRating === 0) return alert("Pilih bintang dulu");
-  if(!ratingJobId ||!pekerjaRatingId) return alert("Error: refresh halaman");
-
-  const btn = document.querySelector('#ratingModal.bintang-text');
-  if(btn) btn.innerText = 'Memproses...';
-
-  const { error } = await supabase.rpc('rpc_confirm_job', {
-    p_job_id: ratingJobId,
-    p_skor: skorRating
+window.klikBintang = async function(skor){
+  skorRating = skor;
+  document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
+    b.style.color = parseInt(b.dataset.star) <= skor ? '#FFD700' : '#ddd';
   });
+  document.getElementById('bintangText').innerText = 'Mengirim rating '+skor+' bintang...';
+  await kirimRating();
+}
 
-  if(error){
-    alert("Gagal cair: " + error.message);
-    console.error(error);
-    if(btn) btn.innerText = 'Gagal, klik lagi';
-    return;
-  }
-
+window.kirimRating = async function(){
+  if(skorRating===0) return alert("Pilih bintang");
+  const { error } = await supabase.rpc('rpc_confirm_job',{p_job_id: ratingJobId, p_skor: skorRating});
+  if(error){ alert("Gagal: "+error.message); console.error(error); return; }
   closeModal('ratingModal');
-  alert(`✅ Selesai! Saldo pekerja sudah cair (84%) & fee 16% masuk kas admin.`);
-
+  alert("✅ Cair! Pekerja dapat 84%, admin 16%");
   const { data: freshUser } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
-  if(freshUser){ saldoSekarang = freshUser.saldo_koin; updateSaldoUI(); }
+  if(freshUser){ saldoSekarang=freshUser.saldo_koin; updateSaldoUI(); }
   loadJobs();
-  loadMyProfile();
 }
 function getYoutubeEmbed(url){
   if(!url) return '';
