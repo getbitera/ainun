@@ -591,7 +591,7 @@ async function loadAdminPanel(){
             No DANA: ${w.no_dana}
           </div>
         </div>
-        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiWithdraw('${w.id}','${w.user_id}',${w.jumlah_koin})">✅ SETUJUI</button>
+        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiWithdraw('${w.id}')">✅ SETUJUI</button>
       </div>`).join('');
   }
 }
@@ -625,10 +625,20 @@ window.setujuiTopup = async function(topupId, userId, nominal){
   alert("BERHASIL DAN SUDAH DIKUNCI");
   loadAdminPanel();
 }
-window.setujuiWithdraw = async function(id, userId, jumlah){
-  await supabase.from('users').update({saldo_koin: saldoSekarang - jumlah}).eq('id', userId);
-  await supabase.from('withdraw_requests').update({status:'disetujui'}).eq('id',id);
-  alert("Withdraw disetujui"); loadAdminPanel();
+window.setujuiWithdraw = async function(id){
+  if(!confirm("Yakin mau approve withdraw ini? Cek DANA dulu udah transfer?")) return;
+  
+  const { error } = await supabase.rpc('rpc_approve_withdraw', { 
+    p_withdraw_id: id 
+  });
+  
+  if(error){
+    alert("Gagal: " + error.message);
+    return;
+  }
+  
+  alert("Withdraw disetujui & saldo user kepotong");
+  loadAdminPanel();
 }
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 
@@ -817,49 +827,85 @@ window.openGambarFull = function(src){
   document.getElementById('gambarFull').src = src;
   openModal('gambarFullModal');
 }
-
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
-  const btn = event.target; btn.disabled = true; btn.innerText = "POSTING...";
-  const judul = document.getElementById('judulPost').value;
-  const deskripsi = document.getElementById('deskripsiPost').value;
+  const btn = event.target; 
+  btn.disabled = true; 
+  btn.innerText = "POSTING...";
+
+  const judul = document.getElementById('judulPost').value.trim();
+  const deskripsi = document.getElementById('deskripsiPost').value.trim();
   const hadiah = parseInt(document.getElementById('hadiahPost').value);
-  const noWa = document.getElementById('noWaPost').value;
-  if(!judul ||!hadiah) { alert("Isi semua"); btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; }
-  if(saldoSekarang < hadiah) { alert("Saldo tidak cukup"); btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; }
+  const noWa = document.getElementById('noWaPost').value.trim();
+
+  if(!judul || !hadiah || hadiah < 1000) { 
+    alert("Isi judul & hadiah min 1000"); 
+    btn.disabled = false; 
+    btn.innerText = "POST & KUNCI DANA"; 
+    return; 
+  }
+
+  // Cek saldo cuma buat UX, validasi asli ada di RPC
+  if(saldoSekarang < hadiah) { 
+    alert("Saldo tidak cukup. Saldo kamu: " + saldoSekarang); 
+    btn.disabled = false; 
+    btn.innerText = "POST & KUNCI DANA"; 
+    return; 
+  }
 
   let gambarUrl = null;
   if(fileGambarJob){
     try {
-      alert('Lagi upload gambar...');
-      const compressedFile = await compressImage(fileGambarJob, 1000); // ukuran story HP
+      const compressedFile = await compressImage(fileGambarJob, 1000);
       const filePath = `${userLogin.id}/${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage.from('job-banners').upload(filePath, compressedFile, { upsert: true });
       if(upErr) throw upErr;
       const { data } = await supabase.storage.from('job-banners').getPublicUrl(filePath);
       gambarUrl = data.publicUrl;
-    } catch(err) { alert('Gagal upload gambar: ' + err.message); btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; }
+    } catch(err) { 
+      alert('Gagal upload gambar: ' + err.message); 
+      btn.disabled = false; 
+      btn.innerText = "POST & KUNCI DANA"; 
+      return; 
+    }
   }
 
-  const saldoBaru = saldoSekarang - hadiah;
-  const { error: saldoErr } = await supabase.from('users').update({saldo_koin: saldoBaru}).eq('id', userLogin.id);
-  if(saldoErr) { alert(saldoErr.message); btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; }
-
-  const { error } = await supabase.from('jobs').insert({
-    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa, status: 'open', gambar_url: gambarUrl
+  // PANGGIL BACK-END, BUKAN UPDATE SALDO DARI FRONT LAGI
+  const { error } = await supabase.rpc('rpc_create_job', {
+    p_judul: judul,
+    p_deskripsi: deskripsi,
+    p_harga: hadiah,
+    p_no_wa: noWa,
+    p_gambar_url: gambarUrl
   });
-  if(error) { alert(error.message); btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; }
 
-  saldoSekarang = saldoBaru;
-  updateSaldoUI();
-  alert('Job diposting! Saldo baru: ' + saldoBaru);
+  if(error) { 
+    alert('Gagal post: ' + error.message); 
+    btn.disabled = false; 
+    btn.innerText = "POST & KUNCI DANA"; 
+    return; 
+  }
+
+  // Sukses - reload saldo asli dari DB
+  const { data: freshUser } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
+  if(freshUser){
+    saldoSekarang = freshUser.saldo_koin;
+    updateSaldoUI();
+  }
+
+  alert('Job diposting! Dana ' + hadiah + ' dikunci.');
   closeModal('post');
-  fileGambarJob = null; document.getElementById('namaFileJob').innerText = "";
-  document.getElementById('judulPost').value = ''; document.getElementById('deskripsiPost').value = ''; document.getElementById('hadiahPost').value = ''; document.getElementById('noWaPost').value = '';
-  btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
+  fileGambarJob = null; 
+  document.getElementById('namaFileJob').innerText = "";
+  document.getElementById('judulPost').value = ''; 
+  document.getElementById('deskripsiPost').value = ''; 
+  document.getElementById('hadiahPost').value = ''; 
+  document.getElementById('noWaPost').value = '';
+  document.getElementById('inputGambarJob').value = '';
+  btn.disabled = false; 
+  btn.innerText = "POST & KUNCI DANA";
   loadJobs();
 }
-
 async function loadPenyedia(){
   if(!userLogin) return;
   const { data, error } = await supabase.from('users').select('*').neq('id', userLogin.id).not('skill', 'is', null);
