@@ -1481,18 +1481,27 @@ function updateSaldoUI(){
 async function cekKoinAsli(userId, jumlahButuh) {
   const { data: pecahan, error } = await supabase
     .from('koin_pecahan')
-    .select('nominal,status')
-    .eq('pemilik_id', userId)
-    .eq('status','aktif');
+    .select('nominal,kode_induk')
+    .eq('pemilik_id', userId);
 
   console.log("DEBUG PECAHAN:", pecahan, error);
 
-  if(error) return {valid:false, alasan:"Error RLS: "+error.message};
-  if(!pecahan || pecahan.length===0) return {valid:false, alasan:"Saldo tidak terdaftar. Silahkan topup resmi. (pecahan kosong)"};
+  if(error) return {valid:false, alasan:"Error DB: "+error.message};
+  if(!pecahan || pecahan.length===0) return {valid:false, alasan:"Saldo tidak terdaftar. Silahkan topup resmi. (pecahan kosong di koin_pecahan)"};
 
-  const totalValid = pecahan.reduce((a,b)=>a+Number(b.nominal),0);
+  const totalValid = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
   if(totalValid < jumlahButuh) return {valid:false, alasan:`Saldo tidak terdaftar. Saldo resmi kamu ${totalValid.toLocaleString()}, butuh ${jumlahButuh.toLocaleString()}.`};
   return {valid:true, total:totalValid};
+}
+
+async function loadSaldoBerseri(){
+  if(!userLogin) return;
+  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id);
+  let total = 0;
+  if(data) total = data.reduce((a,b)=>a+Number(b.nominal||0),0);
+  saldoSekarang = total;
+  const el = document.getElementById('saldoText');
+  if(el) el.innerText = total.toLocaleString();
 }
 async function loadJobs(){
   const container = document.getElementById('daftarJob');
