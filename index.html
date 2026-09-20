@@ -570,7 +570,7 @@ async function loadAdminPanel(){
           </div>
         </div>
         <input class="input" id="kodeSeri-${t.id}" placeholder="Paste Kode dari tabel koin_induk" style="margin-top:10px; width:100%">
-        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}','${t.user_id}',${t.nominal_koin})">✅ KONFIRMASI & CETAK KOIN</button>
+        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiTopup('${t.id}')">✅ KONFIRMASI & CETAK KOIN</button>
       </div>`;
     }
   }
@@ -597,41 +597,13 @@ async function loadAdminPanel(){
 }
 
 
-window.setujuiTopup = async function(topupId, userId, nominal){
+window.setujuiTopup = async function(topupId){
   const kodeSeri = document.getElementById(`kodeSeri-${topupId}`).value.trim();
-  if(!kodeSeri) return alert("Kode seri wajib diisi!");
-
-  const { data: koinInduk } = await supabase
-    .from('koin_induk')
-    .select('*')
-    .eq('kode_seri', kodeSeri)
-    .single();
-
-  if(!koinInduk) return alert("Kode gak ada di induk!");
-  if(koinInduk.status === 'habis' && koinInduk.sisa_nominal == 0 && koinInduk.dipakai_pada !== null){
-    return alert("SUDAH TERPAKAI!");
-  }
-
-  // proses approve...
-  await supabase.from('koin_pecahan').insert({
-    induk_seri: koinInduk.kode_seri,
-    pecahan_seri: koinInduk.kode_seri + '-MAIN-' + Date.now(),
-    pemilik_id: userId,
-    nominal: nominal,
-    tipe: 'topup'
-  });
-
-  await supabase.from('koin_induk').update({
-    sisa_nominal: 0,
-    status: 'habis',
-    dipakai_pada: new Date().toISOString(),
-    dipakai_oleh: userId
-  }).eq('id', koinInduk.id);
-
-  await supabase.from('topup_requests').update({status: 'approved'}).eq('id', topupId);
-  
-  alert("Berhasil!");
-  location.reload();
+  if(!kodeSeri) return alert("Kode seri wajib!");
+  const { error } = await supabase.rpc('rpc_approve_topup', { p_topup_id: topupId, p_kode_seri: kodeSeri });
+  if(error) return alert("Gagal: " + error.message);
+  alert("Berhasil! Koin dicetak");
+  loadAdminPanel();
 }
 window.setujuiWithdraw = async function(id){
   if(!confirm("Yakin mau approve withdraw ini? Cek DANA dulu udah transfer?")) return;
