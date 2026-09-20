@@ -1454,41 +1454,66 @@ window.kirimPesan = async function() {
   document.getElementById('isiChat').scrollTop = document.getElementById('isiChat').scrollHeight;
 }
 
-supabase.auth.getSession().then(async ({ data: { session }}) => {
-  const savedUser = localStorage.getItem('ainun_user');
-  if(session && savedUser){
-    try {
-      userLogin = JSON.parse(savedUser);
-      const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-      if(userData){
-        userLogin = userData;
-        localStorage.setItem('ainun_user', JSON.stringify(userData));
-      }
-    } catch(e) { console.log(e) }
+supabase.auth.getSession().then(async ({ data: { session } }) => {
+  if(session){
+    // Ada session Supabase -> ambil data user terbaru, gak peduli ada ainun_user atau enggak
+    const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
     
-    saldoSekarang = userLogin.saldo_koin || 0;
-    updateSaldoUI();
-    updateUI(true);
-    loadMyProfile(); 
-    cekRoleAdmin(); // <-- INI TAMBAHANNYA BIAR CEK TOMBOL ADMIN
-    
-    // LOAD DATA AWAL KALO LOGIN
-    loadJobs();
-    loadPenyedia();
-    loadVideos();
-    
+    if(userData){
+      userLogin = userData;
+      localStorage.setItem('ainun_user', JSON.stringify(userData));
+      saldoSekarang = userData.saldo_koin || 0;
+      updateSaldoUI();
+      updateUI(true);
+      loadMyProfile(); 
+      cekRoleAdmin();
+      
+      // LOAD DATA AWAL KALO LOGIN
+      loadJobs();
+      loadPenyedia();
+      loadVideos();
+    }
   } else {
-    localStorage.removeItem('ainun_user');
-    updateUI(false); 
+    // Gak ada session, coba cek localstorage (buat jaga-jaga)
+    const savedUser = localStorage.getItem('ainun_user');
+    if(savedUser){
+      try {
+        userLogin = JSON.parse(savedUser);
+        saldoSekarang = userLogin.saldo_koin || 0;
+        updateSaldoUI();
+        updateUI(true);
+        loadMyProfile();
+        cekRoleAdmin();
+        loadJobs(); loadPenyedia(); loadVideos();
+      } catch(e){
+        localStorage.removeItem('ainun_user');
+        updateUI(false);
+      }
+    } else {
+      updateUI(false);
+    }
   }
-})
+});
 
 supabase.auth.onAuthStateChange((event, session) => {
   if(event == 'SIGNED_OUT') { 
+    userLogin = null;
     localStorage.removeItem('ainun_user');
     updateUI(false);
   }
-})
+  if(event == 'SIGNED_IN' && session){
+    // Biar kalau habis login langsung refresh data
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      if(s){
+        const { data: userData } = await supabase.from('users').select('*').eq('id', s.user.id).single();
+        if(userData){
+          userLogin = userData;
+          localStorage.setItem('ainun_user', JSON.stringify(userData));
+        }
+      }
+    });
+  }
+});
 async function cekRoleAdmin(){
   const btnAdmin = document.getElementById('btnAdmin');
   if(!btnAdmin) return;
