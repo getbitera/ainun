@@ -759,10 +759,10 @@ window.daftarUser = async function(event) {
 // TARUH INI DI ATAS SEKALI, DI LUAR FUNGSI (di bawah const supabase)
 let saldoBerseri = 0;
 async function loadSaldoBerseri(){
-  const { data } = await supabase.from('koin_induk').select('sisa_nominal').eq('status','aktif');
-  saldoBerseri = data ? data.reduce((a,b)=>a+(b.sisa_nominal||0),0) : 0;
-  saldoSekarang = saldoBerseri;
-  updateSaldoUI();
+  if(!userLogin) return;
+  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id);
+  saldoSekarang = data ? data.reduce((a,b)=>a+(b.nominal||0),0) : 0;
+  document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString();
 }
 
 function updateSaldoUI() { 
