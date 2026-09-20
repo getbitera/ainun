@@ -748,45 +748,20 @@ async function loadSaldoBerseri(){
 function updateSaldoUI() { 
   document.getElementById('saldoText').innerText = (saldoBerseri).toLocaleString() + " (BERSERI)"; 
 }
-
-window.loginUser = async function() {
-  const email = document.getElementById('loginEmail').value; 
+window.loginUser = async function() { 
+  const email = document.getElementById('loginEmail').value;
   const pass = document.getElementById('loginPass').value;
   if(!email || !pass) return alert('Isi email dan password');
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-  if(error) return alert('Gagal: ' + error.message);
-  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
+  if(error) return alert('Gagal: ' + error.message); 
+  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
   userLogin = userData; 
-  localStorage.setItem('ainun_user', JSON.stringify(userData));
-  
-  await loadSaldoBerseri(); // <-- INI YANG BENER, BUKAN saldo_koin LAGI
-  
+  localStorage.setItem('bitera_user', JSON.stringify(userData));
+  saldoSekarang = userData.saldo_koin || 0; // <-- GANTI INI
+  updateSaldoUI(); 
   updateUI(true); 
   loadMyProfile(); 
-  cekRoleAdmin();
-  closeModal('login');
-}
-function updateUI(isLogin) {
-  const menuBtn = document.getElementById('menuBtn');
-  if(isLogin){
-    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
-    
-
-
-  } else {
-    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
-    document.getElementById('daftarPenyedia').innerHTML = '';
-    document.getElementById('daftarJob').innerHTML = '';
-    document.getElementById('daftarTeman').innerHTML = '';
-    document.getElementById('daftarVideo').innerHTML = '';
-    saldoSekarang = 0; updateSaldoUI();
-    showPage('homePage');
-  } 
-
-
-  if(isLogin && userLogin.role === 'admin'){
-  document.getElementById('btnAdmin').style.display = 'block';
-}
+  closeModal('login'); 
 }
 
 window.lupaPassword = async function(){
