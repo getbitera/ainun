@@ -873,12 +873,15 @@ window.buatPost = async function(event) {
     return; 
   }
 
-  // === CEK SALDO BERSERI LANGSUNG DARI koin_induk ===
-  const { data: koinAktif } = await supabase.from('koin_induk').select('sisa_nominal').eq('status','aktif');
-  const saldoBerseriCheck = koinAktif ? koinAktif.reduce((a,b)=>a+(b.sisa_nominal||0),0) : 0;
+  // === CEK SALDO BENERAN DARI koin_pecahan MILIK USER ===
+  const { data: pecahanUser } = await supabase.from('koin_pecahan')
+    .select('nominal')
+    .eq('pemilik_id', userLogin.id);
+    
+  const saldoBerseriCheck = pecahanUser ? pecahanUser.reduce((a,b)=>a+(b.nominal||0),0) : 0;
 
   if(saldoBerseriCheck < hadiah) { 
-    alert("GAGAL: Saldo BERSERI cuma " + saldoBerseriCheck.toLocaleString() + ".\nSaldo tanpa seri ("+saldoSekarang.toLocaleString()+") TIDAK BISA dipakai transaksi.\nTopup berseri dulu."); 
+    alert("GAGAL: Saldo kamu cuma " + saldoBerseriCheck.toLocaleString() + ".\nButuh " + hadiah.toLocaleString() + " untuk kunci dana."); 
     btn.disabled = false; 
     btn.innerText = "POST & KUNCI DANA"; 
     return; 
@@ -916,10 +919,10 @@ window.buatPost = async function(event) {
     return; 
   }
 
-  // === RELOAD SALDO BERSERI, BUKAN users.saldo_koin LAGI ===
+  // === RELOAD SALDO DARI PECAHAN ===
   await loadSaldoBerseri();
 
-  alert('Job diposting! Dana ' + hadiah + ' dikunci dari koin berseri.');
+  alert('Job diposting! Dana ' + hadiah + ' dikunci.');
   closeModal('post');
   fileGambarJob = null; 
   document.getElementById('namaFileJob').innerText = "";
