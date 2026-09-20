@@ -748,6 +748,28 @@ async function loadSaldoBerseri(){
 function updateSaldoUI() { 
   document.getElementById('saldoText').innerText = (saldoBerseri).toLocaleString() + " (BERSERI)"; 
 }
+
+
+function updateUI(isLogin) {
+  const menuBtn = document.getElementById('menuBtn'); 
+  if(isLogin){ 
+    menuBtn.innerHTML = `<button class="btn-sm btn-batal" onclick="logout()">LOGOUT</button>`;
+  } else { 
+    menuBtn.innerHTML = `<button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button><button class="btn-sm btn-daftar" onclick="openModal('daftar')">DAFTAR</button>`;
+    document.getElementById('daftarPenyedia').innerHTML = '';
+    document.getElementById('daftarJob').innerHTML = '';
+    document.getElementById('daftarTeman').innerHTML = '';
+    document.getElementById('daftarVideo').innerHTML = '';
+    saldoSekarang = 0; updateSaldoUI();
+    showPage('homePage');
+  } 
+}
+
+function updateSaldoUI() { 
+  const el = document.getElementById('saldoText');
+  if(el) el.innerText = saldoSekarang.toLocaleString(); 
+}
+
 window.loginUser = async function() { 
   const email = document.getElementById('loginEmail').value;
   const pass = document.getElementById('loginPass').value;
