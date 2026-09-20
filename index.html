@@ -826,13 +826,23 @@ window.lupaPassword = async function(){
 window.logout = async function() { 
   await supabase.auth.signOut(); 
   localStorage.removeItem('ainun_user');
-  saldoSekarang = 0;
-  updateSaldoUI();
+  localStorage.removeItem('sb-chzommcglipcoughsfzd-auth-token'); // paksa hapus token supabase
   userLogin = null;
+  saldoSekarang = 0;
+  saldoBerseri = 0;
+  convAktif = null;
+  lawanChatAktif = null;
+  
+  // kosongin semua tampilan profil
+  document.getElementById('myNama').innerText = '';
+  document.getElementById('saldoText').innerText = '0';
+  document.getElementById('daftarPenyedia').innerHTML = '';
+  document.getElementById('daftarJob').innerHTML = '';
+  
   updateUI(false);
   showPage('homePage');
+  location.reload(); 
 }
-
 window.previewGambarJob = function(e){
   fileGambarJob = e.target.files[0];
   if(fileGambarJob){
