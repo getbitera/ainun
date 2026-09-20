@@ -820,6 +820,8 @@ window.openGambarFull = function(src){
   document.getElementById('gambarFull').src = src;
   openModal('gambarFullModal');
 }
+
+
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
   const btn = event.target; 
@@ -838,142 +840,52 @@ window.buatPost = async function(event) {
     return; 
   }
 
-  // === CEK SALDO BENERAN DARI koin_pecahan MILIK USER ===
-  const { data: pecahanUser } = await supabase.from('koin_pecahan')
-    .select('nominal')
-    .eq('pemilik_id', userLogin.id);
-    
-  const saldoBerseriCheck = pecahanUser ? pecahanUser.reduce((a,b)=>a+(b.nominal||0),0) : 0;
+  // CEK SALDO DARI saldo_koin (bukan pecahan dulu)
+  const { data: userCek } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
+  const saldoReal = userCek?.saldo_koin || 0;
 
-  if(saldoBerseriCheck < hadiah) { 
-    alert("GAGAL: Saldo kamu cuma " + saldoBerseriCheck.toLocaleString() + ".\nButuh " + hadiah.toLocaleString() + " untuk kunci dana."); 
+  if(saldoReal < hadiah) { 
+    alert("GAGAL: Saldo kamu cuma " + saldoReal.toLocaleString() + ".\nButuh " + hadiah.toLocaleString()); 
     btn.disabled = false; 
     btn.innerText = "POST & KUNCI DANA"; 
     return; 
   }
 
-  let gambarUrl = null;
-  if(fileGambarJob){
-    try {
-      const compressedFile = await compressImage(fileGambarJob, 1000);
-      const filePath = `${userLogin.id}/${Date.now()}.jpg`;
-      const { error: upErr } = await supabase.storage.from('job-banners').upload(filePath, compressedFile, { upsert: true });
-      if(upErr) throw upErr;
-      const { data } = await supabase.storage.from('job-banners').getPublicUrl(filePath);
-      gambarUrl = data.publicUrl;
-    } catch(err) { 
-      alert('Gagal upload gambar: ' + err.message); 
-      btn.disabled = false; 
-      btn.innerText = "POST & KUNCI DANA"; 
-      return; 
-    }
+  // POTONG SALDO
+  const saldoBaru = saldoReal - hadiah;
+  const { error: potongErr } = await supabase.from('users').update({ saldo_koin: saldoBaru }).eq('id', userLogin.id);
+  if(potongErr) {
+    alert("Gagal potong saldo: " + potongErr.message);
+    btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return;
   }
 
-  const { error } = await supabase.rpc('rpc_create_job', {
-    p_judul: judul,
-    p_deskripsi: deskripsi,
-    p_harga: hadiah,
-    p_no_wa: noWa,
-    p_gambar_url: gambarUrl
+  // SIMPAN JOB
+  const { error } = await supabase.from('jobs').insert({
+    user_id: userLogin.id,
+    judul: judul,
+    deskripsi: deskripsi,
+    harga: hadiah,
+    no_wa: noWa,
+    status: 'open'
   });
 
   if(error) { 
+    // BALIKIN SALDO KALAU GAGAL POST
+    await supabase.from('users').update({ saldo_koin: saldoReal }).eq('id', userLogin.id);
     alert('Gagal post: ' + error.message); 
-    btn.disabled = false; 
-    btn.innerText = "POST & KUNCI DANA"; 
-    return; 
+    btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; 
   }
 
-  // === RELOAD SALDO DARI PECAHAN ===
-  await loadSaldoBerseri();
+  saldoSekarang = saldoBaru;
+  updateSaldoUI();
 
-  alert('Job diposting! Dana ' + hadiah + ' dikunci.');
+  alert('Job diposting! Dana ' + hadiah.toLocaleString() + ' dikunci. Saldo sisa: ' + saldoBaru.toLocaleString());
   closeModal('post');
-  fileGambarJob = null; 
-  document.getElementById('namaFileJob').innerText = "";
   document.getElementById('judulPost').value = ''; 
   document.getElementById('deskripsiPost').value = ''; 
   document.getElementById('hadiahPost').value = ''; 
-  document.getElementById('noWaPost').value = '';
-  document.getElementById('inputGambarJob').value = '';
-  btn.disabled = false; 
-  btn.innerText = "POST & KUNCI DANA";
+  btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
   loadJobs();
-}
-async function loadPenyedia(){
-  if(!userLogin) return;
-  const { data, error } = await supabase.from('users').select('*').neq('id', userLogin.id).not('skill', 'is', null);
-  if(error){ console.log(error); return }
-  const container = document.getElementById('daftarPenyedia'); container.innerHTML = '';
-  data.forEach(u=>{ 
-    const rating = u.jumlah_rating > 0? (u.total_rating/u.jumlah_rating).toFixed(1) : 0;
-    container.innerHTML += `<div class="card">
-      <img src="${u.foto||'https://ui-avatars.com/api/?name='+u.nama}" class="profil-foto" style="cursor:pointer; width:100px; height:100px; margin:auto; display:block" onclick="lihatProfilOrang('${u.id}')">
-      <h3 style="text-align:center; cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${u.id}')">${u.nama}</h3>
-      <p style="text-align:center">${u.skill||''}</p>
-      <p style="text-align:center">⭐ ${rating}</p>
-      <button class="btn" style="width:100%; margin-bottom:8px" onclick="bukaChat('${u.id}')">💬 CHAT</button>
-      <button class="btn btn-sukses" style="width:100%" onclick="kirimRequest('${u.id}')">+ TAMBAH TEMAN</button>
-    </div>`
-  })
-}
-
-async function loadJobs(){ 
-  const { data, error } = await supabase
-   .from('jobs')
-   .select(`*, pemberi_job:users!jobs_user_id_fkey(id, nama, foto), pekerja:users!jobs_diambil_oleh_fkey(id, nama, foto)`)
-   .order('created_at', {ascending:false}); 
-
-  if(error){ console.error(error); return; }
-  const container = document.getElementById('daftarJob'); 
-  container.innerHTML = ''; 
-  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada job</p>'; return; } 
-
-  data.forEach(job=>{ 
-    let btn = ''; 
-    if(job.status === 'open' && job.user_id!== userLogin?.id) 
-      btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
-    if(job.user_id === userLogin?.id && job.status === 'open') 
-      btn = `<button class="btn btn-sukses" onclick="lihatPelamar('${job.id}')">LIHAT PELAMAR</button>`;
-    if(job.status === 'dikerjakan' && (job.user_id === userLogin?.id || job.diambil_oleh === userLogin?.id)) 
-      btn = `<button class="btn btn-sukses" onclick="selesaiKerja('${job.id}')">✅ VC SELESAI & KIRIM BUKTI</button>`;
-    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
-      btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
-
-    container.innerHTML += `<div class="card">
-      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
-      <h3>${job.judul}</h3>
-      <p>${job.deskripsi}</p>
-      <p><b>Reward: ${job.harga} Koin</b></p>
-      <p>Status: <b>${job.status}</b></p>
-      
-      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
-        <img src="${job.pemberi_job?.foto || 'https://ui-avatars.com/api/?name='+job.pemberi_job?.nama}" 
-             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
-             onclick="lihatProfilOrang('${job.pemberi_job?.id}')">
-        <div>
-          <p style="margin:0; font-size:12px; color:gray">Oleh:</p>
-          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pemberi_job?.id}')">${job.pemberi_job?.nama || 'Anonim'}</b>
-        </div>
-        ${userLogin?.id !== job.user_id ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pemberi_job?.id}')">💬 Pesan</button>` : ''}
-      </div>
-
-      ${job.pekerja? `
-      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
-        <img src="${job.pekerja?.foto || 'https://ui-avatars.com/api/?name='+job.pekerja?.nama}" 
-             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
-             onclick="lihatProfilOrang('${job.pekerja?.id}')">
-        <div>
-          <p style="margin:0; font-size:12px; color:gray">Dikerjakan:</p>
-          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pekerja?.id}')">${job.pekerja?.nama}</b>
-        </div>
-        ${userLogin?.id !== job.diambil_oleh ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pekerja?.id}')">💬 Pesan</button>` : ''}
-      </div>` : ''}
-      
-      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366; width:100%; margin-bottom:8px">📱 CHAT WA / VC</a>
-      ${btn}
-    </div>`
-  }) 
 }
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
