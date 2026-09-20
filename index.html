@@ -756,16 +756,34 @@ window.daftarUser = async function(event) {
   alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar');
 }
+// TARUH INI DI ATAS SEKALI, DI LUAR FUNGSI (di bawah const supabase)
+let saldoBerseri = 0;
+async function loadSaldoBerseri(){
+  const { data } = await supabase.from('koin_induk').select('sisa_nominal').eq('status','aktif');
+  saldoBerseri = data ? data.reduce((a,b)=>a+(b.sisa_nominal||0),0) : 0;
+  saldoSekarang = saldoBerseri;
+  updateSaldoUI();
+}
+
+function updateSaldoUI() { 
+  document.getElementById('saldoText').innerText = (saldoBerseri).toLocaleString() + " (BERSERI)"; 
+}
+
 window.loginUser = async function() {
-  const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
-  if(!email ||!pass) return alert('Isi email dan password');
+  const email = document.getElementById('loginEmail').value; 
+  const pass = document.getElementById('loginPass').value;
+  if(!email || !pass) return alert('Isi email dan password');
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
   if(error) return alert('Gagal: ' + error.message);
   const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
-  userLogin = userData; localStorage.setItem('ainun_user', JSON.stringify(userData));
-  saldoSekarang = userData.saldo_koin || 0;
-  updateSaldoUI(); updateUI(true); loadMyProfile(); 
-  cekRoleAdmin(); // <-- TAMBAH INI
+  userLogin = userData; 
+  localStorage.setItem('ainun_user', JSON.stringify(userData));
+  
+  await loadSaldoBerseri(); // <-- INI YANG BENER, BUKAN saldo_koin LAGI
+  
+  updateUI(true); 
+  loadMyProfile(); 
+  cekRoleAdmin();
   closeModal('login');
 }
 function updateUI(isLogin) {
@@ -845,9 +863,12 @@ window.buatPost = async function(event) {
     return; 
   }
 
-  // Cek saldo cuma buat UX, validasi asli ada di RPC
-  if(saldoSekarang < hadiah) { 
-    alert("Saldo tidak cukup. Saldo kamu: " + saldoSekarang); 
+  // === CEK SALDO BERSERI LANGSUNG DARI koin_induk ===
+  const { data: koinAktif } = await supabase.from('koin_induk').select('sisa_nominal').eq('status','aktif');
+  const saldoBerseriCheck = koinAktif ? koinAktif.reduce((a,b)=>a+(b.sisa_nominal||0),0) : 0;
+
+  if(saldoBerseriCheck < hadiah) { 
+    alert("GAGAL: Saldo BERSERI cuma " + saldoBerseriCheck.toLocaleString() + ".\nSaldo tanpa seri ("+saldoSekarang.toLocaleString()+") TIDAK BISA dipakai transaksi.\nTopup berseri dulu."); 
     btn.disabled = false; 
     btn.innerText = "POST & KUNCI DANA"; 
     return; 
@@ -870,7 +891,6 @@ window.buatPost = async function(event) {
     }
   }
 
-  // PANGGIL BACK-END, BUKAN UPDATE SALDO DARI FRONT LAGI
   const { error } = await supabase.rpc('rpc_create_job', {
     p_judul: judul,
     p_deskripsi: deskripsi,
@@ -886,14 +906,10 @@ window.buatPost = async function(event) {
     return; 
   }
 
-  // Sukses - reload saldo asli dari DB
-  const { data: freshUser } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
-  if(freshUser){
-    saldoSekarang = freshUser.saldo_koin;
-    updateSaldoUI();
-  }
+  // === RELOAD SALDO BERSERI, BUKAN users.saldo_koin LAGI ===
+  await loadSaldoBerseri();
 
-  alert('Job diposting! Dana ' + hadiah + ' dikunci.');
+  alert('Job diposting! Dana ' + hadiah + ' dikunci dari koin berseri.');
   closeModal('post');
   fileGambarJob = null; 
   document.getElementById('namaFileJob').innerText = "";
