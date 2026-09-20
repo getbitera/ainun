@@ -853,7 +853,7 @@ window.buatPost = async function(event) {
     try{
       const compressed = await compressImage(fileGambarJob, 800);
       const path = `${userLogin.id}/${Date.now()}.jpg`;
-      const { error: upErr } = await supabase.storage.from('job-images').upload(path, compressed, {upsert:true});
+      const { error: upErr } = await supabase.storage.from('job-banners').upload(path, compressed, {upsert:true});
       if(upErr) throw upErr;
       const { data } = await supabase.storage.from('job-images').getPublicUrl(path);
       urlGambar = data.publicUrl;
