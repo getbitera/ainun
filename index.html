@@ -822,20 +822,74 @@ window.openGambarFull = function(src){
 }
 
 
-window.buatPost = async function(event){
-  const btn = event.target; btn.disabled=true; btn.innerText="CEK SALDO...";
-  const judul = document.getElementById('judulPost').value;
-  const hadiah = parseInt(document.getElementById('hadiahPost').value);
-  const cek = await cekKoinAsli(userLogin.id, hadiah);
-  if(!cek.valid){ alert("⛔ "+cek.alasan); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
-  // lanjut insert jobs seperti punyamu
-  const { error } = await supabase.from('jobs').insert({user_id:userLogin.id, judul:judul, deskripsi:document.getElementById('deskripsiPost').value, harga:hadiah, no_wa:document.getElementById('noWaPost').value, status:'open'});
-  if(error){ alert(error.message); btn.disabled=false; return; }
-  alert("Job diposting! Saldo terdaftar terkunci");
-  await loadSaldoBerseri(); loadJobs(); closeModal('post');
-  btn.disabled=false; btn.innerText="POST & KUNCI DANA";
-}
+window.buatPost = async function(event) {
+  if(!userLogin) return alert("Login dulu");
+  const btn = event.target; 
+  btn.disabled = true; 
+  btn.innerText = "CEK SALDO...";
 
+  const judul = document.getElementById('judulPost').value.trim();
+  const deskripsi = document.getElementById('deskripsiPost').value.trim();
+  const hadiah = parseInt(document.getElementById('hadiahPost').value);
+  const noWa = document.getElementById('noWaPost').value.trim();
+
+  if(!judul || !hadiah || hadiah < 1000) { 
+    alert("Isi judul & hadiah min 1000"); 
+    btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; 
+  }
+
+  // CEK SALDO TIDAK TERDAFTAR
+  const cek = await cekKoinAsli(userLogin.id, hadiah);
+  if(!cek.valid){
+    alert("⛔ " + cek.alasan);
+    btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return;
+  }
+
+  btn.innerText = "UPLOAD GAMBAR...";
+  let urlGambar = null;
+
+  // UPLOAD GAMBAR JOB KALO ADA
+  if(fileGambarJob){
+    try{
+      const compressed = await compressImage(fileGambarJob, 800);
+      const path = `${userLogin.id}/${Date.now()}.jpg`;
+      const { error: upErr } = await supabase.storage.from('job-images').upload(path, compressed, {upsert:true});
+      if(upErr) throw upErr;
+      const { data } = await supabase.storage.from('job-images').getPublicUrl(path);
+      urlGambar = data.publicUrl;
+    }catch(e){
+      alert("Gagal upload gambar: " + e.message);
+      btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return;
+    }
+  }
+
+  btn.innerText = "POSTING...";
+  const { error } = await supabase.from('jobs').insert({
+    user_id: userLogin.id,
+    judul: judul,
+    deskripsi: deskripsi,
+    harga: hadiah,
+    no_wa: noWa,
+    status: 'open',
+    gambar_url: urlGambar // <-- PASTIKAN DI TABEL jobs ADA KOLOM gambar_url (text)
+  });
+
+  if(error){ 
+    alert('Gagal post: ' + error.message); 
+    btn.disabled = false; btn.innerText = "POST & KUNCI DANA"; return; 
+  }
+
+  await loadSaldoBerseri();
+  alert('Job diposting!'+(urlGambar?' Dengan gambar':'')); 
+  closeModal('post');
+  document.getElementById('judulPost').value = ''; 
+  document.getElementById('deskripsiPost').value = ''; 
+  document.getElementById('hadiahPost').value = '';
+  document.getElementById('namaFileJob').innerText = '';
+  fileGambarJob = null;
+  btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
+  loadJobs();
+}
 
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
@@ -1438,13 +1492,20 @@ async function cekKoinAsli(userId, jumlahButuh) {
 async function loadJobs(){
   const container = document.getElementById('daftarJob');
   if(!container) return;
-  container.innerHTML = '<p>Loading...</p>';
-  const { data, error } = await supabase.from('jobs').select('*').order('created_at',{ascending:false});
-  if(error){ container.innerHTML = 'Error: '+error.message; console.error(error); return; }
-  if(!data || data.length==0){ container.innerHTML = '<p>Belum ada job</p>'; return; }
-  container.innerHTML = '';
+  container.innerHTML = 'Loading...';
+  const { data } = await supabase.from('jobs').select('*').order('created_at',{ascending:false});
+  if(!data || data.length==0){ container.innerHTML='<p>Belum ada job</p>'; return; }
+  container.innerHTML='';
   data.forEach(job=>{
-    container.innerHTML += `<div class="card"><h3>${job.judul}</h3><p>${job.deskripsi||''}</p><b>${Number(job.harga).toLocaleString()} Koin</b><br><br><button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button> <button class="btn" onclick="lihatPelamar('${job.id}')">PELAMAR</button></div>`;
+    container.innerHTML+=`
+    <div class="card">
+      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
+      <h3>${job.judul}</h3>
+      <p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p>
+      <b>${Number(job.harga).toLocaleString()} Koin</b><br><br>
+      <button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button>
+      <button class="btn" onclick="lihatPelamar('${job.id}')">PELAMAR</button>
+    </div>`;
   });
 }
 async function loadPenyedia(){
