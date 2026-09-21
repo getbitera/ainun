@@ -833,24 +833,34 @@ window.buatPost = async function(event) {
   const hadiah = parseInt(document.getElementById('hadiahPost').value);
   const noWa = document.getElementById('noWaPost').value.trim();
 
-  if(!judul || hadiah < 1000){ alert("Isi judul & hadiah min 1000"); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
+  if(!judul || hadiah < 1000){ 
+    alert("Isi judul & hadiah min 1000"); 
+    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
+  }
 
-  // 1. AMBIL PECAHAN VALID (harus ada kode_seri)
-  const { data: pecahan } = await supabase.from('koin_pecahan')
+  // 1. AMBIL PECAHAN MILIK USER YANG BELUM TERKUNCI
+  const { data: pecahan, error: e1 } = await supabase
+    .from('koin_pecahan')
     .select('*')
     .eq('pemilik_id', userLogin.id)
-    .is('locked_for_job', null)
-    .not('kode_seri','is',null);
+    .is('locked_for_job', null);
 
-  if(!pecahan || pecahan.length===0){ alert("⛔ Saldo tidak terdaftar / tidak ada seri"); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
+  console.log("DEBUG PECAHAN:", pecahan, e1);
+
+  if(!pecahan || pecahan.length===0){ 
+    alert("⛔ Saldo tidak terdaftar / tidak ada pecahan aktif"); 
+    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
+  }
 
   let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
-  if(total < hadiah){ alert(`Saldo tidak cukup. Punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
+  if(total < hadiah){ 
+    alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`); 
+    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
+  }
 
-  // Urutkan dari kecil biar efisien
-  pecahan.sort((a,b)=> a.nominal - b.nominal);
+  pecahan.sort((a,b)=> Number(a.nominal) - Number(b.nominal));
 
-  // 2. Upload gambar dulu
+  // 2. Upload gambar
   let urlGambar = null;
   if(fileGambarJob){
     const comp = await compressImage(fileGambarJob, 800);
@@ -868,44 +878,41 @@ window.buatPost = async function(event) {
 
   if(jobErr){ alert(jobErr.message); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 4. KUNCI DENGAN LOGIKA KEMBALIAN
+  // 4. LOGIKA PECAH OTOMATIS DI SINI (sesuai mau kamu)
   let sisaButuh = hadiah;
 
   for(const p of pecahan){
     if(sisaButuh <= 0) break;
-
-    const baseKode = p.kode_seri.substring(0, p.kode_seri.length - 6);
+    const baseKode = p.induk_seri; // contoh: ainunteskodeseri029848749A
     const nom = Number(p.nominal);
 
     if(nom <= sisaButuh){
-      // Pakai full pecahan ini
-      await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id, status: 'terkunci' }).eq('id', p.id);
+      // pakai full
+      await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id, tipe: 'terkunci' }).eq('id', p.id);
       sisaButuh -= nom;
     } else {
-      // Pecahan ini kebesaran, harus dipecah jadi 2: yang dikunci + kembalian
-      // Contoh: punya 50.000, butuh 10.000 -> jadi 10.000 terkunci + 40.000 kembalian
+      // kebesaran, pecah jadi 2
       const kembalian = nom - sisaButuh;
       
-      // 4a. Hapus yang lama
       await supabase.from('koin_pecahan').delete().eq('id', p.id);
 
-      // 4b. Bikin kembalian balik ke owner
+      // 4a. Kembalian -> 90000
       await supabase.from('koin_pecahan').insert({
-        induk_id: p.induk_id,
-        kode_seri: baseKode + String(kembalian).padStart(6,'0'), // ...040000
+        induk_seri: baseKode,
+        pecahan_seri: baseKode + String(kembalian).padStart(6,'0'), // ...090000
         nominal: kembalian,
         pemilik_id: userLogin.id,
-        status: 'aktif'
+        tipe: 'aktif'
       });
 
-      // 4c. Bikin yang terkunci
+      // 4b. Yang dikunci -> 10000
       await supabase.from('koin_pecahan').insert({
-        induk_id: p.induk_id,
-        kode_seri: baseKode + String(sisaButuh).padStart(6,'0'), // ...010000
+        induk_seri: baseKode,
+        pecahan_seri: baseKode + String(sisaButuh).padStart(6,'0'), // ...010000
         nominal: sisaButuh,
         pemilik_id: null,
         locked_for_job: jobBaru.id,
-        status: 'terkunci'
+        tipe: 'terkunci'
       });
 
       sisaButuh = 0;
@@ -1018,36 +1025,42 @@ window.kirimBukti = async function(){
     alert('Gagal: ' + err.message)
   }
 }
-window.konfirmasiSelesai = async function(jobId, pekerjaId){
-  const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
-  let buktiHtml = '<p style="color:red">Bukti tidak ada</p>';
-  if(job?.bukti_url){
-    const signed = await getSignedUrl('bukti-job', job.bukti_url, 3600);
-    if(signed) buktiHtml = `<img src="${signed}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:10px">`;
-    else buktiHtml = `<p>Bukti: ${job.bukti_url} (gagal buat link)</p>`;
-  }
+window.konfirmasiSelesai = async function(jobId, pekerjaId) {
+  // 1. Ambil pecahan yang terkunci buat job ini
+  const { data: terkunci } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', jobId).single();
+  if(!terkunci) return alert("Dana terkunci tidak ditemukan");
 
-  pekerjaRatingId = pekerjaId;
-  ratingJobId = jobId;
-  skorRating = 0;
-  openModal('ratingModal');
+  const baseKode = terkunci.induk_seri;
+  const harga = terkunci.nominal;
+  const fee = Math.floor(harga * 0.16); // 1600
+  const buatPekerja = harga - fee; // 8400
 
-  document.getElementById('ratingJobJudul').innerHTML = `
-    ${buktiHtml}
-    <p style="text-align:center;font-weight:bold">Beri rating untuk pekerja</p>
-    <div class="rating-wrap">
-      <div class="bintang-container" id="bintangContainer" style="display:flex;gap:8px;justify-content:center;flex-direction:row-reverse">
-        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(5)" data-star="5">★</span>
-        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(4)" data-star="4">★</span>
-        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(3)" data-star="3">★</span>
-        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(2)" data-star="2">★</span>
-        <span class="bintang" style="font-size:45px;cursor:pointer;color:#ddd" onclick="klikBintang(1)" data-star="1">★</span>
-      </div>
-      <div class="bintang-text" id="bintangText">Klik bintang untuk memberi rating</div>
-    </div>
-  `;
+  // 2. Hapus yang 10000
+  await supabase.from('koin_pecahan').delete().eq('id', terkunci.id);
+
+  // 3. Bikin 8400 buat pekerja
+  await supabase.from('koin_pecahan').insert({
+    induk_seri: baseKode,
+    pecahan_seri: baseKode + String(buatPekerja).padStart(6,'0'), // ...008400
+    nominal: buatPekerja,
+    pemilik_id: pekerjaId,
+    tipe: 'aktif'
+  });
+
+  // 4. Bikin 1600 buat admin
+  const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
+  await supabase.from('koin_pecahan').insert({
+    induk_seri: baseKode,
+    pecahan_seri: baseKode + String(fee).padStart(6,'0'), // ...001600
+    nominal: fee,
+    pemilik_id: admin.id,
+    tipe: 'aktif'
+  });
+
+  await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', jobId);
+  alert("Job selesai! Dana dipecah otomatis.");
+  loadJobs();
 }
-
 window.klikBintang = async function(skor){
   skorRating = skor;
   document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
@@ -1058,30 +1071,84 @@ window.klikBintang = async function(skor){
 }
 
 window.kirimRating = async function(){
-  if(skorRating===0) return alert("Pilih bintang");
-  const { error } = await supabase.rpc('rpc_confirm_job',{p_job_id: ratingJobId, p_skor: skorRating});
-  if(error){ alert("Gagal: "+error.message); console.error(error); return; }
-  closeModal('ratingModal');
-  alert("✅ Cair! Pekerja dapat 84%, admin 16%");
-  const { data: freshUser } = await supabase.from('users').select('saldo_koin').eq('id', userLogin.id).single();
-  if(freshUser){ saldoSekarang=freshUser.saldo_koin; updateSaldoUI(); }
-  loadJobs();
-}
-function getYoutubeEmbed(url){
-  if(!url) return '';
-  let videoId = '';
-  if(url.includes('youtube.com/watch?v=')){
-    videoId = url.split('v=')[1].split('&')[0];
-  } else if(url.includes('youtu.be/')){
-    videoId = url.split('youtu.be/')[1].split('?')[0];
-  } else if(url.includes('youtube.com/shorts/')){
-    videoId = url.split('shorts/')[1].split('?')[0];
-  } else if(url.includes('youtube.com/embed/')){
-    return url;
-  }
-  return videoId? `https://www.youtube.com/embed/${videoId}` : '';
-}
+  if(skorRating === 0) return alert("Pilih bintang dulu!");
+  if(!ratingJobId || !pekerjaRatingId) return alert("Data rating tidak lengkap");
+  
+  const btn = document.getElementById('btnKirimRating');
+  if(btn){ btn.disabled=true; btn.innerText="MEMPROSES..."; }
 
+  try {
+    // 1. SIMPAN RATING DULU
+    await supabase.from('ratings').insert({
+      job_id: ratingJobId,
+      pekerja_id: pekerjaRatingId,
+      pemberi_id: userLogin.id,
+      skor: skorRating
+    });
+
+    // 2. AMBIL DANA YANG TERKUNCI BUAT JOB INI
+    const { data: terkunci, error: eTerkunci } = await supabase
+      .from('koin_pecahan')
+      .select('*')
+      .eq('locked_for_job', ratingJobId)
+      .maybeSingle();
+
+    if(!terkunci){
+      console.error(eTerkunci);
+      // Tetap lanjut selesaikan job biar gak nyangkut, tapi kasih warning
+      await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
+      alert("Rating tersimpan, tapi dana terkunci tidak ditemukan (mungkin sudah dicairkan).");
+      closeModal('ratingModal');
+      loadJobs();
+      return;
+    }
+
+    const baseKode = terkunci.induk_seri; // ainunteskodeseri029848749A
+    const harga = Number(terkunci.nominal); // 10000
+    const fee = Math.floor(harga * 0.16); // 1600
+    const buatPekerja = harga - fee; // 8400
+
+    // 3. HAPUS PECAHAN 10000 YANG TERKUNCI
+    await supabase.from('koin_pecahan').delete().eq('id', terkunci.id);
+
+    // 4. BIKIN PECAHAN 8400 UNTUK PEKERJA -> ainunteskodeseri...008400
+    const { error: ePekerja } = await supabase.from('koin_pecahan').insert({
+      induk_seri: baseKode,
+      pecahan_seri: baseKode + String(buatPekerja).padStart(6,'0'),
+      nominal: buatPekerja,
+      pemilik_id: pekerjaRatingId,
+      tipe: 'aktif'
+    });
+    if(ePekerja) throw ePekerja;
+
+    // 5. BIKIN PECAHAN 1600 UNTUK ADMIN -> ainunteskodeseri...001600
+    const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
+    if(admin){
+      await supabase.from('koin_pecahan').insert({
+        induk_seri: baseKode,
+        pecahan_seri: baseKode + String(fee).padStart(6,'0'),
+        nominal: fee,
+        pemilik_id: admin.id,
+        tipe: 'aktif'
+      });
+    }
+
+    // 6. SELESAIKAN JOB
+    await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
+
+    alert(`Selesai! Pekerja dapat ${buatPekerja.toLocaleString()} (${baseKode}${String(buatPekerja).padStart(6,'0')}) & Fee admin ${fee.toLocaleString()}`);
+    
+    closeModal('ratingModal');
+    await loadSaldoBerseri();
+    loadJobs();
+
+  } catch(err){
+    console.error(err);
+    alert("Gagal: " + err.message);
+  } finally {
+    if(btn){ btn.disabled=false; btn.innerText="KIRIM RATING"; }
+  }
+}
 window.simpanVideo = async function(){
   if(!userLogin) return alert("Login dulu");
   const judul = document.getElementById('judulVideo').value.trim();
