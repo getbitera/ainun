@@ -805,106 +805,95 @@ window.openGambarFull = function(src){
   openModal('gambarFullModal');
 }
 
-
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
-  const btn = event.target; btn.disabled = true; btn.innerText = "MENGUNCI DANA...";
-  
-  const judul = document.getElementById('judulPost').value.trim();
-  const deskripsi = document.getElementById('deskripsiPost').value.trim();
-  const hadiah = parseInt(document.getElementById('hadiahPost').value);
-  const noWa = document.getElementById('noWaPost').value.trim();
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerText = "MENGUNCI DANA...";
 
-  if(!judul || hadiah < 1000){ 
-    alert("Isi judul & hadiah min 1000"); 
-    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
-  }
+  try {
+    const judul = document.getElementById('judulPost').value.trim();
+    const deskripsi = document.getElementById('deskripsiPost').value.trim();
+    const hadiah = parseInt(document.getElementById('hadiahPost').value);
+    const noWa = document.getElementById('noWaPost').value.trim();
 
-  const { data: pecahan, error: e1 } = await supabase
-    .from('koin_pecahan')
-    .select('*')
-    .eq('pemilik_id', userLogin.id)
-    .is('locked_for_job', null);
-
-  if(!pecahan || pecahan.length===0){ 
-    alert("⛔ Saldo tidak terdaftar / tidak ada pecahan aktif"); 
-    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
-  }
-
-  let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
-  if(total < hadiah){ 
-    alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`); 
-    btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
-  }
-
-  pecahan.sort((a,b)=> Number(a.nominal) - Number(b.nominal));
-
-  let urlGambar = null;
-  if(fileGambarJob){
-    const comp = await compressImage(fileGambarJob, 800);
-    const path = `${userLogin.id}/${Date.now()}.jpg`;
-    await supabase.storage.from('job-banners').upload(path, comp, {upsert:true});
-    const { data } = await supabase.storage.from('job-banners').getPublicUrl(path);
-    urlGambar = data.publicUrl;
-  }
-
-  const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
-    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa,
-    status: 'open', gambar_url: urlGambar, dana_ditahan: true
-  }).select().single();
-
-  if(jobErr){ alert(jobErr.message); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
-
-  let sisaButuh = hadiah;
-  const uniq = Date.now() + '-' + Math.random().toString(36).substring(2,6);
-
-  for(const p of pecahan){
-    if(sisaButuh <= 0) break;
-    const baseKode = p.induk_seri;
-    const nom = Number(p.nominal);
-
-    if(nom <= sisaButuh){
-      await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id, tipe: 'terkunci' }).eq('id', p.id);
-      sisaButuh -= nom;
-    } else {
-      const kembalian = nom - sisaButuh;
-      
-      const { error: delErr } = await supabase.from('koin_pecahan').delete().eq('id', p.id);
-      if(delErr){ alert(delErr.message); break; }
-
-      // 4a. KEMBALIAN - SERI UNIK BIAR GA TABRAKAN
-      await supabase.from('koin_pecahan').insert({
-        induk_seri: baseKode,
-        pecahan_seri: baseKode + '-' + String(kembalian).padStart(6,'0') + '-R-' + uniq,
-        nominal: kembalian,
-        pemilik_id: userLogin.id,
-        tipe: 'aktif'
-      });
-
-      // 4b. YANG DIKUNCI - SERI UNIK + ID JOB
-      await supabase.from('koin_pecahan').insert({
-        induk_seri: baseKode,
-        pecahan_seri: baseKode + '-' + String(sisaButuh).padStart(6,'0') + '-L-' + uniq + '-' + jobBaru.id.substring(0,6),
-        nominal: sisaButuh,
-        pemilik_id: null,
-        locked_for_job: jobBaru.id,
-        tipe: 'terkunci'
-      });
-
-      sisaButuh = 0;
-      break;
+    if(!judul ||!hadiah || hadiah < 1000){
+      alert("Isi judul & hadiah min 1000");
+      return;
     }
-  }
 
-  await loadSaldoBerseri();
-  alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI.`);
-  closeModal('post');
-  btn.disabled=false; btn.innerText="POST & KUNCI DANA";
-  fileGambarJob = null;
-  document.getElementById('judulPost').value='';
-  document.getElementById('deskripsiPost').value='';
-  document.getElementById('hadiahPost').value='';
-  loadJobs();
+    // 1. CEK SALDO DULU (read only, aman)
+    const { data: pecahan } = await supabase
+     .from('koin_pecahan')
+     .select('nominal, induk_seri')
+     .eq('pemilik_id', userLogin.id)
+     .is('locked_for_job', null);
+
+    if(!pecahan || pecahan.length===0){
+      alert("⛔ Saldo tidak ada pecahan aktif");
+      return;
+    }
+
+    let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
+    if(total < hadiah){
+      alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`);
+      return;
+    }
+
+    // 2. UPLOAD GAMBAR (kalau ada)
+    let urlGambar = null;
+    if(fileGambarJob){
+      const comp = await compressImage(fileGambarJob, 800);
+      const path = `${userLogin.id}/${Date.now()}.jpg`;
+      const { error: upErr } = await supabase.storage.from('job-banners').upload(path, comp, {upsert:true});
+      if(upErr) throw upErr;
+      const { data } = await supabase.storage.from('job-banners').getPublicUrl(path);
+      urlGambar = data.publicUrl;
+    }
+
+    // 3. BUAT JOB DULU - ISI SEMUA KOLOM BIAR GAK NULL
+    const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
+      user_id: userLogin.id,
+      pemberi_id: userLogin.id, // <-- BIAR GA NULL
+      judul,
+      deskripsi,
+      harga: hadiah,
+      no_wa: noWa,
+      status: 'open',
+      gambar_url: urlGambar,
+      dana_ditahan: true,
+      koin_induk_terkunci: pecahan[0]?.induk_seri || null
+    }).select().single();
+
+    if(jobErr) throw jobErr;
+
+    // 4. KUNCI DANA LEWAT RPC (AMAN, GAK BISA DIBOBOL DARI CONSOLE)
+    const { error: lockErr } = await supabase.rpc('rpc_lock_koin', {
+      p_job_id: jobBaru.id,
+      p_harga: hadiah
+    });
+    if(lockErr) {
+      // kalau gagal kunci, hapus jobnya biar gak nyangkut
+      await supabase.from('jobs').delete().eq('id', jobBaru.id);
+      throw lockErr;
+    }
+
+    await loadSaldoBerseri();
+    alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI.`);
+    closeModal('post');
+    fileGambarJob = null;
+    document.getElementById('judulPost').value='';
+    document.getElementById('deskripsiPost').value='';
+    document.getElementById('hadiahPost').value='';
+    document.getElementById('namaFileJob').innerText='';
+    loadJobs();
+
+  } catch(err){
+    alert("Gagal: " + err.message);
+  } finally {
+    btn.disabled=false;
+    btn.innerText="POST & KUNCI DANA";
+  }
 }
 window.ambilJob = async function(jobId){
   const { error } = await supabase.from('job_applications').insert({
