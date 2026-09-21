@@ -738,19 +738,6 @@ window.daftarUser = async function(event) {
   alert('Daftar berhasil! Cek email untuk verifikasi');
   closeModal('daftar');
 }
-// TARUH INI DI ATAS SEKALI, DI LUAR FUNGSI (di bawah const supabase)
-let saldoBerseri = 0;
-async function loadSaldoBerseri(){
-  if(!userLogin) return;
-  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id);
-  saldoSekarang = data ? data.reduce((a,b)=>a+(b.nominal||0),0) : 0;
-  document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString();
-}
-
-function updateSaldoUI() { 
-  document.getElementById('saldoText').innerText = (saldoBerseri).toLocaleString() + " (BERSERI)"; 
-}
-
 
 function updateUI(isLogin) {
   const menuBtn = document.getElementById('menuBtn'); 
@@ -765,11 +752,6 @@ function updateUI(isLogin) {
     saldoSekarang = 0; updateSaldoUI();
     showPage('homePage');
   } 
-}
-
-function updateSaldoUI() { 
-  const el = document.getElementById('saldoText');
-  if(el) el.innerText = saldoSekarang.toLocaleString(); 
 }
 
 window.loginUser = async function() { 
@@ -1569,67 +1551,38 @@ async function stopAllChatChannel(){
   channelRealtime = null;
   channelNotifGlobal = null;
 }
+// ====== VERSI FINAL YANG BENAR - 1 KALI SAJA ======
+let saldoBerseri = 0;
 
-// ===== FIX DEFINITIF - ANTI SALDO TIDAK TERDAFTAR =====
+async function getMyAuthId(){
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || userLogin?.id;
+}
+
 async function loadSaldoBerseri(){
   if(!userLogin) return;
-  const { data } = await supabase.from('koin_pecahan').select('nominal,kode_induk').eq('pemilik_id', userLogin.id).eq('status','aktif');
+  const myId = await getMyAuthId();
+  console.log("CEK ID:", myId, "userLogin.id:", userLogin.id);
+  
+  const { data, error } = await supabase.from('koin_pecahan')
+    .select('*')
+    .eq('pemilik_id', myId)
+    .is('locked_for_job', null);
+  
+  console.log("DATA KOIN:", data, error);
+  
   let total = 0;
-  if(data){
-    for(const p of data){
-      const { data: induk } = await supabase.from('koin_induk').select('id').eq('kode_seri', p.kode_induk).maybeSingle();
-      if(induk) total += Number(p.nominal);
-    }
-  }
+  if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
   saldoSekarang = total;
   const el = document.getElementById('saldoText');
-  if(el) el.innerText = total.toLocaleString();
+  if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
 }
+
 function updateSaldoUI(){
   const el = document.getElementById('saldoText');
   if(el) el.innerText = Number(saldoSekarang).toLocaleString();
 }
-async function cekKoinAsli(userId, jumlahButuh) {
-  // ambil semua kolom, biar gak error kalau nama kolom beda
-  const { data: pecahan, error } = await supabase
-   .from('koin_pecahan')
-   .select('*')
-   .eq('pemilik_id', userId);
 
-  console.log("DEBUG RAW:", pecahan, error);
-
-  if(error){
-    // coba fallback kalau kolom pemilik_id namanya user_id
-    const retry = await supabase.from('koin_pecahan').select('*').eq('user_id', userId);
-    if(retry.data && retry.data.length>0){
-      const total = retry.data.reduce((a,b)=>a+Number(b.nominal||b.jumlah||b.value||0),0);
-      if(total < jumlahButuh) return {valid:false, alasan:`Saldo ${total.toLocaleString()}, butuh ${jumlahButuh.toLocaleString()}`};
-      return {valid:true, total:total};
-    }
-    return {valid:false, alasan:"Error DB: "+error.message};
-  }
-
-  if(!pecahan || pecahan.length===0) return {valid:false, alasan:"Saldo tidak terdaftar. Silahkan topup resmi. (tabel koin_pecahan kosong untuk user ini)"};
-
-  // jumlahin apapun nama kolom nominalnya
-  const totalValid = pecahan.reduce((a,b)=>a+Number(b.nominal||b.jumlah||b.value||b.amount||0),0);
-  if(totalValid < jumlahButuh) return {valid:false, alasan:`Saldo tidak terdaftar. Saldo resmi kamu ${totalValid.toLocaleString()}, butuh ${jumlahButuh.toLocaleString()}.`};
-  return {valid:true, total:totalValid};
-}
-
-async function loadSaldoBerseri(){
-  if(!userLogin) return;
-  const { data } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', userLogin.id);
-  let total = 0;
-  if(data) total = data.reduce((a,b)=>a+Number(b.nominal||b.jumlah||b.value||0),0);
-  else {
-    const retry = await supabase.from('koin_pecahan').select('*').eq('user_id', userLogin.id);
-    if(retry.data) total = retry.data.reduce((a,b)=>a+Number(b.nominal||b.jumlah||b.value||0),0);
-  }
-  saldoSekarang = total;
-  const el = document.getElementById('saldoText');
-  if(el) el.innerText = total.toLocaleString();
-}
 async function loadJobs(){
   const container = document.getElementById('daftarJob');
   if(!container) return;
@@ -1649,12 +1602,12 @@ async function loadJobs(){
     </div>`;
   });
 }
+
 async function loadPenyedia(){
   const container = document.getElementById('daftarPenyedia');
   if(!container) return;
   container.innerHTML = 'Loading penyedia...';
   const { data, error } = await supabase.from('users').select('*').limit(50);
-  console.log('PENYEDIA:', data, error);
   if(error){ container.innerHTML = error.message; return; }
   container.innerHTML = '';
   data.forEach(u=>{
@@ -1662,7 +1615,6 @@ async function loadPenyedia(){
     container.innerHTML += `<div class="card" style="text-align:center"><img src="${u.foto||''}" class="profil-foto" style="width:80px;height:80px" onclick="lihatProfilOrang('${u.id}')"><h3>${u.nama}</h3><p>${u.skill||''}</p><button class="btn" onclick="bukaChat('${u.id}')">CHAT</button></div>`;
   });
 }
-
 
 supabase.auth.getSession().then(async ({ data: { session } }) => {
   if(session){
