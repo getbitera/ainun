@@ -372,17 +372,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 </div>
 
-<div id="profilUserModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:white; border-radius:16px; padding:20px; width:90%; max-width:380px; text-align:center; position:relative;">
-    <span onclick="closeModal('profilUserModal')" style="position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer;">×</span>
-    <img id="profilFoto" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #0d5d56;">
-    <h3 id="profilNama" style="margin:10px 0 5px 0;"></h3>
-    <p id="profilRating" style="color:#666; font-size:14px;"></p>
-    <p id="profilBio" style="font-size:13px; margin-top:10px;"></p>
-    <button id="btnChatDariProfil" style="margin-top:15px; width:100%; background:#0d5d56; color:white; padding:10px; border-radius:10px; border:none; font-weight:bold;">💬 KIRIM PESAN</button>
-  </div>
-</div>
-
 <!-- MODAL TOPUP -->
 <div class="modal" id="topup">
   <div class="modal-content">
@@ -1647,16 +1636,16 @@ window.buatPost = async function(event){
   // lanjutkan pakai logic kamu yang lama
   return buatPostAsli(event);
 }
+
+
+// ===== FIX JOBS - PAKAI FITUR YANG UDAH ADA =====
 async function loadJobs(){
   const container = document.getElementById('daftarJob');
   if(!container) return;
   container.innerHTML = 'Loading...';
-  
-  // 1. AMBIL SEMUA JOB
   const { data: jobs } = await supabase.from('jobs').select('*').order('created_at',{ascending:false});
   if(!jobs || jobs.length==0){ container.innerHTML='<p>Belum ada job</p>'; return; }
 
-  // 2. AMBIL SEMUA USER SEKALIGUS BIAR PROFIL MUNCUL (lebih aman dari foreign key)
   const allUserIds = [...new Set(jobs.flatMap(j => [j.user_id, j.diambil_oleh]).filter(Boolean))];
   const { data: usersData } = await supabase.from('users').select('id,nama,foto,total_rating,jumlah_rating').in('id', allUserIds);
   const userMap = {};
@@ -1667,9 +1656,9 @@ async function loadJobs(){
     const isOwner = userLogin && job.user_id === userLogin.id;
     const isWorker = userLogin && job.diambil_oleh === userLogin.id;
     const owner = userMap[job.user_id] || {nama:'-', foto:'', total_rating:0, jumlah_rating:0};
-    const pekerja = job.diambil_oleh ? (userMap[job.diambil_oleh] || {nama:'-', foto:''}) : null;
+    const pekerja = job.diambil_oleh ? (userMap[job.diambil_oleh] || {nama:'-', foto:'', total_rating:0, jumlah_rating:0}) : null;
     
-    const fotoOwner = owner.foto || 'https://i.pravatar.cc/100?u='+job.user_id;
+    const fotoOwner = owner.foto || `https://ui-avatars.com/api/?name=${owner.nama}`;
     const ratingOwner = owner.jumlah_rating > 0 ? (owner.total_rating/owner.jumlah_rating).toFixed(1) : '0.0';
     const buktiSigned = job.bukti_url ? await getSignedUrl('bukti-job', job.bukti_url) : null;
     
@@ -1680,84 +1669,43 @@ async function loadJobs(){
       if(job.status === 'open'){
         tombol = `<button class="btn" onclick="lihatPelamar('${job.id}')">👥 LIHAT PELAMAR</button>`;
       } else if(job.status === 'dikerjakan'){
-        tombol = `<p>🔨 Dikerjakan oleh pekerja - tunggu bukti</p>`;
+        tombol = `<p>🔨 Dikerjakan - tunggu bukti</p>`;
       } else if(job.status === 'menunggu_konfirmasi'){
-        tombol = `
-          ${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')"><br>` : ''}
-          <button class="btn" style="width:100%; margin-top:10px" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul.replace(/'/g,"")}')">⭐ KASIH RATING & CAIRKAN DANA</button>
-        `;
+        tombol = `${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')"><br>` : ''}<button class="btn" style="width:100%; margin-top:10px" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul.replace(/'/g,"")}')">⭐ KASIH RATING & CAIRKAN</button>`;
       } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60; font-weight:bold">✅ SELESAI & SUDAH DICAIRKAN</p>`;
+        tombol = `<p style="color:#27AE60; font-weight:bold">✅ SELESAI</p>`;
       }
     } else if(isWorker){
       if(job.status === 'dikerjakan'){
-        tombol = `<button class="btn btn-sukses" style="width:100%" onclick="selesaiKerja('${job.id}')">📤 KIRIM BUKTI SELESAI</button>`;
+        tombol = `<button class="btn btn-sukses" style="width:100%" onclick="selesaiKerja('${job.id}')">📤 KIRIM BUKTI</button>`;
       } else if(job.status === 'menunggu_konfirmasi'){
-        tombol = `<p>⏳ Menunggu pemilik kasih rating</p>`;
+        tombol = `<p>⏳ Menunggu rating pemilik</p>`;
       } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60">✅ Dana ${(job.harga*0.84).toLocaleString()} sudah masuk!</p>`;
+        tombol = `<p style="color:#27AE60">✅ Dana ${(job.harga*0.84).toLocaleString()} cair!</p>`;
       }
     } else {
-      if(job.status === 'open' && !job.diambil_oleh){
-        tombol = `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL / LAMAR</button>`;
-      } else {
-        tombol = `<p style="color:gray">Sudah diambil</p>`;
-      }
+      tombol = job.status === 'open' ? `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button>` : `<p style="color:gray">Sudah diambil</p>`;
     }
 
-    // KARTU BARU: PROFIL KLIK + FOTO MUNCUL
     container.innerHTML+=`
     <div class="card">
       ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
-      
-      <!-- PROFIL PEMBERI JOB - BISA KLIK & CHAT -->
-      <div onclick="lihatProfil('${job.user_id}')" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; cursor:pointer;">
-        <img src="${fotoOwner}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid #0d5d56;">
-        <div style="flex:1">
-          <div style="font-size:12px; color:gray;">Oleh: <b style="color:#0d5d56; text-decoration:underline;">${owner.nama}</b> ⭐ ${ratingOwner}</div>
-          <div style="font-size:11px; color:#999;">Klik profil</div>
-        </div>
-        ${!isOwner ? `<button onclick="event.stopPropagation(); chatKe('${job.user_id}')" style="font-size:11px; padding:4px 8px; border-radius:15px; border:1px solid #0d5d56; background:white;">💬 PESAN</button>` : ''}
+      <div onclick="lihatProfilOrang('${job.user_id}')" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; cursor:pointer;">
+        <img src="${fotoOwner}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
+        <div style="flex:1"><div style="font-size:12px; color:gray;">Oleh: <b style="color:var(--accent); text-decoration:underline;">${owner.nama}</b> ⭐ ${ratingOwner}</div><div style="font-size:11px; color:#999;">Klik profil</div></div>
+        ${!isOwner ? `<button onclick="event.stopPropagation(); bukaChat('${job.user_id}')" style="font-size:11px; padding:4px 8px; border-radius:15px; border:1px solid var(--accent); background:white;">💬 PESAN</button>` : ''}
       </div>
-
-      <h3>${job.judul}</h3>
-      <p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p>
-      <b>${Number(job.harga).toLocaleString()} Koin</b><br>
-      <small>Status: ${job.status}</small>
-
-      <!-- PROFIL PENGERJA - MUNCUL KALAU SUDAH ADA YANG AMBIL/SELESAI -->
-      ${pekerja ? `
-        <div style="margin-top:12px; padding:10px; background:#f0fdfa; border-radius:10px; border:1px dashed #0d5d56; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="lihatProfil('${job.diambil_oleh}')">
-          <img src="${pekerja.foto || 'https://i.pravatar.cc/100?u='+job.diambil_oleh}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
-          <div style="flex:1">
-            <div style="font-size:11px; color:#0d5d56; font-weight:bold;">${job.status==='selesai'?'✅ SELESAI DIKERJAKAN OLEH':'🔨 DIKERJAKAN OLEH'}</div>
-            <div style="font-size:13px; font-weight:bold;">${pekerja.nama} ⭐ ${(pekerja.jumlah_rating>0 ? (pekerja.total_rating/pekerja.jumlah_rating).toFixed(1) : '0.0')}</div>
-          </div>
-          <button onclick="event.stopPropagation(); chatKe('${job.diambil_oleh}')" style="font-size:11px; padding:4px 8px; border-radius:15px; background:#0d5d56; color:white; border:none;">CHAT</button>
-        </div>
-      ` : ''}
-
+      <h3>${job.judul}</h3><p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p><b>${Number(job.harga).toLocaleString()} Koin</b><br><small>Status: ${job.status}</small>
+      ${pekerja ? `<div style="margin-top:12px; padding:10px; background:#f0fdfa; border-radius:10px; border:1px dashed var(--accent); display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="lihatProfilOrang('${job.diambil_oleh}')"><img src="${pekerja.foto || `https://ui-avatars.com/api/?name=${pekerja.nama}`}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"><div style="flex:1"><div style="font-size:11px; color:var(--accent); font-weight:bold;">${job.status==='selesai'?'✅ SELESAI OLEH':'🔨 DIKERJAKAN'}</div><div style="font-size:13px; font-weight:bold;">${pekerja.nama} ⭐ ${(pekerja.jumlah_rating>0 ? (pekerja.total_rating/pekerja.jumlah_rating).toFixed(1) : '0.0')}</div></div><button onclick="event.stopPropagation(); bukaChat('${job.diambil_oleh}')" style="font-size:11px; padding:4px 8px; border-radius:15px; background:var(--accent); color:white; border:none;">CHAT</button></div>` : ''}
       <div style="margin-top:12px">${tombol}</div>
     </div>`;
   }
 }
 
-// TAMBAHIN 2 FUNGSI INI DI BAWAHNYA
-window.lihatProfil = async function(uid){
-  const { data } = await supabase.from('users').select('*').eq('id', uid).single();
-  if(!data) return;
-  // pakai modal yang sudah kamu punya, atau alert foto
-  document.getElementById('profilFoto').src = data.foto || 'https://i.pravatar.cc/200';
-  document.getElementById('profilNama').innerText = data.nama;
-  document.getElementById('profilRating').innerText = `⭐ ${(data.jumlah_rating>0?(data.total_rating/data.jumlah_rating).toFixed(1):'0.0')} dari ${data.jumlah_rating||0} job`;
-  document.getElementById('profilUserModal').style.display='flex';
-  document.getElementById('btnChatDariProfil').onclick = ()=> chatKe(uid);
-}
-
-window.chatKe = function(tujuanId){
-  if(tujuanId === userLogin.id) return;
-  location.href = 'chat.html?user=' + tujuanId;
-}
+// HAPUS modal profilUserModal di HTML kamu, gak kepake lagi
+// fungsi chatKe & lihatProfil yang bikin chat.html dihapus, pakai yang asli kamu:
+window.chatKe = window.bukaChat;
+window.lihatProfil = window.lihatProfilOrang;
 window.openRating = function(jobId, pekerjaId, judul){
   ratingJobId = jobId;
   pekerjaRatingId = pekerjaId;
