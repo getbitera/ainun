@@ -1007,46 +1007,35 @@ window.kirimBukti = async function(){
     alert('Gagal: ' + err.message)
   }
 }
-window.konfirmasiSelesai = async function(jobId, pekerjaId) {
-  // 1. Ambil pecahan yang terkunci buat job ini
-  const { data: terkunci } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', jobId).single();
-  if(!terkunci) return alert("Dana terkunci tidak ditemukan");
 
-  const baseKode = terkunci.induk_seri;
-  const harga = terkunci.nominal;
-  const fee = Math.floor(harga * 0.16); // 1600
-  const buatPekerja = harga - fee; // 8400
-
-  // 2. Hapus yang 10000
-  await supabase.from('koin_pecahan').delete().eq('id', terkunci.id);
-
-  // 3. Bikin 8400 buat pekerja
-  await supabase.from('koin_pecahan').insert({
-    induk_seri: baseKode,
-    pecahan_seri: baseKode + String(buatPekerja).padStart(6,'0'), // ...008400
-    nominal: buatPekerja,
-    pemilik_id: pekerjaId,
-    tipe: 'aktif'
-  });
-
-  // 4. Bikin 1600 buat admin
-  const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
-  await supabase.from('koin_pecahan').insert({
-    induk_seri: baseKode,
-    pecahan_seri: baseKode + String(fee).padStart(6,'0'), // ...001600
-    nominal: fee,
-    pemilik_id: admin.id,
-    tipe: 'aktif'
-  });
-
-  await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', jobId);
-  alert("Job selesai! Dana dipecah otomatis.");
-  loadJobs();
+// HAPUS TOMBOL SELESAI DOBEL - PAKSA LEWAT RATING
+window.konfirmasiSelesai = async function(){
+  alert("Klik RATING dulu. Dana baru cair setelah rating.");
+  return;
 }
+
+window.openRating = function(jobId, pekerjaId, judul){
+  ratingJobId = jobId;
+  pekerjaRatingId = pekerjaId;
+  document.getElementById('ratingJobJudul').innerText = judul;
+  document.getElementById('bintangWrap').innerHTML = `
+    <div class="rating-wrap">
+      <div id="bintangContainer" class="bintang-container">
+        <span class="bintang" data-star="5" onclick="klikBintang(5)">★</span>
+        <span class="bintang" data-star="4" onclick="klikBintang(4)">★</span>
+        <span class="bintang" data-star="3" onclick="klikBintang(3)">★</span>
+        <span class="bintang" data-star="2" onclick="klikBintang(2)">★</span>
+        <span class="bintang" data-star="1" onclick="klikBintang(1)">★</span>
+      </div>
+      <div id="bintangText" class="bintang-text">Pilih rating</div>
+    </div>`;
+  openModal('ratingModal');
+}
+
 window.klikBintang = async function(skor){
   skorRating = skor;
-  document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
-    b.style.color = parseInt(b.dataset.star) <= skor ? '#FFD700' : '#ddd';
+  document.querySelectorAll('#bintangContainer.bintang').forEach(b=>{
+    b.style.color = parseInt(b.dataset.star) <= skor? '#FFD700' : '#ddd';
   });
   document.getElementById('bintangText').innerText = 'Mengirim rating '+skor+' bintang...';
   await kirimRating();
@@ -1054,56 +1043,41 @@ window.klikBintang = async function(skor){
 
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu!");
-  if(!ratingJobId || !pekerjaRatingId) return alert("Data rating tidak lengkap");
-  
-  const btn = document.getElementById('btnKirimRating');
-  if(btn){ btn.disabled=true; btn.innerText="MEMPROSES..."; }
 
   try {
-    // 1. SIMPAN RATING DULU
-    await supabase.from('ratings').insert({
+    // 1. Simpan rating dulu
+    const { error: rateErr } = await supabase.from('ratings').insert({
       job_id: ratingJobId,
       pekerja_id: pekerjaRatingId,
       pemberi_id: userLogin.id,
       skor: skorRating
     });
+    if(rateErr) throw rateErr;
 
-    // 2. AMBIL DANA YANG TERKUNCI BUAT JOB INI
-    const { data: terkunci, error: eTerkunci } = await supabase
-      .from('koin_pecahan')
-      .select('*')
-      .eq('locked_for_job', ratingJobId)
-      .maybeSingle();
+    // 2. Ambil SEMUA pecahan yang terkunci untuk job ini (anti error single)
+    const { data: terkunciList, error: e1 } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', ratingJobId);
+    if(e1) throw e1;
+    if(!terkunciList || terkunciList.length === 0) throw new Error("Saldo tidak ditemukan. Dana mungkin sudah cair sebelumnya.");
 
-    if(!terkunci){
-      console.error(eTerkunci);
-      // Tetap lanjut selesaikan job biar gak nyangkut, tapi kasih warning
-      await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
-      alert("Rating tersimpan, tapi dana terkunci tidak ditemukan (mungkin sudah dicairkan).");
-      closeModal('ratingModal');
-      loadJobs();
-      return;
-    }
+    let totalHarga = terkunciList.reduce((a,b)=> a + Number(b.nominal), 0);
+    let baseKode = terkunciList[0].induk_seri; // ainunteskodeseri029848749A
 
-    const baseKode = terkunci.induk_seri; // ainunteskodeseri029848749A
-    const harga = Number(terkunci.nominal); // 10000
-    const fee = Math.floor(harga * 0.16); // 1600
-    const buatPekerja = harga - fee; // 8400
+    let fee = Math.floor(totalHarga * 0.16); // 1600
+    let buatPekerja = totalHarga - fee; // 8400
 
-    // 3. HAPUS PECAHAN 10000 YANG TERKUNCI
-    await supabase.from('koin_pecahan').delete().eq('id', terkunci.id);
+    // 3. Hapus yang terkunci
+    await supabase.from('koin_pecahan').delete().eq('locked_for_job', ratingJobId);
 
-    // 4. BIKIN PECAHAN 8400 UNTUK PEKERJA -> ainunteskodeseri...008400
-    const { error: ePekerja } = await supabase.from('koin_pecahan').insert({
+    // 4. Cetak 008400 untuk pekerja
+    await supabase.from('koin_pecahan').insert({
       induk_seri: baseKode,
       pecahan_seri: baseKode + String(buatPekerja).padStart(6,'0'),
       nominal: buatPekerja,
       pemilik_id: pekerjaRatingId,
       tipe: 'aktif'
     });
-    if(ePekerja) throw ePekerja;
 
-    // 5. BIKIN PECAHAN 1600 UNTUK ADMIN -> ainunteskodeseri...001600
+    // 5. Cetak 001600 untuk admin
     const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
     if(admin){
       await supabase.from('koin_pecahan').insert({
@@ -1115,22 +1089,29 @@ window.kirimRating = async function(){
       });
     }
 
-    // 6. SELESAIKAN JOB
-    await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
+    // 6. Job otomatis SELESAI setelah rating
+    await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false, selesai_di: new Date().toISOString() }).eq('id', ratingJobId);
 
-    alert(`Selesai! Pekerja dapat ${buatPekerja.toLocaleString()} (${baseKode}${String(buatPekerja).padStart(6,'0')}) & Fee admin ${fee.toLocaleString()}`);
-    
+    alert(`Berhasil! Rating ${skorRating} terkirim & dana cair: Pekerja ${buatPekerja} | Admin ${fee}`);
     closeModal('ratingModal');
-    await loadSaldoBerseri();
     loadJobs();
+    await loadSaldoBerseri();
 
   } catch(err){
-    console.error(err);
     alert("Gagal: " + err.message);
-  } finally {
-    if(btn){ btn.disabled=false; btn.innerText="KIRIM RATING"; }
   }
 }
+
+window.klikBintang = async function(skor){
+  skorRating = skor;
+  document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
+    b.style.color = parseInt(b.dataset.star) <= skor ? '#FFD700' : '#ddd';
+  });
+  document.getElementById('bintangText').innerText = 'Mengirim rating '+skor+' bintang...';
+  await kirimRating();
+}
+
+
 window.simpanVideo = async function(){
   if(!userLogin) return alert("Login dulu");
   const judul = document.getElementById('judulVideo').value.trim();
@@ -1655,30 +1636,30 @@ async function loadJobs(){
       if(job.status === 'open'){
         tombol = `<button class="btn" onclick="lihatPelamar('${job.id}')">👥 LIHAT PELAMAR</button>`;
       } else if(job.status === 'dikerjakan'){
-        tombol = `<p>🔨 Dikerjakan oleh pekerja</p>`;
+        tombol = `<p>🔨 Dikerjakan oleh pekerja - tunggu bukti</p>`;
       } else if(job.status === 'menunggu_konfirmasi'){
+        // FIX: CUMA 1 TOMBOL RATING, LANGSUNG CAIR OTOMATIS
         tombol = `
-          ${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')">` : ''}
-          <button class="btn btn-sukses" style="width:100%" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">✅ KONFIRMASI SELESAI & CAIRKAN DANA</button>
-          <button class="btn" style="width:100%" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul}')">⭐ RATING DULU</button>
+          ${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')"><br>` : '<p>Bukti sudah dikirim</p>'}
+          <button class="btn" style="width:100%; margin-top:10px" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul.replace(/'/g,"")}')">⭐ KASIH RATING & CAIRKAN DANA</button>
+          <p style="font-size:11px;color:gray;text-align:center;margin-top:5px">Dana ${Number(job.harga).toLocaleString()} (pecah 84% pekerja / 16% admin) akan otomatis cair setelah rating</p>
         `;
       } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60">✅ SELESAI</p>`;
+        tombol = `<p style="color:#27AE60; font-weight:bold">✅ SELESAI & SUDAH DICAIRKAN</p>`;
       }
     } else if(isWorker){
       if(job.status === 'dikerjakan'){
         tombol = `<button class="btn btn-sukses" style="width:100%" onclick="selesaiKerja('${job.id}')">📤 KIRIM BUKTI SELESAI</button>`;
       } else if(job.status === 'menunggu_konfirmasi'){
-        tombol = `<p>⏳ Menunggu konfirmasi pemilik. Dana ${Number(job.harga).toLocaleString()} tertahan</p>`;
+        tombol = `<p>⏳ Menunggu pemilik kasih rating. Dana ${Number(job.harga).toLocaleString()} tertahan</p>`;
       } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60">✅ Job kamu selesai, dana cair!</p>`;
+        tombol = `<p style="color:#27AE60">✅ Job selesai, dana ${Number(job.harga * 0.84).toLocaleString()} sudah masuk!</p>`;
       }
     } else {
-      // orang lain
       if(job.status === 'open' && !job.diambil_oleh){
         tombol = `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL / LAMAR</button>`;
       } else {
-        tombol = `<p style="color:gray">Sudah diambil orang lain</p>`;
+        tombol = `<p style="color:gray">Sudah diambil</p>`;
       }
     }
 
@@ -1694,7 +1675,6 @@ async function loadJobs(){
     </div>`;
   }
 }
-
 window.openRating = function(jobId, pekerjaId, judul){
   ratingJobId = jobId;
   pekerjaRatingId = pekerjaId;
