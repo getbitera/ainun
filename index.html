@@ -1583,26 +1583,6 @@ function updateSaldoUI(){
   if(el) el.innerText = Number(saldoSekarang).toLocaleString();
 }
 
-async function loadJobs(){
-  const container = document.getElementById('daftarJob');
-  if(!container) return;
-  container.innerHTML = 'Loading...';
-  const { data } = await supabase.from('jobs').select('*').order('created_at',{ascending:false});
-  if(!data || data.length==0){ container.innerHTML='<p>Belum ada job</p>'; return; }
-  container.innerHTML='';
-  data.forEach(job=>{
-    container.innerHTML+=`
-    <div class="card">
-      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
-      <h3>${job.judul}</h3>
-      <p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p>
-      <b>${Number(job.harga).toLocaleString()} Koin</b><br><br>
-      <button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button>
-      <button class="btn" onclick="lihatPelamar('${job.id}')">PELAMAR</button>
-    </div>`;
-  });
-}
-
 async function loadPenyedia(){
   const container = document.getElementById('daftarPenyedia');
   if(!container) return;
@@ -1656,7 +1636,83 @@ window.buatPost = async function(event){
   // lanjutkan pakai logic kamu yang lama
   return buatPostAsli(event);
 }
+async function loadJobs(){
+  const container = document.getElementById('daftarJob');
+  if(!container) return;
+  container.innerHTML = 'Loading...';
+  const { data } = await supabase.from('jobs').select('*, users!user_id(nama,foto)').order('created_at',{ascending:false});
+  if(!data || data.length==0){ container.innerHTML='<p>Belum ada job</p>'; return; }
+  container.innerHTML='';
+  for(const job of data){
+    const isOwner = userLogin && job.user_id === userLogin.id;
+    const isWorker = userLogin && job.diambil_oleh === userLogin.id;
+    const buktiSigned = job.bukti_url ? await getSignedUrl('bukti-job', job.bukti_url) : null;
+    
+    let tombol = '';
+    if(!userLogin){
+      tombol = `<p style="color:gray">Login untuk ambil job</p>`;
+    } else if(isOwner){
+      if(job.status === 'open'){
+        tombol = `<button class="btn" onclick="lihatPelamar('${job.id}')">👥 LIHAT PELAMAR</button>`;
+      } else if(job.status === 'dikerjakan'){
+        tombol = `<p>🔨 Dikerjakan oleh pekerja</p>`;
+      } else if(job.status === 'menunggu_konfirmasi'){
+        tombol = `
+          ${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')">` : ''}
+          <button class="btn btn-sukses" style="width:100%" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">✅ KONFIRMASI SELESAI & CAIRKAN DANA</button>
+          <button class="btn" style="width:100%" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul}')">⭐ RATING DULU</button>
+        `;
+      } else if(job.status === 'selesai'){
+        tombol = `<p style="color:#27AE60">✅ SELESAI</p>`;
+      }
+    } else if(isWorker){
+      if(job.status === 'dikerjakan'){
+        tombol = `<button class="btn btn-sukses" style="width:100%" onclick="selesaiKerja('${job.id}')">📤 KIRIM BUKTI SELESAI</button>`;
+      } else if(job.status === 'menunggu_konfirmasi'){
+        tombol = `<p>⏳ Menunggu konfirmasi pemilik. Dana ${Number(job.harga).toLocaleString()} tertahan</p>`;
+      } else if(job.status === 'selesai'){
+        tombol = `<p style="color:#27AE60">✅ Job kamu selesai, dana cair!</p>`;
+      }
+    } else {
+      // orang lain
+      if(job.status === 'open' && !job.diambil_oleh){
+        tombol = `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL / LAMAR</button>`;
+      } else {
+        tombol = `<p style="color:gray">Sudah diambil orang lain</p>`;
+      }
+    }
 
+    container.innerHTML+=`
+    <div class="card">
+      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
+      <p style="font-size:12px;color:gray">Oleh: ${job.users?.nama||'-'}</p>
+      <h3>${job.judul}</h3>
+      <p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p>
+      <b>${Number(job.harga).toLocaleString()} Koin</b><br><br>
+      <small>Status: ${job.status}</small><br><br>
+      ${tombol}
+    </div>`;
+  }
+}
+
+window.openRating = function(jobId, pekerjaId, judul){
+  ratingJobId = jobId;
+  pekerjaRatingId = pekerjaId;
+  document.getElementById('ratingJobJudul').innerText = judul;
+  document.getElementById('bintangWrap').innerHTML = `
+    <div class="rating-wrap">
+      <div id="bintangContainer" class="bintang-container">
+        <span class="bintang" data-star="5" onclick="klikBintang(5)">★</span>
+        <span class="bintang" data-star="4" onclick="klikBintang(4)">★</span>
+        <span class="bintang" data-star="3" onclick="klikBintang(3)">★</span>
+        <span class="bintang" data-star="2" onclick="klikBintang(2)">★</span>
+        <span class="bintang" data-star="1" onclick="klikBintang(1)">★</span>
+      </div>
+      <div id="bintangText" class="bintang-text">Pilih rating</div>
+      <button id="btnKirimRating" class="btn" style="display:none">KIRIM RATING</button>
+    </div>`;
+  openModal('ratingModal');
+}
 
 supabase.auth.getSession().then(async ({ data: { session } }) => {
   if(session){
