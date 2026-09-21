@@ -1616,6 +1616,48 @@ async function loadPenyedia(){
   });
 }
 
+// ====== OVERRIDE PAKSA - TARO PALING BAWAH SEBELUM }); ======
+window.getMyAuthId = async function(){
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || userLogin?.id;
+}
+
+window.loadSaldoBerseri = async function(){
+  if(!userLogin) return;
+  const myId = await window.getMyAuthId();
+  console.log("FINAL ID:", myId);
+  const { data, error } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', myId).is('locked_for_job', null);
+  console.log("FINAL DATA:", data, error);
+  let total = 0;
+  if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
+  saldoSekarang = total;
+  const el = document.getElementById('saldoText');
+  if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
+}
+
+window.cekKoinAsli = async function(userId, jumlahButuh){
+  const { data } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', userId).is('locked_for_job', null);
+  const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
+  if(total < jumlahButuh) return {valid:false, alasan:`Saldo ${total}, butuh ${jumlahButuh}`};
+  return {valid:true, total:total};
+}
+
+// Timpa juga buatPost yang cek saldo
+const buatPostAsli = window.buatPost;
+window.buatPost = async function(event){
+  if(!userLogin) return alert("Login dulu");
+  const myId = await window.getMyAuthId();
+  const { data: pecahan } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', myId).is('locked_for_job', null);
+  console.log("BUAT POST CEK:", pecahan);
+  if(!pecahan || pecahan.length===0){
+    alert("⛔ Saldo tidak terdaftar. DATA KOSONG. ID kamu: " + myId + "\n Cek console FINAL DATA");
+    return;
+  }
+  // lanjutkan pakai logic kamu yang lama
+  return buatPostAsli(event);
+}
+
+
 supabase.auth.getSession().then(async ({ data: { session } }) => {
   if(session){
     // Ada session Supabase -> ambil data user terbaru, gak peduli ada ainun_user atau enggak
