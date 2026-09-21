@@ -835,26 +835,22 @@ window.buatPost = async function(event) {
 
   if(!judul || hadiah < 1000){ alert("Isi judul & hadiah min 1000"); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 1. AMBIL SEMUA PECAHAN MILIK USER
-  const { data: pecahan } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', userLogin.id);
-  if(!pecahan || pecahan.length===0){ alert("⛔ Saldo tidak terdaftar"); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
+  // 1. AMBIL PECAHAN VALID (harus ada kode_seri)
+  const { data: pecahan } = await supabase.from('koin_pecahan')
+    .select('*')
+    .eq('pemilik_id', userLogin.id)
+    .is('locked_for_job', null)
+    .not('kode_seri','is',null);
 
-  let total = pecahan.reduce((a,b)=>a+Number(b.nominal||b.jumlah||0),0);
-  if(total < hadiah){ alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
+  if(!pecahan || pecahan.length===0){ alert("⛔ Saldo tidak terdaftar / tidak ada seri"); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 2. KUNCI PECAHAN (ambil pecahan sampai cukup)
-  let sisa = hadiah;
-  let idTerpakai = [];
-  for(const p of pecahan){
-    if(sisa<=0) break;
-    let nom = Number(p.nominal||p.jumlah||0);
-    idTerpakai.push(p.id);
-    sisa -= nom;
-  }
+  let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
+  if(total < hadiah){ alert(`Saldo tidak cukup. Punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 3. UPDATE PECAHAN JADI TERKUNCI (pindah pemilik ke null atau status terkunci)
-  // Kalau tabel kamu gak ada status, kita hapus dulu dari pemilik_id (kunci)
-  // Kita simpan job dulu
+  // Urutkan dari kecil biar efisien
+  pecahan.sort((a,b)=> a.nominal - b.nominal);
+
+  // 2. Upload gambar dulu
   let urlGambar = null;
   if(fileGambarJob){
     const comp = await compressImage(fileGambarJob, 800);
@@ -864,31 +860,64 @@ window.buatPost = async function(event) {
     urlGambar = data.publicUrl;
   }
 
+  // 3. Insert Job
   const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
-    user_id: userLogin.id,
-    judul, deskripsi, harga: hadiah, no_wa: noWa,
-    status: 'open',
-    gambar_url: urlGambar,
-    dana_ditahan: true
+    user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa,
+    status: 'open', gambar_url: urlGambar, dana_ditahan: true
   }).select().single();
 
   if(jobErr){ alert(jobErr.message); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 4. KUNCI - hapus pecahan dari user (atau update jadi locked)
-  // Coba update, kalau gagal karena RLS, coba delete+insert ke escrow
-  for(const id of idTerpakai){
-    await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id }).eq('id', id);
-    // kalau kolom locked_for_job belum ada, fallback hapus:
-    // await supabase.from('koin_pecahan').delete().eq('id', id);
+  // 4. KUNCI DENGAN LOGIKA KEMBALIAN
+  let sisaButuh = hadiah;
+
+  for(const p of pecahan){
+    if(sisaButuh <= 0) break;
+
+    const baseKode = p.kode_seri.substring(0, p.kode_seri.length - 6);
+    const nom = Number(p.nominal);
+
+    if(nom <= sisaButuh){
+      // Pakai full pecahan ini
+      await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id, status: 'terkunci' }).eq('id', p.id);
+      sisaButuh -= nom;
+    } else {
+      // Pecahan ini kebesaran, harus dipecah jadi 2: yang dikunci + kembalian
+      // Contoh: punya 50.000, butuh 10.000 -> jadi 10.000 terkunci + 40.000 kembalian
+      const kembalian = nom - sisaButuh;
+      
+      // 4a. Hapus yang lama
+      await supabase.from('koin_pecahan').delete().eq('id', p.id);
+
+      // 4b. Bikin kembalian balik ke owner
+      await supabase.from('koin_pecahan').insert({
+        induk_id: p.induk_id,
+        kode_seri: baseKode + String(kembalian).padStart(6,'0'), // ...040000
+        nominal: kembalian,
+        pemilik_id: userLogin.id,
+        status: 'aktif'
+      });
+
+      // 4c. Bikin yang terkunci
+      await supabase.from('koin_pecahan').insert({
+        induk_id: p.induk_id,
+        kode_seri: baseKode + String(sisaButuh).padStart(6,'0'), // ...010000
+        nominal: sisaButuh,
+        pemilik_id: null,
+        locked_for_job: jobBaru.id,
+        status: 'terkunci'
+      });
+
+      sisaButuh = 0;
+      break;
+    }
   }
 
-  // Kalau tabel kamu belum ada kolom locked_for_job, jalankan SQL ini sekali:
-  // ALTER TABLE koin_pecahan ADD COLUMN locked_for_job uuid REFERENCES jobs(id);
-
   await loadSaldoBerseri();
-  alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI. Saldo sisa: ${saldoSekarang.toLocaleString()}`);
+  alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI.`);
   closeModal('post');
   btn.disabled=false; btn.innerText="POST & KUNCI DANA";
+  fileGambarJob = null;
   loadJobs();
 }
 window.ambilJob = async function(jobId){
