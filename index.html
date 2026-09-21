@@ -820,14 +820,11 @@ window.buatPost = async function(event) {
     btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; 
   }
 
-  // 1. AMBIL PECAHAN MILIK USER YANG BELUM TERKUNCI
   const { data: pecahan, error: e1 } = await supabase
     .from('koin_pecahan')
     .select('*')
     .eq('pemilik_id', userLogin.id)
     .is('locked_for_job', null);
-
-  console.log("DEBUG PECAHAN:", pecahan, e1);
 
   if(!pecahan || pecahan.length===0){ 
     alert("⛔ Saldo tidak terdaftar / tidak ada pecahan aktif"); 
@@ -842,7 +839,6 @@ window.buatPost = async function(event) {
 
   pecahan.sort((a,b)=> Number(a.nominal) - Number(b.nominal));
 
-  // 2. Upload gambar
   let urlGambar = null;
   if(fileGambarJob){
     const comp = await compressImage(fileGambarJob, 800);
@@ -852,7 +848,6 @@ window.buatPost = async function(event) {
     urlGambar = data.publicUrl;
   }
 
-  // 3. Insert Job
   const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
     user_id: userLogin.id, judul, deskripsi, harga: hadiah, no_wa: noWa,
     status: 'open', gambar_url: urlGambar, dana_ditahan: true
@@ -860,37 +855,36 @@ window.buatPost = async function(event) {
 
   if(jobErr){ alert(jobErr.message); btn.disabled=false; btn.innerText="POST & KUNCI DANA"; return; }
 
-  // 4. LOGIKA PECAH OTOMATIS DI SINI (sesuai mau kamu)
   let sisaButuh = hadiah;
+  const uniq = Date.now() + '-' + Math.random().toString(36).substring(2,6);
 
   for(const p of pecahan){
     if(sisaButuh <= 0) break;
-    const baseKode = p.induk_seri; // contoh: ainunteskodeseri029848749A
+    const baseKode = p.induk_seri;
     const nom = Number(p.nominal);
 
     if(nom <= sisaButuh){
-      // pakai full
       await supabase.from('koin_pecahan').update({ pemilik_id: null, locked_for_job: jobBaru.id, tipe: 'terkunci' }).eq('id', p.id);
       sisaButuh -= nom;
     } else {
-      // kebesaran, pecah jadi 2
       const kembalian = nom - sisaButuh;
       
-      await supabase.from('koin_pecahan').delete().eq('id', p.id);
+      const { error: delErr } = await supabase.from('koin_pecahan').delete().eq('id', p.id);
+      if(delErr){ alert(delErr.message); break; }
 
-      // 4a. Kembalian -> 90000
+      // 4a. KEMBALIAN - SERI UNIK BIAR GA TABRAKAN
       await supabase.from('koin_pecahan').insert({
         induk_seri: baseKode,
-        pecahan_seri: baseKode + String(kembalian).padStart(6,'0'), // ...090000
+        pecahan_seri: baseKode + '-' + String(kembalian).padStart(6,'0') + '-R-' + uniq,
         nominal: kembalian,
         pemilik_id: userLogin.id,
         tipe: 'aktif'
       });
 
-      // 4b. Yang dikunci -> 10000
+      // 4b. YANG DIKUNCI - SERI UNIK + ID JOB
       await supabase.from('koin_pecahan').insert({
         induk_seri: baseKode,
-        pecahan_seri: baseKode + String(sisaButuh).padStart(6,'0'), // ...010000
+        pecahan_seri: baseKode + '-' + String(sisaButuh).padStart(6,'0') + '-L-' + uniq + '-' + jobBaru.id.substring(0,6),
         nominal: sisaButuh,
         pemilik_id: null,
         locked_for_job: jobBaru.id,
@@ -907,6 +901,9 @@ window.buatPost = async function(event) {
   closeModal('post');
   btn.disabled=false; btn.innerText="POST & KUNCI DANA";
   fileGambarJob = null;
+  document.getElementById('judulPost').value='';
+  document.getElementById('deskripsiPost').value='';
+  document.getElementById('hadiahPost').value='';
   loadJobs();
 }
 window.ambilJob = async function(jobId){
@@ -1045,15 +1042,10 @@ window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu!");
   if(!ratingJobId ||!pekerjaRatingId) return alert("Data rating kosong");
 
-  const btn = document.querySelector('#ratingModal.btn');
-  if(btn){ btn.disabled = true; btn.innerText = "MEMPROSES..."; }
-
   try {
-    // 1. CEK SUDAH PERNAH DIRATING BELUM
     const { data: cek } = await supabase.from('ratings').select('id').eq('job_id', ratingJobId).maybeSingle();
-    if(cek) throw new Error("Job ini sudah pernah dirating, dana sudah cair");
+    if(cek) throw new Error("Job ini sudah pernah dirating");
 
-    // 2. SIMPAN RATING
     const { error: rateErr } = await supabase.from('ratings').insert({
       job_id: ratingJobId,
       pekerja_id: pekerjaRatingId,
@@ -1062,51 +1054,49 @@ window.kirimRating = async function(){
     });
     if(rateErr) throw rateErr;
 
-    // 3. UPDATE RATING DI TABEL USERS (ini yang kamu maksud ada reting di user)
     const { data: pekerjaData } = await supabase.from('users').select('total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
     await supabase.from('users').update({
       total_rating: (pekerjaData?.total_rating || 0) + skorRating,
       jumlah_rating: (pekerjaData?.jumlah_rating || 0) + 1
     }).eq('id', pekerjaRatingId);
 
-    // 4. AMBIL SEMUA KOIN TERKUNCI BUAT JOB INI
     const { data: terkunciList, error: e1 } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', ratingJobId);
     if(e1) throw e1;
-    if(!terkunciList || terkunciList.length === 0) throw new Error("Saldo terkunci tidak ditemukan. Mungkin sudah cair atau locked_for_job salah");
+    if(!terkunciList || terkunciList.length === 0) throw new Error("Saldo terkunci tidak ditemukan");
 
     let totalHarga = terkunciList.reduce((a,b)=> a + Number(b.nominal), 0);
-    let baseKode = terkunciList[0].induk_seri; // ainunteskodeseri029848749A
-    let fee = Math.floor(totalHarga * 0.16); // 1600
-    let buatPekerja = totalHarga - fee; // 8400
+    let baseKode = terkunciList[0].induk_seri;
+    let fee = Math.floor(totalHarga * 0.16);
+    let buatPekerja = totalHarga - fee;
+    const uniq = Date.now() + '-' + Math.random().toString(36).substring(2,5);
 
-    // 5. HAPUS YANG TERKUNCI
     await supabase.from('koin_pecahan').delete().eq('locked_for_job', ratingJobId);
 
-    // 6. CETAK 008400 UNTUK PEKERJA
-    await supabase.from('koin_pecahan').insert({
+    // FIX: SERI UNIK BIAR GA TABRAKAN PAS 10RB LAGI
+    const { error: errPekerja } = await supabase.from('koin_pecahan').insert({
       induk_seri: baseKode,
-      pecahan_seri: baseKode + String(buatPekerja).padStart(6,'0'),
+      pecahan_seri: baseKode + '-' + String(buatPekerja).padStart(6,'0') + '-P-' + uniq + '-' + ratingJobId.substring(0,6),
       nominal: buatPekerja,
       pemilik_id: pekerjaRatingId,
       tipe: 'aktif'
     });
+    if(errPekerja) throw errPekerja;
 
-    // 7. CETAK 001600 UNTUK ADMIN
     const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
     if(admin){
-      await supabase.from('koin_pecahan').insert({
+      const { error: errFee } = await supabase.from('koin_pecahan').insert({
         induk_seri: baseKode,
-        pecahan_seri: baseKode + String(fee).padStart(6,'0'),
+        pecahan_seri: baseKode + '-' + String(fee).padStart(6,'0') + '-FEE-' + uniq + '-' + ratingJobId.substring(0,6),
         nominal: fee,
         pemilik_id: admin.id,
         tipe: 'aktif'
       });
+      if(errFee) throw errFee;
     }
 
-    // 8. SELESAIKAN OTOMATIS SETELAH RATING
     await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
 
-    alert(`✅ Berhasil! Rating ${skorRating} masuk ke profil pekerja & dana cair: ${buatPekerja} pekerja / ${fee} admin`);
+    alert(`✅ Berhasil! Dana cair: ${buatPekerja} pekerja / ${fee} admin`);
     closeModal('ratingModal');
     loadJobs();
     await loadSaldoBerseri();
@@ -1114,8 +1104,6 @@ window.kirimRating = async function(){
   } catch(err){
     console.error(err);
     alert("Gagal: " + err.message);
-  } finally {
-    if(btn){ btn.disabled = false; btn.innerText = "KIRIM RATING"; }
   }
 }
 
