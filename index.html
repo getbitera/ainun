@@ -322,14 +322,6 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 </div>
 
-
-<div style="margin:12px 0; padding:10px; border:1px solid #ff4444; border-radius:8px; background:#fff5f5;">
-  <label style="display:flex; gap:8px; font-size:13px;">
-    <input type="checkbox" id="checkAinun">
-    <span>My Ainun <b>tidak menjamin kualitas dan kemampuan penyedia jasa</b>, jadi sebelum <b>post job dan melakukan transaksi</b> cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa. Jika sudah post job dana tidak bisa dikembalikan, apakah anda yakin untuk melanjutkan post job</span>
-  </label>
-</div>
-
 <div class="modal" id="post">
   <div class="modal-content">
     <h2>POST JOB</h2>
@@ -340,6 +332,15 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <p style="font-weight:bold; margin-top:10px">Upload Gambar Job [Opsional]</p>
     <input type="file" id="inputGambarJob" accept="image/*" class="input" onchange="previewGambarJob(event)">
     <p id="namaFileJob" style="font-size:12px; color:gray; margin-top:-5px"></p>
+
+    <!-- INI YANG BIKIN WARNING MUNCUL, HARUS DI DALAM MODAL -->
+    <div style="margin:15px 0; padding:12px; border:2px solid #ff4444; border-radius:10px; background:#fff5f5; text-align:left">
+      <label style="display:flex; gap:10px; cursor:pointer; font-size:13px; line-height:1.4;">
+        <input type="checkbox" id="checkAinun" style="width:22px; height:22px; margin-top:2px; flex-shrink:0;">
+        <span>My Ainun <b>tidak menjamin kualitas dan kemampuan penyedia jasa</b>, jadi sebelum <b>melakukan transaksi</b> cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa. Jika sudah post job dana tidak bisa dikembalikan, my ainun tidaka menyediakan fitur pembatalan post job .Apakah anda yakin untuk melanjutkan post job</span>
+      </label>
+    </div>
+
     <button class="btn" onclick="buatPost(event)">POST & KUNCI DANA</button>
     <button class="btn btn-batal" onclick="closeModal('post')">TUTUP</button>
   </div>
@@ -823,11 +824,11 @@ window.buatPost = async function(event) {
     return;
   }
 
-  let yakin = confirm(
+    let yakin = confirm(
     "PERINGATAN MY AINUN:\n\n" +
-    "My Ainun tidak menjamin kualitas dan kemampuan penyedia jasa, jadi sebelum melakukan post job dan transaksi cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa.\n\n" +
-    "Jika sudah POST JOB dana tidak bisa dikembalikan.\n\n" +
-    "Apakah anda yakin untuk melanjutkan POST JOB?"
+    "My Ainun tidak menjamin kualitas dan kemampuan penyedia jasa, jadi sebelum melakukan transaksi cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa.\n\n" +
+    "Jika sudah post job dana saldo tidak bisa dikembalikan, my ainun tidak menyediakan fitur untuk pembatalan post job.\n\n" +
+    "Apakah anda yakin untuk melanjutkan post job?"
   );
   if(!yakin) return;
   // === END TAMENG HUKUM ===
