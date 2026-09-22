@@ -322,6 +322,14 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 </div>
 
+
+<div style="margin:12px 0; padding:10px; border:1px solid #ff4444; border-radius:8px; background:#fff5f5;">
+  <label style="display:flex; gap:8px; font-size:13px;">
+    <input type="checkbox" id="checkAinun">
+    <span>My Ainun <b>tidak menjamin kualitas dan kemampuan penyedia jasa</b>, jadi sebelum <b>post job dan melakukan transaksi</b> cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa. Jika sudah post job dana tidak bisa dikembalikan, apakah anda yakin untuk melanjutkan post job</span>
+  </label>
+</div>
+
 <div class="modal" id="post">
   <div class="modal-content">
     <h2>POST JOB</h2>
@@ -807,6 +815,23 @@ window.openGambarFull = function(src){
 
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
+
+  // === TAMBAHAN TAMENG HUKUM MY AINUN ===
+  const checkAinun = document.getElementById('checkAinun');
+  if(!checkAinun ||!checkAinun.checked){
+    alert("⛔ Centang dulu persetujuan My Ainun tidak menjamin kualitas penyedia jasa");
+    return;
+  }
+
+  let yakin = confirm(
+    "PERINGATAN MY AINUN:\n\n" +
+    "My Ainun tidak menjamin kualitas dan kemampuan penyedia jasa, jadi sebelum melakukan post job dan transaksi cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa.\n\n" +
+    "Jika sudah POST JOB dana tidak bisa dikembalikan.\n\n" +
+    "Apakah anda yakin untuk melanjutkan POST JOB?"
+  );
+  if(!yakin) return;
+  // === END TAMENG HUKUM ===
+
   const btn = event.target;
   btn.disabled = true;
   btn.innerText = "MENGUNCI DANA...";
@@ -824,10 +849,10 @@ window.buatPost = async function(event) {
 
     // 1. CEK SALDO DULU (read only, aman)
     const { data: pecahan } = await supabase
-     .from('koin_pecahan')
-     .select('nominal, induk_seri')
-     .eq('pemilik_id', userLogin.id)
-     .is('locked_for_job', null);
+    .from('koin_pecahan')
+    .select('nominal, induk_seri')
+    .eq('pemilik_id', userLogin.id)
+    .is('locked_for_job', null);
 
     if(!pecahan || pecahan.length===0){
       alert("⛔ Saldo tidak ada pecahan aktif");
@@ -851,10 +876,10 @@ window.buatPost = async function(event) {
       urlGambar = data.publicUrl;
     }
 
-    // 3. BUAT JOB DULU - ISI SEMUA KOLOM BIAR GAK NULL
+    // 3. BUAT JOB DULU
     const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
       user_id: userLogin.id,
-      pemberi_id: userLogin.id, // <-- BIAR GA NULL
+      pemberi_id: userLogin.id,
       judul,
       deskripsi,
       harga: hadiah,
@@ -867,25 +892,26 @@ window.buatPost = async function(event) {
 
     if(jobErr) throw jobErr;
 
-    // 4. KUNCI DANA LEWAT RPC (AMAN, GAK BISA DIBOBOL DARI CONSOLE)
+    // 4. KUNCI DANA LEWAT RPC
     const { error: lockErr } = await supabase.rpc('rpc_lock_koin', {
       p_job_id: jobBaru.id,
       p_harga: hadiah
     });
     if(lockErr) {
-      // kalau gagal kunci, hapus jobnya biar gak nyangkut
       await supabase.from('jobs').delete().eq('id', jobBaru.id);
       throw lockErr;
     }
 
     await loadSaldoBerseri();
-    alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI.`);
+    alert(`Job diposting! Dana ${hadiah.toLocaleString()} DIKUNCI & TIDAK BISA KEMBALI.`);
     closeModal('post');
     fileGambarJob = null;
     document.getElementById('judulPost').value='';
     document.getElementById('deskripsiPost').value='';
     document.getElementById('hadiahPost').value='';
     document.getElementById('namaFileJob').innerText='';
+    // reset checkbox
+    if(checkAinun) checkAinun.checked = false;
     loadJobs();
 
   } catch(err){
