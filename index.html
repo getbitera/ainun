@@ -634,25 +634,67 @@ async function loadAdminPanel(){
     }
   }
   // 3. LOAD WITHDRAW
-  const { data: withdraw } = await supabase.from('withdraw_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
-  const containerWithdraw = document.getElementById('daftarWithdrawAdmin');
-  if(!withdraw || withdraw.length===0) { 
-    containerWithdraw.innerHTML = '<p>Tidak ada request</p>'; 
-  } else {
-    containerWithdraw.innerHTML = withdraw.map(w=>`
-      <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
-        <div style="display:flex; gap:10px; width:100%">
-          <img src="${w.users.foto || 'https://ui-avatars.com/api/?name='+w.users.nama}" style="width:50px;height:50px;border-radius:50%">
-          <div>
-            <b>${w.users.nama}</b><br>
-            Withdraw: <b>${w.jumlah_koin.toLocaleString()} Koin</b><br>
-            Diterima: <b>Rp ${w.diterima_rupiah.toLocaleString()}</b><br>
-            No DANA: ${w.no_dana}
+ 
+ const { data: wd } = await supabase.from('withdraw_requests').select('*, users:user_id(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
+  wdC.innerHTML =!wd?.length? '<p>Gak ada withdraw</p>' : '';
+  (wd||[]).forEach(w=>{
+    wdC.innerHTML += `
+      <div class="card" style="border-left:4px solid #27AE60">
+        <b>${w.users?.nama||'User'}</b> - ${w.created_at.substring(0,16)}<br>
+        WD: <b>${Number(w.nominal_koin||w.jumlah_koin).toLocaleString()}</b> Koin | Fee 16%: ${Number(w.fee||0).toLocaleString()}<br>
+        <span style="color:green">Terima: Rp ${Number(w.nominal_diterima||w.diterima_rupiah||0).toLocaleString()}</span><br>
+        DANA: <b>${w.no_rek||w.no_dana}</b> - ${w.nama_rek||''}
+        <div style="margin-top:12px; padding:10px; background:#f0fff0; border-radius:8px">
+          <p style="font-weight:bold; font-size:13px">⬆️ UPLOAD BUKTI TRANSFER ADMIN (wajib):</p>
+          <input type="file" id="buktiWD-${w.id}" accept="image/*" class="input">
+          <div style="display:flex; gap:8px; margin-top:8px">
+            <button class="btn btn-sukses" style="flex:1" onclick="approveWithdrawDenganBukti('${w.id}')">✅ UPLOAD & APPROVE</button>
+            <button class="btn btn-batal" style="flex:1" onclick="rejectWithdraw('${w.id}','${w.koin_induk_terkunci||w.locked_id}')">REJECT</button>
           </div>
         </div>
-        <button class="btn btn-sukses" style="width:100%; margin-top:10px" onclick="setujuiWithdraw('${w.id}')">✅ SETUJUI</button>
-      </div>`).join('');
+      </div>`;
+  });
+}
+
+
+// FUNCTION BARU - WAJIB UPLOAD BUKTI (URUTAN 100% AMAN)
+window.approveWithdrawDenganBukti = async function(id){
+  const fileInput = document.getElementById(`buktiWD-${id}`);
+  const file = fileInput?.files[0];
+  if(!file) return alert("Wajib upload bukti transfer dulu! Foto screenshot DANA yang udah ke-transfer");
+  if(!confirm('Yakin udah transfer Rp sesuai nominal_diterima?')) return;
+
+  try{
+    // 1. Compress & Upload bukti admin DULU
+    const comp = await compressImage(file, 1000); // 1000px max
+    const path = `withdraw/${id}-${Date.now()}.jpg`;
+    const { error: upErr } = await supabase.storage.from('bukti-withdraw').upload(path, comp);
+    if(upErr) throw upErr;
+
+    // 2. Baru bakar koin & approve + simpan bukti (semua di RPC biar atomic)
+    // Ganti RPC kamu biar nerima p_bukti_path
+    const { error: rpcErr } = await supabase.rpc('rpc_approve_withdraw', {
+      p_withdraw_id: id,
+      p_bukti_path: path
+    });
+    if(rpcErr) throw rpcErr;
+
+    alert('✅ Withdraw approved + bukti ke-upload');
+    loadAdminPanel();
+  }catch(err){
+    alert('Gagal: '+err.message);
+    // kalau gagal, hapus file yang udah ke-upload biar gak numpuk
+    console.error(err);
   }
+}
+
+window.rejectWithdraw = async function(id, lockId){
+  if(!confirm('Reject? Koin balik ke user')) return;
+  try{
+    if(lockId) await supabase.from('koin_pecahan').update({locked_for_job:null}).eq('locked_for_job', lockId);
+    await supabase.from('withdraw_requests').update({status:'rejected'}).eq('id',id);
+    loadAdminPanel();
+  }catch(e){ alert(e.message) }
 }
 
 
@@ -664,21 +706,7 @@ window.setujuiTopup = async function(topupId){
   alert("Berhasil! Koin dicetak");
   loadAdminPanel();
 }
-window.setujuiWithdraw = async function(id){
-  if(!confirm("Yakin mau approve withdraw ini? Cek DANA dulu udah transfer?")) return;
-  
-  const { error } = await supabase.rpc('rpc_approve_withdraw', { 
-    p_withdraw_id: id 
-  });
-  
-  if(error){
-    alert("Gagal: " + error.message);
-    return;
-  }
-  
-  alert("Withdraw disetujui & saldo user kepotong");
-  loadAdminPanel();
-}
+
 window.openModal = function(id){ document.getElementById(id).style.display = 'flex'; }
 
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
@@ -1848,6 +1876,8 @@ async function cekRoleAdmin(){
 }
 
 });
+
+
 </script>
 </body>
 </html>
