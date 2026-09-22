@@ -954,10 +954,11 @@ window.buatPost = async function(event) {
     if(jobErr) throw jobErr;
 
     // 4. KUNCI DANA LEWAT RPC
-    const { error: lockErr } = await supabase.rpc('rpc_lock_koin', {
-      p_job_id: jobBaru.id,
-      p_harga: hadiah
-    });
+    const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
+  p_user: userLogin.id, 
+  p_harga: jumlah, 
+  p_lock_id: lockId 
+});
     if(lockErr) {
       await supabase.from('jobs').delete().eq('id', jobBaru.id);
       throw lockErr;
