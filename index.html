@@ -551,7 +551,8 @@ window.ajukanWithdraw = async function(){
   const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
   if(total < jumlah) return alert(`Saldo pecahan kurang. Punya ${total}, mau WD ${jumlah}`);
 
-  const lockId = 'WITHDRAW-'+userLogin.id+'-'+Date.now();
+  // GANTI JADI INI
+const lockId = crypto.randomUUID(); // ini uuid murni, cocok sama kolom locked_for_job
   const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { p_user: userLogin.id, p_harga: jumlah, p_lock_id: lockId });
   if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
 
