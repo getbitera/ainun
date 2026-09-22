@@ -148,7 +148,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <div style="max-height:400px; overflow-y:auto; text-align:left; font-size:14px; line-height:1.6">
       <p>1. Dengan mendaftar kamu setuju menggunakan koin sebagai alat transaksi.</p>
       <p>2. Dilarang melakukan penipuan. Akun akan diblokir permanen.</p>
-      <p>3. Admin berhak memotong fee 16% untuk topup dan 10% untuk withdraw.</p>
+      <p>3. Admin berhak memotong fee 16% untuk topup dan 16% untuk withdraw.</p>
       <p>4. Sengketa job diselesaikan oleh Admin. Keputusan Admin final.</p>
       <p>5. My Ainun tidak bertanggung jawab atas kerugian di luar platform.</p>
     </div>
@@ -414,7 +414,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div class="modal" id="withdraw">
   <div class="modal-content">
     <h2>WITHDRAW KOIN</h2>
-    <p style="color:gray">Admin 10%. Min 10.000 Koin</p>
+    <p style="color:gray">Admin 16%. Min 10.000 Koin</p>
     <input class="input" id="jumlahWithdraw" type="number" placeholder="Jumlah Koin">
     <input class="input" id="noDanaWithdraw" placeholder="No DANA 0812xxxx">
     <button class="btn btn-sukses" onclick="ajukanWithdraw()">AJUKAN</button>
@@ -497,7 +497,7 @@ document.getElementById('jumlahTopup')?.addEventListener('input', e=>{
 })
 function hitungWithdraw(){
   const jml = parseInt(document.getElementById('jumlahWithdraw').value)||0;
-  document.getElementById('infoTerima').innerText = `Diterima: Rp ${(jml*0.9).toLocaleString()}`;
+  document.getElementById('infoTerima').innerText = `Diterima: Rp ${(jml*0.84).toLocaleString()}`;
 }
 
 let paketTerpilih = null;
@@ -540,33 +540,33 @@ window.requestTopup = async function(){
     closeModal('topup');
   } catch(err) { alert('Gagal: ' + err.message) }
 }
+// GANTI JADI - POTONGAN 16%
 window.ajukanWithdraw = async function(){
   const jumlah = parseInt(document.getElementById('jumlahWithdraw').value);
   const noDana = document.getElementById('noDanaWithdraw').value.trim();
   if(!jumlah || jumlah < 10000) return alert("Min 10.000 Koin");
   if(!noDana) return alert("Isi No DANA");
 
-  // cek saldo berseri asli, bukan saldo_koin
   const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id).is('locked_for_job', null);
   const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
   if(total < jumlah) return alert(`Saldo pecahan kurang. Punya ${total}, mau WD ${jumlah}`);
 
   const lockId = 'WITHDRAW-'+userLogin.id+'-'+Date.now();
-  // 1. kunci dulu
   const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { p_user: userLogin.id, p_harga: jumlah, p_lock_id: lockId });
   if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
 
-  // 2. baru insert request
+  // UBAH 0.9 JADI 0.84
+  const diterima = Math.floor(jumlah * 0.84);
+
   const { error } = await supabase.from('withdraw_requests').insert({
-    user_id: userLogin.id, jumlah_koin: jumlah, no_dana: noDana, diterima_rupiah: Math.floor(jumlah*0.9), koin_induk_terkunci: lockId, status: 'pending'
+    user_id: userLogin.id, jumlah_koin: jumlah, no_dana: noDana, diterima_rupiah: diterima, koin_induk_terkunci: lockId, status: 'pending'
   });
   if(error) return alert(error.message);
   
-  alert(`Request WD ${jumlah.toLocaleString()} dikirim. Koin dikunci, tunggu admin transfer. Diterima Rp ${Math.floor(jumlah*0.9).toLocaleString()}`);
+  alert(`Request WD ${jumlah.toLocaleString()} dikirim. Admin 16%. Diterima Rp ${diterima.toLocaleString()}`);
   closeModal('withdraw');
   await loadSaldoBerseri();
 }
-
 
 // admin setujui
 window.setujuiWithdraw = async function(id){
