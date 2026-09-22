@@ -542,17 +542,41 @@ window.requestTopup = async function(){
 }
 window.ajukanWithdraw = async function(){
   const jumlah = parseInt(document.getElementById('jumlahWithdraw').value);
-  const noDana = document.getElementById('noDanaWithdraw').value;
-  if(jumlah < 10000) return alert("Min 10.000 Koin");
-  if(jumlah > saldoSekarang) return alert("Saldo kurang");
-  const diterima = Math.floor(jumlah * 0.9);
-  await supabase.from('withdraw_requests').insert({
-    user_id: userLogin.id, jumlah_koin: jumlah, no_dana: noDana, diterima_rupiah: diterima
+  const noDana = document.getElementById('noDanaWithdraw').value.trim();
+  if(!jumlah || jumlah < 10000) return alert("Min 10.000 Koin");
+  if(!noDana) return alert("Isi No DANA");
+
+  // cek saldo berseri asli, bukan saldo_koin
+  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id).is('locked_for_job', null);
+  const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
+  if(total < jumlah) return alert(`Saldo pecahan kurang. Punya ${total}, mau WD ${jumlah}`);
+
+  const lockId = 'WITHDRAW-'+userLogin.id+'-'+Date.now();
+  // 1. kunci dulu
+  const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { p_user: userLogin.id, p_harga: jumlah, p_lock_id: lockId });
+  if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
+
+  // 2. baru insert request
+  const { error } = await supabase.from('withdraw_requests').insert({
+    user_id: userLogin.id, jumlah_koin: jumlah, no_dana: noDana, diterima_rupiah: Math.floor(jumlah*0.9), koin_induk_terkunci: lockId, status: 'pending'
   });
-  alert(`Request dikirim. Diterima: Rp ${diterima.toLocaleString()}`);
+  if(error) return alert(error.message);
+  
+  alert(`Request WD ${jumlah.toLocaleString()} dikirim. Koin dikunci, tunggu admin transfer. Diterima Rp ${Math.floor(jumlah*0.9).toLocaleString()}`);
   closeModal('withdraw');
+  await loadSaldoBerseri();
 }
 
+
+// admin setujui
+window.setujuiWithdraw = async function(id){
+  if(!confirm("Udah transfer DANA ke user?")) return;
+  const { error } = await supabase.rpc('rpc_approve_withdraw', { p_withdraw_id: id });
+  if(error) return alert("Gagal: "+error.message);
+  alert("WD approved & koin dibakar");
+  loadAdminPanel();
+  await loadSaldoBerseri();
+}
 
 
 async function loadAdminPanel(){
@@ -773,19 +797,46 @@ function updateUI(isLogin) {
 }
 
 window.loginUser = async function() { 
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPass').value;
-  if(!email || !pass) return alert('Isi email dan password');
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass }); 
-  if(error) return alert('Gagal: ' + error.message); 
-  const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single(); 
-  userLogin = userData; 
-  localStorage.setItem('bitera_user', JSON.stringify(userData));
-  saldoSekarang = userData.saldo_koin || 0; // <-- GANTI INI
-  updateSaldoUI(); 
-  updateUI(true); 
-  loadMyProfile(); 
-  closeModal('login'); 
+  const emailEl = document.getElementById('loginEmail');
+  const passEl = document.getElementById('loginPass');
+  
+  const email = emailEl.value.trim().toLowerCase();
+  const pass = passEl.value;
+
+  if (!email || !pass) return alert('Isi email dan password');
+
+  try {
+    // 1. Login Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
+      email, 
+      password: pass 
+    }); 
+    if (authError) throw authError;
+
+    // 2. Ambil data profile
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single(); 
+
+    if (userError) throw userError;
+    if (!userData) throw new Error('Data user tidak ditemukan di tabel users');
+
+    // 3. Simpan session
+    userLogin = userData; 
+    localStorage.setItem('bitera_user', JSON.stringify(userData));
+    
+    saldoSekarang = userData.saldo_koin || 0;
+    updateSaldoUI(); 
+    updateUI(true); 
+    loadMyProfile(); 
+    closeModal('login');
+
+  } catch (err) {
+    console.error(err);
+    alert('Gagal login: ' + err.message);
+  }
 }
 
 window.lupaPassword = async function(){
@@ -1167,33 +1218,71 @@ async function loadVideos(){
   tampilkanVideo(data);
 }
 
-async function loadMyProfile(){ 
-  if(!userLogin) return; 
-  const {data, error} = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
-  if(error) { console.log("Error load profil:", error); return; }
-  if(data){ 
-   saldoSekarang = data.saldo_koin || 0;
+async function loadMyProfile() { 
+  if (!userLogin?.id) return;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userLogin.id)
+      .single(); 
+
+    if (error) throw error;
+    if (!data) return;
+
+    // --- DATA & SALDO ---
+    saldoSekarang = data.saldo_koin || 0;
     updateSaldoUI();
-    document.getElementById('myNama').innerText = data.nama; 
-    document.getElementById('mySkill').innerText = data.skill||'-'; 
-    document.getElementById('myBio').innerText = data.bio||'-'; 
-    document.getElementById('myFoto').src = data.foto||'https://ui-avatars.com/api/?name='+data.nama; 
-    document.getElementById('myCover').src = data.cover||'https://via.placeholder.com/1000x250/4A7C8A/FFF'; 
-    document.getElementById('myWa').innerText = data.no_wa||'-'; 
-    document.getElementById('myTgl').innerText = data.tanggal_lahir||'-'; 
-    document.getElementById('mySekolah').innerText = data.sekolah||'-'; 
-    document.getElementById('myYoutube').innerText = data.youtube||'-'; 
-    const rating = data.jumlah_rating > 0? (data.total_rating/data.jumlah_rating).toFixed(1) : 0; 
-    document.getElementById('myRating').innerText = `⭐ ${rating}`; 
-    document.getElementById('editNama').value = data.nama; 
-    document.getElementById('editSkill').value = data.skill || ''; 
-    document.getElementById('editBio').value = data.bio || ''; 
-    document.getElementById('editNoWa').value = data.no_wa || ''; 
-    document.getElementById('editTgl').value = data.tanggal_lahir || ''; 
-    document.getElementById('editSekolah').value = data.sekolah || ''; 
-    document.getElementById('editYoutube').value = data.youtube || ''; 
-    loadTemanDiProfil(); 
-  } 
+
+    // helper biar gak error kalau ID tidak ada di HTML
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+    const setValue = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    const setSrc = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.src = val;
+    };
+
+    const nama = data.nama || 'Tanpa Nama';
+    const rating = data.jumlah_rating > 0 ? (data.total_rating / data.jumlah_rating).toFixed(1) : '0.0';
+
+    // --- TAMPILAN PROFIL ---
+    setText('myNama', nama);
+    setText('mySkill', data.skill || '-');
+    setText('myBio', data.bio || '-');
+    setText('myWa', data.no_wa || '-');
+    setText('myTgl', data.tanggal_lahir || '-');
+    setText('mySekolah', data.sekolah || '-');
+    setText('myYoutube', data.youtube || '-');
+    setText('myRating', `⭐ ${rating}`);
+
+    setSrc('myFoto', data.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=random`);
+    setSrc('myCover', data.cover || 'https://via.placeholder.com/1000x250/4A7C8A/FFF');
+
+    // --- FORM EDIT ---
+    setValue('editNama', data.nama || '');
+    setValue('editSkill', data.skill || '');
+    setValue('editBio', data.bio || '');
+    setValue('editNoWa', data.no_wa || '');
+    setValue('editTgl', data.tanggal_lahir || '');
+    setValue('editSekolah', data.sekolah || '');
+    setValue('editYoutube', data.youtube || '');
+
+    // load teman
+    if (typeof loadTemanDiProfil === 'function') {
+      loadTemanDiProfil();
+    }
+
+  } catch (err) {
+    console.error("Error load profil:", err.message);
+    // alert(err.message); // aktifin kalau mau debug di HP
+  }
 }
 
 async function loadTemanDiProfil(){ 
@@ -1667,64 +1756,66 @@ window.openRating = function(jobId, pekerjaId, judul){
   openModal('ratingModal');
 }
 
-supabase.auth.getSession().then(async ({ data: { session } }) => {
-  if(session){
-    // Ada session Supabase -> ambil data user terbaru, gak peduli ada ainun_user atau enggak
-    const { data: userData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-    
-    if(userData){
-      userLogin = userData;
-      localStorage.setItem('ainun_user', JSON.stringify(userData));
-      saldoSekarang = userData.saldo_koin || 0;
-      updateSaldoUI();
-      updateUI(true);
-      loadMyProfile(); 
-      cekRoleAdmin();
-      
-      // LOAD DATA AWAL KALO LOGIN
-      loadJobs();
-      loadPenyedia();
-      loadVideos();
-    }
+// 1 fungsi untuk semua setup login biar gak duplikat
+async function handleLoginSession(userId) {
+  try {
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    if (!userData) throw new Error('Data profil tidak ditemukan');
+
+    userLogin = userData;
+    localStorage.setItem('ainun_user', JSON.stringify(userData));
+    saldoSekarang = userData.saldo_koin || 0;
+
+    updateSaldoUI();
+    updateUI(true);
+    loadMyProfile();
+    if (typeof cekRoleAdmin === 'function') cekRoleAdmin();
+
+    // Load data awal
+    loadJobs();
+    loadPenyedia();
+    loadVideos();
+
+  } catch (err) {
+    console.error('Gagal load profil:', err.message);
+    // Kalau profil gagal, paksa logout biar gak nyangkut
+    await supabase.auth.signOut();
+  }
+}
+
+function handleLogout() {
+  userLogin = null;
+  saldoSekarang = 0;
+  localStorage.removeItem('ainun_user');
+  // hapus key lama kamu biar gak bentrok
+  localStorage.removeItem('bitera_user'); 
+  updateSaldoUI();
+  updateUI(false);
+}
+
+// --- CEK PERTAMA KALI BUKA WEB ---
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user) {
+    handleLoginSession(session.user.id);
   } else {
-    // Gak ada session, coba cek localstorage (buat jaga-jaga)
-    const savedUser = localStorage.getItem('ainun_user');
-    if(savedUser){
-      try {
-        userLogin = JSON.parse(savedUser);
-        saldoSekarang = userLogin.saldo_koin || 0;
-        updateSaldoUI();
-        updateUI(true);
-        loadMyProfile();
-        cekRoleAdmin();
-        loadJobs(); loadPenyedia(); loadVideos();
-      } catch(e){
-        localStorage.removeItem('ainun_user');
-        updateUI(false);
-      }
-    } else {
-      updateUI(false);
-    }
+    handleLogout();
   }
 });
 
+// --- DENGERIN PERUBAHAN AUTH ---
 supabase.auth.onAuthStateChange((event, session) => {
-  if(event == 'SIGNED_OUT') { 
-    userLogin = null;
-    localStorage.removeItem('ainun_user');
-    updateUI(false);
-  }
-  if(event == 'SIGNED_IN' && session){
-    // Biar kalau habis login langsung refresh data
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
-      if(s){
-        const { data: userData } = await supabase.from('users').select('*').eq('id', s.user.id).single();
-        if(userData){
-          userLogin = userData;
-          localStorage.setItem('ainun_user', JSON.stringify(userData));
-        }
-      }
-    });
+  if (event === 'SIGNED_IN' && session?.user) {
+    // Langsung pakai session yang ada, JANGAN getSession() lagi
+    handleLoginSession(session.user.id);
+  } 
+  else if (event === 'SIGNED_OUT') {
+    handleLogout();
   }
 });
 async function cekRoleAdmin(){
