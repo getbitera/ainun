@@ -544,31 +544,44 @@ window.requestTopup = async function(){
 window.ajukanWithdraw = async function(){
   const jumlah = parseInt(document.getElementById('jumlahWithdraw').value);
   const noDana = document.getElementById('noDanaWithdraw').value.trim();
+  const namaRek = document.getElementById('namaRekWithdraw')?.value || userLogin.nama; // kalau ada input nama
   if(!jumlah || jumlah < 10000) return alert("Min 10.000 Koin");
-  if(!noDana) return alert("Isi No DANA");
+  if(!noDana) return alert("Isi No DANA/Rek");
 
-  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id).is('locked_for_job', null);
-  const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
-  if(total < jumlah) return alert(`Saldo pecahan kurang. Punya ${total}, mau WD ${jumlah}`);
+  const fee = Math.ceil(jumlah * 0.16); // 16%
+  const diterima = jumlah - fee;
+  const lockId = crypto.randomUUID();
 
-  // GANTI JADI INI
-const lockId = crypto.randomUUID(); // ini uuid murni, cocok sama kolom locked_for_job
-  const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { p_user: userLogin.id, p_harga: jumlah, p_lock_id: lockId });
+  // 1. Kunci koin dulu
+  const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
+    p_user: userLogin.id, 
+    p_harga: jumlah, 
+    p_lock_id: lockId 
+  });
   if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
 
-  // UBAH 0.9 JADI 0.84
-  const diterima = Math.floor(jumlah * 0.84);
-
+  // 2. Simpan request pakai nama kolom ASLI kamu
   const { error } = await supabase.from('withdraw_requests').insert({
-    user_id: userLogin.id, jumlah_koin: jumlah, no_dana: noDana, diterima_rupiah: diterima, koin_induk_terkunci: lockId, status: 'pending'
+    user_id: userLogin.id, 
+    nominal_koin: jumlah,
+    fee: fee,
+    nominal_diterima: diterima,
+    no_rek: noDana,
+    nama_rek: namaRek,
+    koin_induk_terkunci: lockId,
+    status: 'pending'
   });
-  if(error) return alert(error.message);
   
-  alert(`Request WD ${jumlah.toLocaleString()} dikirim. Admin 16%. Diterima Rp ${diterima.toLocaleString()}`);
+  if(error){
+    // balikin koin kalau gagal insert
+    await supabase.from('koin_pecahan').update({locked_for_job: null}).eq('locked_for_job', lockId);
+    return alert(error.message);
+  }
+  
+  alert(`WD ${jumlah.toLocaleString()} dikirim! Fee 16% (${fee.toLocaleString()}). Diterima Rp ${diterima.toLocaleString()}`);
   closeModal('withdraw');
   await loadSaldoBerseri();
 }
-
 // admin setujui
 window.setujuiWithdraw = async function(id){
   if(!confirm("Udah transfer DANA ke user?")) return;
