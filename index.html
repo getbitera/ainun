@@ -1625,22 +1625,6 @@ window.cekKoinAsli = async function(userId, jumlahButuh){
   return {valid:true, total:total};
 }
 
-// Timpa juga buatPost yang cek saldo
-const buatPostAsli = window.buatPost;
-window.buatPost = async function(event){
-  if(!userLogin) return alert("Login dulu");
-  const myId = await window.getMyAuthId();
-  const { data: pecahan } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', myId).is('locked_for_job', null);
-  console.log("BUAT POST CEK:", pecahan);
-  if(!pecahan || pecahan.length===0){
-    alert("⛔ Saldo tidak terdaftar. DATA KOSONG. ID kamu: " + myId + "\n Cek console FINAL DATA");
-    return;
-  }
-  // lanjutkan pakai logic kamu yang lama
-  return buatPostAsli(event);
-}
-
-
 // ===== FIX JOBS - PAKAI FITUR YANG UDAH ADA =====
 async function loadJobs(){
   const container = document.getElementById('daftarJob');
@@ -1684,29 +1668,19 @@ async function loadJobs(){
       } else if(job.status === 'menunggu_konfirmasi'){
         tombol = `<p>⏳ Menunggu rating pemilik</p>`;
       } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60">✅ Dana ${(job.harga*0.84).toLocaleString()} cair!</p>`;
+        tombol = `<p style="color:#27AE60">✅ Dana cair!</p>`;
       }
     } else {
       tombol = job.status === 'open' ? `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button>` : `<p style="color:gray">Sudah diambil</p>`;
     }
 
-    container.innerHTML+=`
-    <div class="card">
-      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
-      <div onclick="lihatProfilOrang('${job.user_id}')" style="display:flex; align-items:center; gap:10px; margin-bottom:8px; cursor:pointer;">
-        <img src="${fotoOwner}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
-        <div style="flex:1"><div style="font-size:12px; color:gray;">Oleh: <b style="color:var(--accent); text-decoration:underline;">${owner.nama}</b> ⭐ ${ratingOwner}</div><div style="font-size:11px; color:#999;">Klik profil</div></div>
-        ${!isOwner ? `<button onclick="event.stopPropagation(); bukaChat('${job.user_id}')" style="font-size:11px; padding:4px 8px; border-radius:15px; border:1px solid var(--accent); background:white;">💬 PESAN</button>` : ''}
-      </div>
-      <h3>${job.judul}</h3><p style="font-size:13px;color:gray;margin:5px 0">${job.deskripsi||''}</p><b>${Number(job.harga).toLocaleString()} Koin</b><br><small>Status: ${job.status}</small>
-      ${pekerja ? `<div style="margin-top:12px; padding:10px; background:#f0fdfa; border-radius:10px; border:1px dashed var(--accent); display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="lihatProfilOrang('${job.diambil_oleh}')"><img src="${pekerja.foto || `https://ui-avatars.com/api/?name=${pekerja.nama}`}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;"><div style="flex:1"><div style="font-size:11px; color:var(--accent); font-weight:bold;">${job.status==='selesai'?'✅ SELESAI OLEH':'🔨 DIKERJAKAN'}</div><div style="font-size:13px; font-weight:bold;">${pekerja.nama} ⭐ ${(pekerja.jumlah_rating>0 ? (pekerja.total_rating/pekerja.jumlah_rating).toFixed(1) : '0.0')}</div></div><button onclick="event.stopPropagation(); bukaChat('${job.diambil_oleh}')" style="font-size:11px; padding:4px 8px; border-radius:15px; background:var(--accent); color:white; border:none;">CHAT</button></div>` : ''}
-      <div style="margin-top:12px">${tombol}</div>
-    </div>`;
+    container.innerHTML+=`<div class="card">${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}<h3>${job.judul}</h3><b>${Number(job.harga).toLocaleString()} Koin</b><div style="margin-top:12px">${tombol}</div></div>`;
   }
 }
 
-// HAPUS modal profilUserModal di HTML kamu, gak kepake lagi
-// fungsi chatKe & lihatProfil yang bikin chat.html dihapus, pakai yang asli kamu:
+// HAPUS YANG BUATPOST DOBEL, PAKAI YANG SATU INI AJA YANG UDAH ADA WARNING
+// JANGAN TIMPA LAGI window.buatPost di bawahnya!
+
 window.chatKe = window.bukaChat;
 window.lihatProfil = window.lihatProfilOrang;
 window.openRating = function(jobId, pekerjaId, judul){
