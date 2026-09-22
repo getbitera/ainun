@@ -475,9 +475,19 @@ async function getSignedUrl(bucket, filePath, expires = 3600) {
 
 
 // CUMA 1X DI SINI
-let saldoSekarang = 0; let userLogin = null;
-let channelChatAktif = null; // INI WAJIB ; let ratingJobId = ''; let skorRating = 0;
-let jumlahNotifChat = 0; let jumlahNotifTeman = 0;  let jobSelesaiId = ''; let pekerjaRatingId = '';let fileGambarJob = null;
+let saldoSekarang = 0; 
+let userLogin = null;
+let ratingJobId = ''; 
+let skorRating = 0;
+let jumlahNotifChat = 0; 
+let jumlahNotifTeman = 0;  
+let jobSelesaiId = ''; 
+let pekerjaRatingId = '';
+let fileGambarJob = null;
+let convAktif = null;
+let lawanChatAktif = null;
+let channelRealtime = null;
+let channelNotifGlobal = null;
 
 
 // HITUNG OTOMATIS
@@ -635,7 +645,6 @@ window.openModal = function(id){ document.getElementById(id).style.display = 'fl
 
 window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; }
 
-function updateSaldoUI() { document.getElementById('saldoText').innerText = saldoSekarang.toLocaleString(); }
 function updateBadgeChat(){ const badge = document.getElementById('badgeChat'); badge.style.display = jumlahNotifChat > 0? 'flex' : 'none'; badge.innerText = jumlahNotifChat; }
 function updateBadgeTeman(){ const badge = document.getElementById('badgeTeman'); badge.style.display = jumlahNotifTeman > 0? 'flex' : 'none'; badge.innerText = jumlahNotifTeman; }
 function resetNotifChat(){ jumlahNotifChat = 0; updateBadgeChat(); }
@@ -1021,39 +1030,6 @@ window.kirimBukti = async function(){
   }
 }
 
-// HAPUS TOMBOL SELESAI DOBEL - PAKSA LEWAT RATING
-window.konfirmasiSelesai = async function(){
-  alert("Klik RATING dulu. Dana baru cair setelah rating.");
-  return;
-}
-
-window.openRating = function(jobId, pekerjaId, judul){
-  ratingJobId = jobId;
-  pekerjaRatingId = pekerjaId;
-  document.getElementById('ratingJobJudul').innerText = judul;
-  document.getElementById('bintangWrap').innerHTML = `
-    <div class="rating-wrap">
-      <div id="bintangContainer" class="bintang-container">
-        <span class="bintang" data-star="5" onclick="klikBintang(5)">★</span>
-        <span class="bintang" data-star="4" onclick="klikBintang(4)">★</span>
-        <span class="bintang" data-star="3" onclick="klikBintang(3)">★</span>
-        <span class="bintang" data-star="2" onclick="klikBintang(2)">★</span>
-        <span class="bintang" data-star="1" onclick="klikBintang(1)">★</span>
-      </div>
-      <div id="bintangText" class="bintang-text">Pilih rating</div>
-    </div>`;
-  openModal('ratingModal');
-}
-
-window.klikBintang = async function(skor){
-  skorRating = skor;
-  document.querySelectorAll('#bintangContainer.bintang').forEach(b=>{
-    b.style.color = parseInt(b.dataset.star) <= skor? '#FFD700' : '#ddd';
-  });
-  document.getElementById('bintangText').innerText = 'Mengirim rating '+skor+' bintang...';
-  await kirimRating();
-}
-
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu!");
   if(!ratingJobId ||!pekerjaRatingId) return alert("Data rating kosong");
@@ -1377,11 +1353,6 @@ window.saveProfile = async function(event){
 }
 
 // TARUH DI ATAS GLOBAL
-let convAktif = null;
-let lawanChatAktif = null;
-let channelRealtime = null;
-let channelNotifGlobal = null;
-
 window.bukaChat = async function(lawanId) {
   if(!userLogin) return alert('Login dulu');
   if(userLogin.id === lawanId) return alert('Ga bisa chat sama diri sendiri');
@@ -1601,24 +1572,17 @@ async function loadPenyedia(){
 }
 
 // ====== OVERRIDE PAKSA - TARO PALING BAWAH SEBELUM }); ======
-window.getMyAuthId = async function(){
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id || userLogin?.id;
-}
 
-window.loadSaldoBerseri = async function(){
+async function loadSaldoBerseri(){
   if(!userLogin) return;
-  const myId = await window.getMyAuthId();
-  console.log("FINAL ID:", myId);
-  const { data, error } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', myId).is('locked_for_job', null);
-  console.log("FINAL DATA:", data, error);
+  const myId = await getMyAuthId();
+  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', myId).is('locked_for_job', null);
   let total = 0;
   if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
   saldoSekarang = total;
   const el = document.getElementById('saldoText');
   if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
 }
-
 window.cekKoinAsli = async function(userId, jumlahButuh){
   const { data } = await supabase.from('koin_pecahan').select('*').eq('pemilik_id', userId).is('locked_for_job', null);
   const total = data ? data.reduce((a,b)=> a + Number(b.nominal||0),0) : 0;
