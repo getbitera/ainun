@@ -553,7 +553,11 @@ window.ajukanWithdraw = async function(){
   const lockId = crypto.randomUUID();
 
   // 1. Kunci koin dulu
- rpc('rpc_lock_koin', { p_user: userLogin.id, p_harga: hadiah, p_lock_id: jobBaru.id })
+  const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
+    p_user: userLogin.id, 
+    p_harga: jumlah, 
+    p_lock_id: lockId 
+  });
   if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
 
   // 2. Simpan request pakai nama kolom ASLI kamu
@@ -915,19 +919,21 @@ window.openGambarFull = function(src){
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
 
+  // === TAMBAHAN TAMENG HUKUM MY AINUN ===
   const checkAinun = document.getElementById('checkAinun');
   if(!checkAinun ||!checkAinun.checked){
     alert("⛔ Centang dulu persetujuan My Ainun tidak menjamin kualitas penyedia jasa");
     return;
   }
 
-  let yakin = confirm(
+    let yakin = confirm(
     "PERINGATAN MY AINUN:\n\n" +
     "My Ainun tidak menjamin kualitas dan kemampuan penyedia jasa, jadi sebelum melakukan transaksi cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa.\n\n" +
     "Jika sudah post job dana saldo tidak bisa dikembalikan, my ainun tidak menyediakan fitur untuk pembatalan post job.\n\n" +
     "Apakah anda yakin untuk melanjutkan post job?"
   );
   if(!yakin) return;
+  // === END TAMENG HUKUM ===
 
   const btn = event.target;
   btn.disabled = true;
@@ -941,32 +947,28 @@ window.buatPost = async function(event) {
 
     if(!judul ||!hadiah || hadiah < 1000){
       alert("Isi judul & hadiah min 1000");
-      btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
       return;
     }
 
-    // 1. CEK SALDO_KOIN BERSERI - dari koin_pecahan
-    const { data: pecahan, error: errPecahan } = await supabase
-     .from('koin_pecahan')
-     .select('nominal, induk_seri')
-     .eq('pemilik_id', userLogin.id)
-     .is('locked_for_job', null);
+    // 1. CEK SALDO DULU (read only, aman)
+    const { data: pecahan } = await supabase
+    .from('koin_pecahan')
+    .select('nominal, induk_seri')
+    .eq('pemilik_id', userLogin.id)
+    .is('locked_for_job', null);
 
-    if(errPecahan) throw errPecahan;
-    if(!pecahan || pecahan.length === 0){
-      alert("⛔ Saldo tidak ada pecahan aktif. Topup dulu");
-      btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
+    if(!pecahan || pecahan.length===0){
+      alert("⛔ Saldo tidak ada pecahan aktif");
       return;
     }
 
     let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
     if(total < hadiah){
-      alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()} (saldo_koin), butuh ${hadiah.toLocaleString()}`);
-      btn.disabled = false; btn.innerText = "POST & KUNCI DANA";
+      alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`);
       return;
     }
 
-    // 2. UPLOAD GAMBAR
+    // 2. UPLOAD GAMBAR (kalau ada)
     let urlGambar = null;
     if(fileGambarJob){
       const comp = await compressImage(fileGambarJob, 800);
@@ -993,21 +995,12 @@ window.buatPost = async function(event) {
 
     if(jobErr) throw jobErr;
 
-    // 4. KUNCI DANA - FIX BUG: pakai hadiah & jobBaru.id
-    // Kalau RPC kamu namanya rpc_lock_koin, pakai ini:
-    const { error: lockErr } = await supabase.rpc('rpc_lock_koin', {
-      p_user: userLogin.id,
-      p_harga: hadiah,
-      p_lock_id: jobBaru.id
-    });
-
-    // Kalau RPC kamu cuma punya rpc_lock_koin_withdraw, pakai yang ini (uncomment):
-    // const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', {
-    // p_user: userLogin.id,
-    // p_harga: hadiah,
-    // p_lock_id: jobBaru.id
-    // });
-
+    // 4. KUNCI DANA LEWAT RPC
+    const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
+  p_user: userLogin.id, 
+  p_harga: jumlah, 
+  p_lock_id: lockId 
+});
     if(lockErr) {
       await supabase.from('jobs').delete().eq('id', jobBaru.id);
       throw lockErr;
@@ -1021,6 +1014,7 @@ window.buatPost = async function(event) {
     document.getElementById('deskripsiPost').value='';
     document.getElementById('hadiahPost').value='';
     document.getElementById('namaFileJob').innerText='';
+    // reset checkbox
     if(checkAinun) checkAinun.checked = false;
     loadJobs();
 
@@ -1266,6 +1260,7 @@ async function loadVideos(){
   if(error){ console.log(error); return; }
   tampilkanVideo(data);
 }
+
 async function loadMyProfile() { 
   if (!userLogin?.id) return;
 
@@ -1279,20 +1274,11 @@ async function loadMyProfile() {
     if (error) throw error;
     if (!data) return;
 
-    // --- DATA & SALDO: PAKAI saldo_koin / koin_pecahan ---
-    // loadSaldoBerseri() hitung dari tabel koin_pecahan
-    await loadSaldoBerseri();
+    // --- DATA & SALDO ---
+    saldoSekarang = data.saldo_koin || 0;
+    updateSaldoUI();
 
-    // Fallback: kalau koin_pecahan masih 0 tapi di users.saldo_koin ada isinya,
-    // tampilin saldo_koin biar gak dikira 0 (kasus migrasi)
-    if (saldoSekarang === 0 && data.saldo_koin > 0) {
-      saldoSekarang = data.saldo_koin;
-      updateSaldoUI();
-      // biar keliatan darimana asalnya
-      const el = document.getElementById('saldoText');
-      if(el) el.innerText = data.saldo_koin.toLocaleString() + ` (saldo_koin)`;
-    }
-
+    // helper biar gak error kalau ID tidak ada di HTML
     const setText = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.innerText = val;
@@ -1331,14 +1317,17 @@ async function loadMyProfile() {
     setValue('editSekolah', data.sekolah || '');
     setValue('editYoutube', data.youtube || '');
 
+    // load teman
     if (typeof loadTemanDiProfil === 'function') {
       loadTemanDiProfil();
     }
 
   } catch (err) {
     console.error("Error load profil:", err.message);
+    // alert(err.message); // aktifin kalau mau debug di HP
   }
 }
+
 async function loadTemanDiProfil(){ 
   const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
   const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; 
@@ -1677,6 +1666,30 @@ async function getMyAuthId(){
   return user?.id || userLogin?.id;
 }
 
+async function loadSaldoBerseri(){
+  if(!userLogin) return;
+  const myId = await getMyAuthId();
+  console.log("CEK ID:", myId, "userLogin.id:", userLogin.id);
+  
+  const { data, error } = await supabase.from('koin_pecahan')
+    .select('*')
+    .eq('pemilik_id', myId)
+    .is('locked_for_job', null);
+  
+  console.log("DATA KOIN:", data, error);
+  
+  let total = 0;
+  if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
+  saldoSekarang = total;
+  const el = document.getElementById('saldoText');
+  if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
+}
+
+function updateSaldoUI(){
+  const el = document.getElementById('saldoText');
+  if(el) el.innerText = Number(saldoSekarang).toLocaleString();
+}
+
 async function loadPenyedia(){
   const container = document.getElementById('daftarPenyedia');
   if(!container) return;
@@ -1694,14 +1707,11 @@ async function loadPenyedia(){
 
 async function loadSaldoBerseri(){
   if(!userLogin) return;
-  const myId = (await supabase.auth.getUser()).data.user?.id || userLogin.id;
-  const { data } = await supabase.from('koin_pecahan')
-    .select('nominal')
-    .eq('pemilik_id', myId)
-    .is('locked_for_job', null);
+  const myId = await getMyAuthId();
+  const { data } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', myId).is('locked_for_job', null);
   let total = 0;
   if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
-  saldoSekarang = total; // ini yang tampil di dashboard
+  saldoSekarang = total;
   const el = document.getElementById('saldoText');
   if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
 }
