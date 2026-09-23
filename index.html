@@ -553,11 +553,7 @@ window.ajukanWithdraw = async function(){
   const lockId = crypto.randomUUID();
 
   // 1. Kunci koin dulu
-  const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
-    p_user: userLogin.id, 
-    p_harga: jumlah, 
-    p_lock_id: lockId 
-  });
+ rpc('rpc_lock_koin', { p_user: userLogin.id, p_harga: hadiah, p_lock_id: jobBaru.id })
   if(lockErr) return alert("Gagal kunci koin: "+lockErr.message);
 
   // 2. Simpan request pakai nama kolom ASLI kamu
@@ -1275,8 +1271,7 @@ async function loadMyProfile() {
     if (!data) return;
 
     // --- DATA & SALDO ---
-    saldoSekarang = data.saldo_koin || 0;
-    updateSaldoUI();
+   await loadSaldoBerseri();
 
     // helper biar gak error kalau ID tidak ada di HTML
     const setText = (id, val) => {
@@ -1668,19 +1663,14 @@ async function getMyAuthId(){
 
 async function loadSaldoBerseri(){
   if(!userLogin) return;
-  const myId = await getMyAuthId();
-  console.log("CEK ID:", myId, "userLogin.id:", userLogin.id);
-  
-  const { data, error } = await supabase.from('koin_pecahan')
-    .select('*')
+  const myId = (await supabase.auth.getUser()).data.user?.id || userLogin.id;
+  const { data } = await supabase.from('koin_pecahan')
+    .select('nominal')
     .eq('pemilik_id', myId)
     .is('locked_for_job', null);
-  
-  console.log("DATA KOIN:", data, error);
-  
   let total = 0;
   if(data) total = data.reduce((a,b)=> a + Number(b.nominal||0), 0);
-  saldoSekarang = total;
+  saldoSekarang = total; // ini yang tampil di dashboard
   const el = document.getElementById('saldoText');
   if(el) el.innerText = total.toLocaleString() + ` (${data?.length||0} pecahan)`;
 }
