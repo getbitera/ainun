@@ -918,22 +918,13 @@ window.openGambarFull = function(src){
 
 window.buatPost = async function(event) {
   if(!userLogin) return alert("Login dulu");
-
-  // === TAMBAHAN TAMENG HUKUM MY AINUN ===
   const checkAinun = document.getElementById('checkAinun');
-  if(!checkAinun ||!checkAinun.checked){
-    alert("⛔ Centang dulu persetujuan My Ainun tidak menjamin kualitas penyedia jasa");
+  if(!checkAinun || !checkAinun.checked){
+    alert("⛔ Centang dulu persetujuan My Ainun");
     return;
   }
-
-    let yakin = confirm(
-    "PERINGATAN MY AINUN:\n\n" +
-    "My Ainun tidak menjamin kualitas dan kemampuan penyedia jasa, jadi sebelum melakukan transaksi cek dulu profil, rating dan informasi yang berkaitan dengan penyedia jasa.\n\n" +
-    "Jika sudah post job dana saldo tidak bisa dikembalikan, my ainun tidak menyediakan fitur untuk pembatalan post job.\n\n" +
-    "Apakah anda yakin untuk melanjutkan post job?"
-  );
+  let yakin = confirm("PERINGATAN MY AINUN:\n\nMy Ainun tidak menjamin kualitas penyedia jasa...\n\nJika sudah post job dana tidak bisa dikembalikan.\n\nLanjut?");
   if(!yakin) return;
-  // === END TAMENG HUKUM ===
 
   const btn = event.target;
   btn.disabled = true;
@@ -944,31 +935,14 @@ window.buatPost = async function(event) {
     const deskripsi = document.getElementById('deskripsiPost').value.trim();
     const hadiah = parseInt(document.getElementById('hadiahPost').value);
     const noWa = document.getElementById('noWaPost').value.trim();
+    if(!judul || !hadiah || hadiah < 1000) throw new Error("Isi judul & hadiah min 1000");
 
-    if(!judul ||!hadiah || hadiah < 1000){
-      alert("Isi judul & hadiah min 1000");
-      return;
-    }
+    // 1. CEK SALDO
+    const { data: pecahan } = await supabase.from('koin_pecahan').select('nominal').eq('pemilik_id', userLogin.id).is('locked_for_job', null);
+    let total = (pecahan||[]).reduce((a,b)=>a+Number(b.nominal||0),0);
+    if(total < hadiah) throw new Error(`Saldo tidak cukup. Punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`);
 
-    // 1. CEK SALDO DULU (read only, aman)
-    const { data: pecahan } = await supabase
-    .from('koin_pecahan')
-    .select('nominal, induk_seri')
-    .eq('pemilik_id', userLogin.id)
-    .is('locked_for_job', null);
-
-    if(!pecahan || pecahan.length===0){
-      alert("⛔ Saldo tidak ada pecahan aktif");
-      return;
-    }
-
-    let total = pecahan.reduce((a,b)=>a+Number(b.nominal||0),0);
-    if(total < hadiah){
-      alert(`Saldo tidak cukup. Kamu punya ${total.toLocaleString()}, butuh ${hadiah.toLocaleString()}`);
-      return;
-    }
-
-    // 2. UPLOAD GAMBAR (kalau ada)
+    // 2. UPLOAD GAMBAR
     let urlGambar = null;
     if(fileGambarJob){
       const comp = await compressImage(fileGambarJob, 800);
@@ -979,7 +953,7 @@ window.buatPost = async function(event) {
       urlGambar = data.publicUrl;
     }
 
-    // 3. BUAT JOB DULU
+    // 3. BUAT JOB (TANPA self-reference)
     const { data: jobBaru, error: jobErr } = await supabase.from('jobs').insert({
       user_id: userLogin.id,
       pemberi_id: userLogin.id,
@@ -989,18 +963,16 @@ window.buatPost = async function(event) {
       no_wa: noWa,
       status: 'open',
       gambar_url: urlGambar,
-      dana_ditahan: true,
-      koin_induk_terkunci: pecahan[0]?.induk_seri || null
+      dana_ditahan: true
     }).select().single();
-
     if(jobErr) throw jobErr;
 
-    // 4. KUNCI DANA LEWAT RPC
-    const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
-  p_user: userLogin.id, 
-  p_harga: jumlah, 
-  p_lock_id: lockId 
-});
+    // 4. KUNCI DANA - CUMA 1X, PAKAI RPC AMAN
+    const { error: lockErr } = await supabase.rpc('rpc_lock_koin', { 
+      p_user: userLogin.id, 
+      p_harga: hadiah, 
+      p_job_id: jobBaru.id 
+    });
     if(lockErr) {
       await supabase.from('jobs').delete().eq('id', jobBaru.id);
       throw lockErr;
@@ -1014,7 +986,6 @@ window.buatPost = async function(event) {
     document.getElementById('deskripsiPost').value='';
     document.getElementById('hadiahPost').value='';
     document.getElementById('namaFileJob').innerText='';
-    // reset checkbox
     if(checkAinun) checkAinun.checked = false;
     loadJobs();
 
