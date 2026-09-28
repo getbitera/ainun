@@ -1097,63 +1097,20 @@ window.kirimBukti = async function(){
 
 window.kirimRating = async function(){
   if(skorRating === 0) return alert("Pilih bintang dulu!");
-  if(!ratingJobId ||!pekerjaRatingId) return alert("Data rating kosong");
+  if(!ratingJobId || !pekerjaRatingId) return alert("Data rating kosong");
 
   try {
-    const { data: cek } = await supabase.from('ratings').select('id').eq('job_id', ratingJobId).maybeSingle();
-    if(cek) throw new Error("Job ini sudah pernah dirating");
+    document.getElementById('bintangText').innerText = 'Mengirim rating '+skorRating+' bintang...';
 
-    const { error: rateErr } = await supabase.from('ratings').insert({
-      job_id: ratingJobId,
-      pekerja_id: pekerjaRatingId,
-      pemberi_id: userLogin.id,
-      skor: skorRating
+    const { error } = await supabase.rpc('rpc_kirim_rating_cair_dana', {
+      p_job_id: ratingJobId,
+      p_pekerja_id: pekerjaRatingId,
+      p_pemberi_id: userLogin.id,
+      p_skor: skorRating
     });
-    if(rateErr) throw rateErr;
+    if(error) throw error;
 
-    const { data: pekerjaData } = await supabase.from('users').select('total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    await supabase.from('users').update({
-      total_rating: (pekerjaData?.total_rating || 0) + skorRating,
-      jumlah_rating: (pekerjaData?.jumlah_rating || 0) + 1
-    }).eq('id', pekerjaRatingId);
-
-    const { data: terkunciList, error: e1 } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', ratingJobId);
-    if(e1) throw e1;
-    if(!terkunciList || terkunciList.length === 0) throw new Error("Saldo terkunci tidak ditemukan");
-
-    let totalHarga = terkunciList.reduce((a,b)=> a + Number(b.nominal), 0);
-    let baseKode = terkunciList[0].induk_seri;
-    let fee = Math.floor(totalHarga * 0.16);
-    let buatPekerja = totalHarga - fee;
-    const uniq = Date.now() + '-' + Math.random().toString(36).substring(2,5);
-
-    await supabase.from('koin_pecahan').delete().eq('locked_for_job', ratingJobId);
-
-    // FIX: SERI UNIK BIAR GA TABRAKAN PAS 10RB LAGI
-    const { error: errPekerja } = await supabase.from('koin_pecahan').insert({
-      induk_seri: baseKode,
-      pecahan_seri: baseKode + '-' + String(buatPekerja).padStart(6,'0') + '-P-' + uniq + '-' + ratingJobId.substring(0,6),
-      nominal: buatPekerja,
-      pemilik_id: pekerjaRatingId,
-      tipe: 'aktif'
-    });
-    if(errPekerja) throw errPekerja;
-
-    const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
-    if(admin){
-      const { error: errFee } = await supabase.from('koin_pecahan').insert({
-        induk_seri: baseKode,
-        pecahan_seri: baseKode + '-' + String(fee).padStart(6,'0') + '-FEE-' + uniq + '-' + ratingJobId.substring(0,6),
-        nominal: fee,
-        pemilik_id: admin.id,
-        tipe: 'aktif'
-      });
-      if(errFee) throw errFee;
-    }
-
-    await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
-
-    alert(`✅ Berhasil! Dana cair: ${buatPekerja} pekerja / ${fee} admin`);
+    alert(`✅ Berhasil! Rating terkirim, dana cair ke pekerja`);
     closeModal('ratingModal');
     loadJobs();
     await loadSaldoBerseri();
@@ -1164,16 +1121,17 @@ window.kirimRating = async function(){
   }
 }
 
-// MATIKAN TOMBOL KONFIRMASI DOBEL
-window.konfirmasiSelesai = function(){ alert("Harus kasih rating dulu, dana cair otomatis setelah rating"); }
-window.klikBintang = async function(skor){
+window.klikBintang = function(skor){
   skorRating = skor;
   document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
     b.style.color = parseInt(b.dataset.star) <= skor ? '#FFD700' : '#ddd';
   });
-  document.getElementById('bintangText').innerText = 'Mengirim rating '+skor+' bintang...';
-  await kirimRating();
+  // JANGAN LANGSUNG KIRIM, tunggu user klik tombol konfirmasi di modal
+  document.getElementById('bintangText').innerText = skor + ' bintang dipilih - klik KONFIRMASI';
 }
+
+// tombol konfirmasi di modal rating kamu panggil ini
+window.konfirmasiRating = function(){ kirimRating(); }
 
 
 window.simpanVideo = async function(){
