@@ -424,8 +424,25 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <!-- PAGE ADMIN -->
 <div id="adminPage" class="container" style="display:none">
   <h2>⚙️ PANEL ADMIN</h2>
-  <div class="card"><h3>📥 Request Topup</h3><div id="daftarTopupAdmin"></div></div>
-  <div class="card"><h3>🏦 Request Withdraw</h3><div id="daftarWithdrawAdmin"></div></div>
+  
+  <div class="card">
+    <h3>📥 Request Topup</h3>
+    <div id="daftarTopupAdmin"><p>Loading...</p></div>
+  </div>
+
+  <div class="card" style="border:2px solid #27AE60">
+    <h3>🏦 Request Withdraw (Pending)</h3>
+    <div id="daftarWithdrawAdmin"><p>Loading...</p></div>
+  </div>
+
+  <div class="card" style="border:2px solid gray; background:#f9f9f9">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+      <h3>📜 History Withdraw Sukses (Bukti Transfer Ada Disini)</h3>
+      <button class="btn btn-sm" onclick="loadHistoryWithdraw()">🔄 Refresh History</button>
+    </div>
+    <div id="historyWithdrawAdmin"><p>Klik Refresh History untuk load</p></div>
+  </div>
+  
 </div>
 <footer>myainun.vercel.app 2026</footer>
 </div>
@@ -690,7 +707,36 @@ async function loadAdminPanel(){
         </div>
       </div>`;
   }
+
+  loadHistoryWithdraw();
 }
+
+async function loadHistoryWithdraw(){
+  const historyC = document.getElementById('historyWithdrawAdmin');
+  if(!historyC) return;
+  historyC.innerHTML = 'Loading history...';
+
+  const { data: wd } = await supabase.from('withdraw_requests').select('*').eq('status','approved').order('approved_at',{ascending:false}).limit(20);
+  
+  if(!wd || wd.length===0){ historyC.innerHTML = '<p>Belum ada history</p>'; return; }
+
+  historyC.innerHTML = '';
+  for(const w of wd){
+    const { data: u } = await supabase.from('users').select('nama,foto').eq('id', w.user_id).single();
+    const signed = w.bukti_admin_url ? await getSignedUrl('bukti-withdraw', w.bukti_admin_url, 3600) : null;
+
+    historyC.innerHTML += `
+      <div class="card" style="border-left:4px solid gray; margin-bottom:8px; padding:10px">
+        <b>${u?.nama||'User'}</b> - ${new Date(w.approved_at).toLocaleString('id-ID')}<br>
+        WD: ${Number(w.nominal_koin||0).toLocaleString()} Koin -> Rp ${Number(w.nominal_diterima||0).toLocaleString()}<br>
+        DANA: ${w.no_rek||w.no_dana}<br>
+        ${signed ? `<a href="${signed}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI TRANSFER</a>` : 'Bukti tidak ada'}<br>
+        <small style="color:gray">Path di Supabase: ${w.bukti_admin_url}</small>
+      </div>`;
+  }
+}
+
+
 // FUNCTION BARU - WAJIB UPLOAD BUKTI (URUTAN 100% AMAN)
 window.approveWithdrawDenganBukti = async function(id){
   const fileInput = document.getElementById(`buktiWD-${id}`);
