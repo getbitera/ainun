@@ -727,9 +727,9 @@ async function loadHistoryTopup(){
   if(!c) return;
   c.innerHTML = '<p>Loading history topup...</p>';
 
-  const { data, error } = await supabase.from('topup_requests').select('*, users(nama)').eq('status','approved').order('created_at',{ascending:false}).limit(30);
+  const { data, error } = await supabase.from('topup_requests').select('*, users(nama)').eq('status','approved').order('approved_at',{ascending:false}).limit(30);
   
-  if(error){ c.innerHTML = `<p style="color:red">${error.message}</p>`; console.error(error); return; }
+  if(error){ c.innerHTML = `<p style="color:red">${error.message}</p>`; return; }
   if(!data || data.length===0){ c.innerHTML = '<p>Belum ada history</p>'; return; }
 
   c.innerHTML = '';
@@ -737,13 +737,14 @@ async function loadHistoryTopup(){
     const signed = t.bukti_url ? await getSignedUrl('bukti-topup', t.bukti_url, 3600) : null;
     c.innerHTML += `
       <div style="border-bottom:1px solid #ddd; padding:8px 0">
-        <b>${t.users?.nama||'User'}</b> - ${t.created_at ? new Date(t.created_at).toLocaleString('id-ID') : ''}<br>
+        <b>${t.users?.nama||'User'}</b> - ${t.approved_at ? new Date(t.approved_at).toLocaleString('id-ID') : ''}<br>
         ${Number(t.nominal_koin||0).toLocaleString()} Koin - Rp ${Number(t.nominal_rupiah||0).toLocaleString()}<br>
         ${signed ? `<a href="${signed}" target="_blank" style="color:blue">📷 Lihat Bukti User</a>` : ''} 
         | Kode: <small>${t.kode_seri||'-'}</small>
       </div>`;
   }
 }
+  
 }
 
  
@@ -1212,6 +1213,7 @@ window.previewBukti = function(e){
   reader.readAsDataURL(file);
 }
 
+
 window.kirimBukti = async function(){
   const file = document.getElementById('inputBukti').files[0];
   if(!file) return alert("Upload bukti dulu");
@@ -1245,78 +1247,111 @@ window.kirimBukti = async function(){
     alert('Gagal: ' + err.message)
   }
 }
+window.konfirmasiSelesai = async function(jobId, pekerjaId){
+  const { data: job } = await supabase.from('jobs').select('bukti_url').eq('id', jobId).single();
+  if(!job.bukti_url) return alert("Bukti belum diupload pekerja");
 
+  // FIX PRIVATE BUCKET
+  const buktiSigned = await getSignedUrl('bukti-job', job.bukti_url, 3600);
+  if(!buktiSigned) return alert("Gagal buka bukti, coba refresh. Path: " + job.bukti_url);
+
+  pekerjaRatingId = pekerjaId;
+  ratingJobId = jobId;
+  skorRating = 0;
+  openModal('ratingModal');
+
+  const textRating = ['','Sangat Jelek','Jelek','Cukup','Bagus','Sangat Bagus'];
+  document.getElementById('ratingJobJudul').innerHTML = `
+    <img src="${buktiSigned}" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; margin-bottom:10px">
+    <p style="text-align:center; font-weight:bold; margin-bottom:10px">Beri rating untuk pekerja</p>
+    <div class="rating-wrap">
+      <div class="bintang-container" id="bintangContainer">
+        ${[5,4,3,2,1].map(i=>`<span class="bintang" data-star="${i}">★</span>`).join('')}
+      </div>
+      <div class="bintang-text" id="bintangText">Klik bintang untuk memberi rating</div>
+    </div>
+  `;
+  document.getElementById('bintangWrap').innerHTML = '';
+  const bintangEls = document.querySelectorAll('#bintangContainer.bintang');
+  const bintangText = document.getElementById('bintangText');
+  bintangEls.forEach(bintang => {
+    bintang.addEventListener('mouseenter', function() {
+      const val = parseInt(this.dataset.star);
+      bintangEls.forEach(b => { b.style.color = parseInt(b.dataset.star) <= val? '#FFD700' : '#ddd'; })
+      bintangText.innerText = textRating[val];
+    })
+    bintang.addEventListener('click', async function() {
+      skorRating = parseInt(this.dataset.star);
+      bintangText.innerText = 'Mengirim rating...';
+      await kirimRating();
+    })
+  })
+  document.getElementById('bintangContainer').addEventListener('mouseleave', function(){
+    bintangEls.forEach(b => { b.style.color = '#ddd' })
+    bintangText.innerText = 'Klik bintang untuk memberi rating';
+  })
+}
 window.kirimRating = async function(){
-  if(skorRating === 0) return alert("Pilih bintang dulu!");
-  if(!ratingJobId ||!pekerjaRatingId) return alert("Data rating kosong");
-
+  if(skorRating === 0) return alert("Pilih bintang dulu");
+  if(!ratingJobId || !pekerjaRatingId) return alert("Error: data job/pekerja kosong. Refresh");
+  
+  console.log("1. jobId:", ratingJobId, "pekerjaId:", pekerjaRatingId, "skor:", skorRating);
   try {
-    const { data: cek } = await supabase.from('ratings').select('id').eq('job_id', ratingJobId).maybeSingle();
-    if(cek) throw new Error("Job ini sudah pernah dirating");
+    const { data: job, error: e1 } = await supabase.from('jobs').select('harga, user_id').eq('id', ratingJobId).single();
+    if(e1) throw "Gagal ambil job: " + e1.message;
+    console.log("2. job:", job);
 
-    const { error: rateErr } = await supabase.from('ratings').insert({
-      job_id: ratingJobId,
-      pekerja_id: pekerjaRatingId,
-      pemberi_id: userLogin.id,
-      skor: skorRating
-    });
-    if(rateErr) throw rateErr;
+    const { data: pekerja, error: e2 } = await supabase.from('users').select('saldo_koin, total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
+    if(e2) throw "Gagal ambil pekerja: " + e2.message;
+    console.log("3. pekerja:", pekerja);
 
-    const { data: pekerjaData } = await supabase.from('users').select('total_rating, jumlah_rating').eq('id', pekerjaRatingId).single();
-    await supabase.from('users').update({
-      total_rating: (pekerjaData?.total_rating || 0) + skorRating,
-      jumlah_rating: (pekerjaData?.jumlah_rating || 0) + 1
+    const total = job.harga;
+    const adminCut = Math.ceil(total * 0.16); // dibulatin ke atas biar gak pecahan
+    const pekerjaDapat = total - adminCut;
+
+    console.log("4. Hitung:", {total, adminCut, pekerjaDapat})
+
+    // 1. UPDATE SALDO PEKERJA
+    const {error: e3} = await supabase.from('users').update({ 
+      saldo_koin: (pekerja.saldo_koin||0) + pekerjaDapat,
+      total_rating: (pekerja.total_rating||0) + skorRating,
+      jumlah_rating: (pekerja.jumlah_rating||0) + 1
     }).eq('id', pekerjaRatingId);
+    if(e3) throw "Gagal update pekerja: " + e3.message;
+    console.log("5. update pekerja ok");
 
-    const { data: terkunciList, error: e1 } = await supabase.from('koin_pecahan').select('*').eq('locked_for_job', ratingJobId);
-    if(e1) throw e1;
-    if(!terkunciList || terkunciList.length === 0) throw new Error("Saldo terkunci tidak ditemukan");
-
-    let totalHarga = terkunciList.reduce((a,b)=> a + Number(b.nominal), 0);
-    let baseKode = terkunciList[0].induk_seri;
-    let fee = Math.floor(totalHarga * 0.16);
-    let buatPekerja = totalHarga - fee;
-    const uniq = Date.now() + '-' + Math.random().toString(36).substring(2,5);
-
-    await supabase.from('koin_pecahan').delete().eq('locked_for_job', ratingJobId);
-
-    // FIX: SERI UNIK BIAR GA TABRAKAN PAS 10RB LAGI
-    const { error: errPekerja } = await supabase.from('koin_pecahan').insert({
-      induk_seri: baseKode,
-      pecahan_seri: baseKode + '-' + String(buatPekerja).padStart(6,'0') + '-P-' + uniq + '-' + ratingJobId.substring(0,6),
-      nominal: buatPekerja,
-      pemilik_id: pekerjaRatingId,
-      tipe: 'aktif'
+    // 2. CATAT FEE KE KAS SISTEM
+    console.log("6. Mau insert wallet_sistem:", {user_id: job.user_id, jumlah: adminCut})
+    const {error: e4} = await supabase.from('wallet_sistem').insert({
+      user_id: job.user_id,
+      tipe: 'fee_admin',
+      jumlah: adminCut, // udah dibulatin jadi int
+      keterangan: `Fee 16% Job ID: ${ratingJobId}`,
+      relasi_id: ratingJobId
     });
-    if(errPekerja) throw errPekerja;
-
-    const { data: admin } = await supabase.from('users').select('id').eq('role','admin').limit(1).single();
-    if(admin){
-      const { error: errFee } = await supabase.from('koin_pecahan').insert({
-        induk_seri: baseKode,
-        pecahan_seri: baseKode + '-' + String(fee).padStart(6,'0') + '-FEE-' + uniq + '-' + ratingJobId.substring(0,6),
-        nominal: fee,
-        pemilik_id: admin.id,
-        tipe: 'aktif'
-      });
-      if(errFee) throw errFee;
+    if(e4) {
+      console.error("GAGAL INSERT WALLET_SISTEM:", e4) // PENTING BUAT DEBUG
+      throw "Gagal catat fee admin: " + e4.message; 
     }
+    console.log("7. insert wallet_sistem ok");
 
-    await supabase.from('jobs').update({ status: 'selesai', dana_ditahan: false }).eq('id', ratingJobId);
-
-    alert(`✅ Berhasil! Dana cair: ${buatPekerja} pekerja / ${fee} admin`);
+    // 3. SELESAIKAN JOB
+    const {error: e5} = await supabase.from('jobs').update({status: 'selesai'}).eq('id', ratingJobId);
+    if(e5) throw "Gagal update job: " + e5.message;
+    
     closeModal('ratingModal');
+    alert(`✅ Selesai!\nPekerja: ${pekerjaDapat} Koin\nAdmin: ${adminCut} Koin masuk Kas`);
     loadJobs();
-    await loadSaldoBerseri();
+    loadMyProfile();
 
-  } catch(err){
-    console.error(err);
-    alert("Gagal: " + err.message);
+  } catch(err) {
+    console.error("DETAIL ERROR:", err);
+    alert(err); // ini yg muncul ke kamu
   }
 }
 
 // MATIKAN TOMBOL KONFIRMASI DOBEL
-window.konfirmasiSelesai = function(){ alert("Harus kasih rating dulu, dana cair otomatis setelah rating"); }
+
 window.klikBintang = async function(skor){
   skorRating = skor;
   document.querySelectorAll('#bintangContainer .bintang').forEach(b=>{
@@ -1845,56 +1880,62 @@ window.cekKoinAsli = async function(userId, jumlahButuh){
 }
 
 // ===== FIX JOBS - PAKAI FITUR YANG UDAH ADA =====
-async function loadJobs(){
-  const container = document.getElementById('daftarJob');
-  if(!container) return;
-  container.innerHTML = 'Loading...';
-  const { data: jobs } = await supabase.from('jobs').select('*').order('created_at',{ascending:false});
-  if(!jobs || jobs.length==0){ container.innerHTML='<p>Belum ada job</p>'; return; }
+async function loadJobs(){ 
+  const { data, error } = await supabase
+   .from('jobs')
+   .select(`*, pemberi_job:users!jobs_user_id_fkey(id, nama, foto), pekerja:users!jobs_diambil_oleh_fkey(id, nama, foto)`)
+   .order('created_at', {ascending:false}); 
 
-  const allUserIds = [...new Set(jobs.flatMap(j => [j.user_id, j.diambil_oleh]).filter(Boolean))];
-  const { data: usersData } = await supabase.from('users').select('id,nama,foto,total_rating,jumlah_rating').in('id', allUserIds);
-  const userMap = {};
-  (usersData||[]).forEach(u => userMap[u.id] = u);
+  if(error){ console.error(error); return; }
+  const container = document.getElementById('daftarJob'); 
+  container.innerHTML = ''; 
+  if(!data || data.length === 0){ container.innerHTML = '<p>Belum ada job</p>'; return; } 
 
-  container.innerHTML='';
-  for(const job of jobs){
-    const isOwner = userLogin && job.user_id === userLogin.id;
-    const isWorker = userLogin && job.diambil_oleh === userLogin.id;
-    const owner = userMap[job.user_id] || {nama:'-', foto:'', total_rating:0, jumlah_rating:0};
-    const pekerja = job.diambil_oleh ? (userMap[job.diambil_oleh] || {nama:'-', foto:'', total_rating:0, jumlah_rating:0}) : null;
-    
-    const fotoOwner = owner.foto || `https://ui-avatars.com/api/?name=${owner.nama}`;
-    const ratingOwner = owner.jumlah_rating > 0 ? (owner.total_rating/owner.jumlah_rating).toFixed(1) : '0.0';
-    const buktiSigned = job.bukti_url ? await getSignedUrl('bukti-job', job.bukti_url) : null;
-    
-    let tombol = '';
-    if(!userLogin){
-      tombol = `<p style="color:gray">Login untuk ambil job</p>`;
-    } else if(isOwner){
-      if(job.status === 'open'){
-        tombol = `<button class="btn" onclick="lihatPelamar('${job.id}')">👥 LIHAT PELAMAR</button>`;
-      } else if(job.status === 'dikerjakan'){
-        tombol = `<p>🔨 Dikerjakan - tunggu bukti</p>`;
-      } else if(job.status === 'menunggu_konfirmasi'){
-        tombol = `${buktiSigned ? `<img src="${buktiSigned}" class="gambar-job" onclick="openGambarFull('${buktiSigned}')"><br>` : ''}<button class="btn" style="width:100%; margin-top:10px" onclick="openRating('${job.id}','${job.diambil_oleh}','${job.judul.replace(/'/g,"")}')">⭐ KASIH RATING & CAIRKAN</button>`;
-      } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60; font-weight:bold">✅ SELESAI</p>`;
-      }
-    } else if(isWorker){
-      if(job.status === 'dikerjakan'){
-        tombol = `<button class="btn btn-sukses" style="width:100%" onclick="selesaiKerja('${job.id}')">📤 KIRIM BUKTI</button>`;
-      } else if(job.status === 'menunggu_konfirmasi'){
-        tombol = `<p>⏳ Menunggu rating pemilik</p>`;
-      } else if(job.status === 'selesai'){
-        tombol = `<p style="color:#27AE60">✅ Dana cair!</p>`;
-      }
-    } else {
-      tombol = job.status === 'open' ? `<button class="btn" onclick="ambilJob('${job.id}')">AMBIL</button>` : `<p style="color:gray">Sudah diambil</p>`;
-    }
+  data.forEach(job=>{ 
+    let btn = ''; 
+    if(job.status === 'open' && job.user_id!== userLogin?.id) 
+      btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
+    if(job.user_id === userLogin?.id && job.status === 'open') 
+      btn = `<button class="btn btn-sukses" onclick="lihatPelamar('${job.id}')">LIHAT PELAMAR</button>`;
+    if(job.status === 'dikerjakan' && (job.user_id === userLogin?.id || job.diambil_oleh === userLogin?.id)) 
+      btn = `<button class="btn btn-sukses" onclick="selesaiKerja('${job.id}')">✅ VC SELESAI & KIRIM BUKTI</button>`;
+    if(job.status === 'menunggu_konfirmasi' && job.user_id === userLogin?.id) 
+      btn = `<button class="btn btn-sukses" onclick="konfirmasiSelesai('${job.id}','${job.diambil_oleh}')">CEK BUKTI & KONFIRMASI</button>`;
 
-    container.innerHTML+=`<div class="card">${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}<h3>${job.judul}</h3><b>${Number(job.harga).toLocaleString()} Koin</b><div style="margin-top:12px">${tombol}</div></div>`;
-  }
+    container.innerHTML += `<div class="card">
+      ${job.gambar_url ? `<img src="${job.gambar_url}" class="gambar-job" onclick="openGambarFull('${job.gambar_url}')">` : ''}
+      <h3>${job.judul}</h3>
+      <p>${job.deskripsi}</p>
+      <p><b>Reward: ${job.harga} Koin</b></p>
+      <p>Status: <b>${job.status}</b></p>
+      
+      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
+        <img src="${job.pemberi_job?.foto || 'https://ui-avatars.com/api/?name='+job.pemberi_job?.nama}" 
+             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
+             onclick="lihatProfilOrang('${job.pemberi_job?.id}')">
+        <div>
+          <p style="margin:0; font-size:12px; color:gray">Oleh:</p>
+          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pemberi_job?.id}')">${job.pemberi_job?.nama || 'Anonim'}</b>
+        </div>
+        ${userLogin?.id !== job.user_id ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pemberi_job?.id}')">💬 Pesan</button>` : ''}
+      </div>
+
+      ${job.pekerja? `
+      <div style="display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:var(--bg); border-radius:8px">
+        <img src="${job.pekerja?.foto || 'https://ui-avatars.com/api/?name='+job.pekerja?.nama}" 
+             style="width:40px; height:40px; border-radius:50%; cursor:pointer" 
+             onclick="lihatProfilOrang('${job.pekerja?.id}')">
+        <div>
+          <p style="margin:0; font-size:12px; color:gray">Dikerjakan:</p>
+          <b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${job.pekerja?.id}')">${job.pekerja?.nama}</b>
+        </div>
+        ${userLogin?.id !== job.diambil_oleh ? `<button class="btn btn-sm" style="margin-left:auto; padding:8px 12px" onclick="bukaChat('${job.pekerja?.id}')">💬 Pesan</button>` : ''}
+      </div>` : ''}
+      
+      <a href="https://wa.me/${job.no_wa}" target="_blank" class="btn" style="background:#25D366; width:100%; margin-bottom:8px">📱 CHAT WA / VC</a>
+      ${btn}
+    </div>`
+  }) 
 }
 
 // HAPUS YANG BUATPOST DOBEL, PAKAI YANG SATU INI AJA YANG UDAH ADA WARNING
