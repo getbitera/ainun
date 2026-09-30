@@ -632,15 +632,14 @@ async function loadAdminPanel(){
       </div>`;
     }
   }
-
-  // 3. LOAD WITHDRAW - FIX WD
+// 3. LOAD WITHDRAW - FIX WD FINAL
   const wdC = document.getElementById('daftarWithdrawAdmin');
   if(!wdC){
     console.error("ID daftarWithdrawAdmin tidak ada di HTML");
     return;
   }
 
-  // FIX: pakai try tanpa join dulu biar ga error foreign key
+  // FIX: pakai select tanpa join dulu biar ga error foreign key
   const { data: wd, error: wdErr } = await supabase.from('withdraw_requests').select('*').eq('status','pending').order('created_at',{ascending:false});
   
   if(wdErr){
@@ -664,6 +663,9 @@ async function loadAdminPanel(){
       if(u){ nama = u.nama; foto = u.foto; }
     }catch(e){}
 
+    // FIX PRIVATE BUCKET - convert path jadi signedUrl yang bisa diklik
+    const buktiAdminSigned = w.bukti_admin_url ? await getSignedUrl('bukti-withdraw', w.bukti_admin_url, 3600) : null;
+
     wdC.innerHTML += `
       <div class="card" style="border-left:4px solid #27AE60; margin-bottom:12px">
         <div style="display:flex; gap:10px; align-items:center">
@@ -675,6 +677,9 @@ async function loadAdminPanel(){
             DANA: <b>${w.no_rek||w.no_dana||'-'}</b> - ${w.nama_rek||''}
           </div>
         </div>
+
+        ${buktiAdminSigned ? `<div style="margin-top:8px"><a href="${buktiAdminSigned}" target="_blank" class="btn btn-sm">📷 LIHAT BUKTI ADMIN</a><br><small style="color:gray">${w.bukti_admin_url}</small></div>` : ''}
+
         <div style="margin-top:12px; padding:10px; background:#f0fff0; border-radius:8px">
           <p style="font-weight:bold; font-size:13px">⬆️ UPLOAD BUKTI TRANSFER ADMIN (wajib):</p>
           <input type="file" id="buktiWD-${w.id}" accept="image/*" class="input">
