@@ -425,8 +425,8 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div id="adminPage" class="container" style="display:none">
   <h2>⚙️ PANEL ADMIN</h2>
   
-  <div class="card">
-    <h3>📥 Request Topup</h3>
+  <div class="card" style="border:2px solid orange">
+    <h3>📥 Request Topup (Pending)</h3>
     <div id="daftarTopupAdmin"><p>Loading...</p></div>
   </div>
 
@@ -435,13 +435,25 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <div id="daftarWithdrawAdmin"><p>Loading...</p></div>
   </div>
 
-  <div class="card" style="border:2px solid gray; background:#f9f9f9">
+  <hr style="margin:20px 0">
+
+  <div class="card" style="background:#fff8e1">
     <div style="display:flex; justify-content:space-between; align-items:center">
-      <h3>📜 History Withdraw Sukses (Bukti Transfer Ada Disini)</h3>
-      <button class="btn btn-sm" onclick="loadHistoryWithdraw()">🔄 Refresh History</button>
+      <h3>📜 History Topup Sukses</h3>
+      <button class="btn btn-sm" onclick="loadHistoryTopup()">🔄 Refresh</button>
     </div>
-    <div id="historyWithdrawAdmin"><p>Klik Refresh History untuk load</p></div>
+    <div id="historyTopupAdmin"><p>Klik Refresh</p></div>
   </div>
+
+  <div class="card" style="background:#f1f8e9">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+      <h3>📜 History Withdraw Sukses</h3>
+      <button class="btn btn-sm" onclick="loadHistoryWithdraw()">🔄 Refresh</button>
+    </div>
+    <div id="historyWithdrawAdmin"><p>Klik Refresh</p></div>
+  </div>
+  
+</div>
   
 </div>
 <footer>myainun.vercel.app 2026</footer>
@@ -710,7 +722,35 @@ async function loadAdminPanel(){
 
   
 }
-loadHistoryWithdraw();
+
+  loadHistoryTopup();
+  loadHistoryWithdraw();
+
+
+  // HISTORY TOPUP
+async function loadHistoryTopup(){
+  const c = document.getElementById('historyTopupAdmin');
+  if(!c) return;
+  c.innerHTML = '<p>Loading history topup...</p>';
+
+  const { data, error } = await supabase.from('topup_requests').select('*, users(nama)').eq('status','approved').order('approved_at',{ascending:false}).limit(30);
+  
+  if(error){ c.innerHTML = `<p style="color:red">${error.message}</p>`; return; }
+  if(!data || data.length===0){ c.innerHTML = '<p>Belum ada history</p>'; return; }
+
+  c.innerHTML = '';
+  for(const t of data){
+    const signed = t.bukti_url ? await getSignedUrl('bukti-topup', t.bukti_url, 3600) : null;
+    c.innerHTML += `
+      <div style="border-bottom:1px solid #ddd; padding:8px 0">
+        <b>${t.users?.nama||'User'}</b> - ${t.approved_at ? new Date(t.approved_at).toLocaleString('id-ID') : ''}<br>
+        ${Number(t.nominal_koin||0).toLocaleString()} Koin - Rp ${Number(t.nominal_rupiah||0).toLocaleString()}<br>
+        ${signed ? `<a href="${signed}" target="_blank" style="color:blue">📷 Lihat Bukti User</a>` : ''} 
+        | Kode: <small>${t.kode_seri||'-'}</small>
+      </div>`;
+  }
+}
+
 async function loadHistoryWithdraw(){
   const historyC = document.getElementById('historyWithdrawAdmin');
   if(!historyC) return;
