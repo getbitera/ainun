@@ -607,15 +607,15 @@ async function loadAdminPanel(){
 
   document.getElementById('btnAdmin').style.display = 'block';
 
- // 2. LOAD TOPUP
+  // 2. LOAD TOPUP
   const { data: topup } = await supabase.from('topup_requests').select('*, users(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
   const containerTopup = document.getElementById('daftarTopupAdmin');
   if(!topup || topup.length===0) { 
     containerTopup.innerHTML = '<p>Tidak ada request</p>'; 
   } else {
-    containerTopup.innerHTML = ''; // kosongin dulu
+    containerTopup.innerHTML = '';
     for (const t of topup) {
-      const signedUrl = await getSignedUrl('bukti-topup', t.bukti_url, 3600); // <-- TARUH DI SINI
+      const signedUrl = await getSignedUrl('bukti-topup', t.bukti_url, 3600);
       containerTopup.innerHTML += `
       <div class="permintaan-item" style="flex-direction:column; align-items:flex-start">
         <div style="display:flex; gap:10px; width:100%">
@@ -632,30 +632,60 @@ async function loadAdminPanel(){
       </div>`;
     }
   }
-  // 3. LOAD WITHDRAW
- 
- const { data: wd } = await supabase.from('withdraw_requests').select('*, users:user_id(nama,foto)').eq('status','pending').order('created_at',{ascending:false});
-  wdC.innerHTML =!wd?.length? '<p>Gak ada withdraw</p>' : '';
-  (wd||[]).forEach(w=>{
+
+  // 3. LOAD WITHDRAW - FIX WD
+  const wdC = document.getElementById('daftarWithdrawAdmin');
+  if(!wdC){
+    console.error("ID daftarWithdrawAdmin tidak ada di HTML");
+    return;
+  }
+
+  // FIX: pakai try tanpa join dulu biar ga error foreign key
+  const { data: wd, error: wdErr } = await supabase.from('withdraw_requests').select('*').eq('status','pending').order('created_at',{ascending:false});
+  
+  if(wdErr){
+    wdC.innerHTML = `<p style="color:red">Error WD: ${wdErr.message}</p>`;
+    console.error(wdErr);
+    return;
+  }
+
+  if(!wd || wd.length===0){
+    wdC.innerHTML = '<p>Gak ada withdraw</p>';
+    return;
+  }
+
+  wdC.innerHTML = '';
+  for(const w of wd){
+    // ambil user terpisah biar join gak gagal
+    let nama = 'User';
+    let foto = '';
+    try{
+      const { data: u } = await supabase.from('users').select('nama,foto').eq('id', w.user_id).single();
+      if(u){ nama = u.nama; foto = u.foto; }
+    }catch(e){}
+
     wdC.innerHTML += `
-      <div class="card" style="border-left:4px solid #27AE60">
-        <b>${w.users?.nama||'User'}</b> - ${w.created_at.substring(0,16)}<br>
-        WD: <b>${Number(w.nominal_koin||w.jumlah_koin).toLocaleString()}</b> Koin | Fee 16%: ${Number(w.fee||0).toLocaleString()}<br>
-        <span style="color:green">Terima: Rp ${Number(w.nominal_diterima||w.diterima_rupiah||0).toLocaleString()}</span><br>
-        DANA: <b>${w.no_rek||w.no_dana}</b> - ${w.nama_rek||''}
+      <div class="card" style="border-left:4px solid #27AE60; margin-bottom:12px">
+        <div style="display:flex; gap:10px; align-items:center">
+          <img src="${foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(nama)}" style="width:40px;height:40px;border-radius:50%">
+          <div>
+            <b>${nama}</b> - ${w.created_at ? w.created_at.substring(0,16) : ''}<br>
+            WD: <b>${Number(w.nominal_koin||w.jumlah_koin||0).toLocaleString()}</b> Koin | Fee 16%: ${Number(w.fee||0).toLocaleString()}<br>
+            <span style="color:green">Terima: Rp ${Number(w.nominal_diterima||w.diterima_rupiah||0).toLocaleString()}</span><br>
+            DANA: <b>${w.no_rek||w.no_dana||'-'}</b> - ${w.nama_rek||''}
+          </div>
+        </div>
         <div style="margin-top:12px; padding:10px; background:#f0fff0; border-radius:8px">
           <p style="font-weight:bold; font-size:13px">⬆️ UPLOAD BUKTI TRANSFER ADMIN (wajib):</p>
           <input type="file" id="buktiWD-${w.id}" accept="image/*" class="input">
           <div style="display:flex; gap:8px; margin-top:8px">
             <button class="btn btn-sukses" style="flex:1" onclick="approveWithdrawDenganBukti('${w.id}')">✅ UPLOAD & APPROVE</button>
-            <button class="btn btn-batal" style="flex:1" onclick="rejectWithdraw('${w.id}','${w.koin_induk_terkunci||w.locked_id}')">REJECT</button>
+            <button class="btn btn-batal" style="flex:1" onclick="rejectWithdraw('${w.id}','${w.koin_induk_terkunci||w.locked_id||''}')">REJECT</button>
           </div>
         </div>
       </div>`;
-  });
+  }
 }
-
-
 // FUNCTION BARU - WAJIB UPLOAD BUKTI (URUTAN 100% AMAN)
 window.approveWithdrawDenganBukti = async function(id){
   const fileInput = document.getElementById(`buktiWD-${id}`);
