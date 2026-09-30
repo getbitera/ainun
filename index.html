@@ -720,14 +720,8 @@ async function loadAdminPanel(){
       </div>`;
   }
 
-  
-}
-
-  loadHistoryTopup();
-  loadHistoryWithdraw();
-
-
-  // HISTORY TOPUP
+ loadHistoryTopup();
+    // HISTORY TOPUP
 async function loadHistoryTopup(){
   const c = document.getElementById('historyTopupAdmin');
   if(!c) return;
@@ -750,6 +744,14 @@ async function loadHistoryTopup(){
       </div>`;
   }
 }
+  
+}
+
+ 
+  loadHistoryWithdraw();
+
+
+
 
 async function loadHistoryWithdraw(){
   const historyC = document.getElementById('historyWithdrawAdmin');
