@@ -727,9 +727,9 @@ async function loadHistoryTopup(){
   if(!c) return;
   c.innerHTML = '<p>Loading history topup...</p>';
 
-  const { data, error } = await supabase.from('topup_requests').select('*, users(nama)').eq('status','approved').order('approved_at',{ascending:false}).limit(30);
+  const { data, error } = await supabase.from('topup_requests').select('*, users(nama)').eq('status','approved').order('created_at',{ascending:false}).limit(30);
   
-  if(error){ c.innerHTML = `<p style="color:red">${error.message}</p>`; return; }
+  if(error){ c.innerHTML = `<p style="color:red">${error.message}</p>`; console.error(error); return; }
   if(!data || data.length===0){ c.innerHTML = '<p>Belum ada history</p>'; return; }
 
   c.innerHTML = '';
@@ -737,14 +737,13 @@ async function loadHistoryTopup(){
     const signed = t.bukti_url ? await getSignedUrl('bukti-topup', t.bukti_url, 3600) : null;
     c.innerHTML += `
       <div style="border-bottom:1px solid #ddd; padding:8px 0">
-        <b>${t.users?.nama||'User'}</b> - ${t.approved_at ? new Date(t.approved_at).toLocaleString('id-ID') : ''}<br>
+        <b>${t.users?.nama||'User'}</b> - ${t.created_at ? new Date(t.created_at).toLocaleString('id-ID') : ''}<br>
         ${Number(t.nominal_koin||0).toLocaleString()} Koin - Rp ${Number(t.nominal_rupiah||0).toLocaleString()}<br>
         ${signed ? `<a href="${signed}" target="_blank" style="color:blue">📷 Lihat Bukti User</a>` : ''} 
         | Kode: <small>${t.kode_seri||'-'}</small>
       </div>`;
   }
 }
-  
 }
 
  
