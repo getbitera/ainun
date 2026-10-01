@@ -1506,7 +1506,9 @@ async function loadMyProfile() {
     // load teman
     if (typeof loadTemanDiProfil === 'function') {
       loadTemanDiProfil();
- 
+  loadHistoryTopupUser();
+  loadHistoryWithdrawUser();
+  loadHistoryJobUser('posted');
     }
 
   } catch (err) {
