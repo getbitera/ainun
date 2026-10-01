@@ -285,6 +285,24 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     </div>
   </div>
   <div class="card"><h3>👥 Teman (<span id="myJumlahTeman2">0</span>)</h3><div id="daftarTemanProfil" class="teman-grid"><p>Belum ada teman</p></div></div>
+  <div class="card">
+  <h3>📜 History Top Up Kamu</h3>
+  <div id="historyTopupUser"><p>Loading...</p></div>
+</div>
+
+<div class="card">
+  <h3>🏦 History Withdraw Kamu</h3>
+  <div id="historyWithdrawUser"><p>Loading...</p></div>
+</div>
+
+<div class="card">
+  <h3>💼 History Job Kamu</h3>
+  <div style="display:flex; gap:10px; margin-bottom:10px">
+    <button class="btn btn-sm" onclick="loadHistoryJobUser('posted')">Job Ku Post</button>
+    <button class="btn btn-sm" onclick="loadHistoryJobUser('taken')">Job Ku Kerjakan</button>
+  </div>
+  <div id="historyJobUser"><p>Loading...</p></div>
+</div>
 </div>
 <div class="modal" id="login">
   <div class="modal-content">
@@ -1477,6 +1495,9 @@ async function loadMyProfile() {
     // load teman
     if (typeof loadTemanDiProfil === 'function') {
       loadTemanDiProfil();
+  loadHistoryTopupUser();
+  loadHistoryWithdrawUser();
+  loadHistoryJobUser('posted');
     }
 
   } catch (err) {
@@ -1484,6 +1505,67 @@ async function loadMyProfile() {
     // alert(err.message); // aktifin kalau mau debug di HP
   }
 }
+
+// ===== 3 HISTORY USER DI PROFIL =====
+async function loadHistoryTopupUser(){
+  const c = document.getElementById('historyTopupUser');
+  if(!c || !userLogin) return;
+  c.innerHTML = 'Loading...';
+  const { data, error } = await supabase.from('topup_requests').select('*').eq('user_id', userLogin.id).order('created_at',{ascending:false}).limit(20);
+  if(error){ c.innerHTML = error.message; return; }
+  if(!data || data.length===0){ c.innerHTML = '<p>Belum ada topup</p>'; return; }
+  c.innerHTML = '';
+  data.forEach(t=>{
+    let warna = t.status==='approved' ? '#27AE60' : t.status==='pending' ? 'orange' : '#E74C3C';
+    c.innerHTML += `<div style="border-left:4px solid ${warna}; padding:8px; margin-bottom:8px; background:#fff">
+      <b>${Number(t.nominal_koin).toLocaleString()} Koin</b> - Rp ${Number(t.total_bayar||0).toLocaleString()} 
+      <span style="float:right; font-weight:bold; color:${warna}">${t.status.toUpperCase()}</span><br>
+      <small>${new Date(t.created_at).toLocaleString('id-ID')}</small>
+    </div>`;
+  });
+}
+
+async function loadHistoryWithdrawUser(){
+  const c = document.getElementById('historyWithdrawUser');
+  if(!c || !userLogin) return;
+  c.innerHTML = 'Loading...';
+  const { data } = await supabase.from('withdraw_requests').select('*').eq('user_id', userLogin.id).order('created_at',{ascending:false}).limit(20);
+  if(!data || data.length===0){ c.innerHTML = '<p>Belum ada withdraw</p>'; return; }
+  c.innerHTML = '';
+  data.forEach(w=>{
+    let warna = w.status==='approved' ? '#27AE60' : w.status==='pending' ? 'orange' : '#E74C3C';
+    c.innerHTML += `<div style="border-left:4px solid ${warna}; padding:8px; margin-bottom:8px; background:#fff">
+      <b>WD ${Number(w.nominal_koin).toLocaleString()}</b> → Terima Rp ${Number(w.nominal_diterima||0).toLocaleString()}
+      <span style="float:right; font-weight:bold; color:${warna}">${w.status.toUpperCase()}</span><br>
+      <small>DANA: ${w.no_rek||'-'} - ${new Date(w.created_at).toLocaleString('id-ID')}</small>
+    </div>`;
+  });
+}
+
+async function loadHistoryJobUser(tipe='posted'){
+  const c = document.getElementById('historyJobUser');
+  if(!c || !userLogin) return;
+  c.innerHTML = 'Loading...';
+  let query = supabase.from('jobs').select('*').order('created_at',{ascending:false}).limit(20);
+  if(tipe==='posted') query = query.eq('user_id', userLogin.id);
+  else query = query.eq('diambil_oleh', userLogin.id);
+  
+  const { data } = await query;
+  if(!data || data.length===0){ c.innerHTML = '<p>Belum ada job</p>'; return; }
+  c.innerHTML = '';
+  data.forEach(j=>{
+    c.innerHTML += `<div style="border:1px solid var(--border); padding:10px; margin-bottom:8px; border-radius:8px">
+      <b>${j.judul}</b> - ${j.harga.toLocaleString()} Koin<br>
+      Status: <b style="color:${j.status==='selesai' ? 'green' : 'orange'}">${j.status}</b><br>
+      <small>${new Date(j.created_at).toLocaleString('id-ID')}</small>
+    </div>`;
+  });
+}
+
+// panggil history pas load profil
+// tambahin di dalam fungsi loadMyProfile() di paling bawah:
+
+
 
 async function loadTemanDiProfil(){ 
   const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
@@ -1603,6 +1685,8 @@ if(pageId==='penyediaPage') loadPenyedia();
   if(pageId==='chatPage') { loadDaftarChat(); }
   if(pageId==='adminPage') loadAdminPanel(); // cuma admin yg sampe sini
 }
+
+
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
   if(!keyword) return loadPenyedia();
