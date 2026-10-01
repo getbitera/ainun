@@ -286,22 +286,33 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
   <div class="card"><h3>👥 Teman (<span id="myJumlahTeman2">0</span>)</h3><div id="daftarTemanProfil" class="teman-grid"><p>Belum ada teman</p></div></div>
   <div class="card">
-  <h3>📜 History Top Up Kamu</h3>
-  <div id="historyTopupUser"><p>Loading...</p></div>
-</div>
-
-<div class="card">
-  <h3>🏦 History Withdraw Kamu</h3>
-  <div id="historyWithdrawUser"><p>Loading...</p></div>
-</div>
-
-<div class="card">
-  <h3>💼 History Job Kamu</h3>
-  <div style="display:flex; gap:10px; margin-bottom:10px">
-    <button class="btn btn-sm" onclick="loadHistoryJobUser('posted')">Job Ku Post</button>
-    <button class="btn btn-sm" onclick="loadHistoryJobUser('taken')">Job Ku Kerjakan</button>
+  <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleHistory('topup')">
+    <h3>📜 History Top Up Kamu</h3>
+    <span id="icon-topup">▼</span>
   </div>
-  <div id="historyJobUser"><p>Loading...</p></div>
+  <div id="historyTopupUser" style="display:none; margin-top:15px"><p>Klik untuk load...</p></div>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleHistory('withdraw')">
+    <h3>🏦 History Withdraw Kamu</h3>
+    <span id="icon-withdraw">▼</span>
+  </div>
+  <div id="historyWithdrawUser" style="display:none; margin-top:15px"><p>Klik untuk load...</p></div>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleHistory('job')">
+    <h3>💼 History Job Kamu</h3>
+    <span id="icon-job">▼</span>
+  </div>
+  <div id="historyJobUserWrap" style="display:none; margin-top:15px">
+    <div style="display:flex; gap:10px; margin-bottom:10px">
+      <button class="btn btn-sm" onclick="loadHistoryJobUser('posted')">Job Ku Post</button>
+      <button class="btn btn-sm" onclick="loadHistoryJobUser('taken')">Job Ku Kerjakan</button>
+    </div>
+    <div id="historyJobUser"><p>Belum ada data</p></div>
+  </div>
 </div>
 </div>
 <div class="modal" id="login">
@@ -1495,9 +1506,7 @@ async function loadMyProfile() {
     // load teman
     if (typeof loadTemanDiProfil === 'function') {
       loadTemanDiProfil();
-  loadHistoryTopupUser();
-  loadHistoryWithdrawUser();
-  loadHistoryJobUser('posted');
+ 
     }
 
   } catch (err) {
@@ -1561,7 +1570,41 @@ async function loadHistoryJobUser(tipe='posted'){
     </div>`;
   });
 }
+function toggleHistory(tipe){
+  let contentId = '';
+  let iconId = '';
+  
+  if(tipe==='topup'){ 
+    contentId='historyTopupUser'; iconId='icon-topup'; 
+    // load hanya pas pertama kali dibuka
+    if(document.getElementById(contentId).innerHTML.includes('Klik untuk load')){
+      loadHistoryTopupUser();
+    }
+  }
+  if(tipe==='withdraw'){ 
+    contentId='historyWithdrawUser'; iconId='icon-withdraw';
+    if(document.getElementById(contentId).innerHTML.includes('Klik untuk load')){
+      loadHistoryWithdrawUser();
+    }
+  }
+  if(tipe==='job'){ 
+    contentId='historyJobUserWrap'; iconId='icon-job';
+    if(document.getElementById('historyJobUser').innerHTML.includes('Belum ada')){
+      loadHistoryJobUser('posted');
+    }
+  }
 
+  const el = document.getElementById(contentId);
+  const icon = document.getElementById(iconId);
+  
+  if(el.style.display==='none'){
+    el.style.display='block';
+    icon.innerText='▲';
+  } else {
+    el.style.display='none';
+    icon.innerText='▼';
+  }
+}
 // panggil history pas load profil
 // tambahin di dalam fungsi loadMyProfile() di paling bawah:
 
