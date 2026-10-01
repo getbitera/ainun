@@ -1570,39 +1570,43 @@ async function loadHistoryJobUser(tipe='posted'){
     </div>`;
   });
 }
-function toggleHistory(tipe){
+
+
+window.toggleHistory = async function(tipe){
   let contentId = '';
   let iconId = '';
-  
-  if(tipe==='topup'){ 
-    contentId='historyTopupUser'; iconId='icon-topup'; 
-    // load hanya pas pertama kali dibuka
-    if(document.getElementById(contentId).innerHTML.includes('Klik untuk load')){
-      loadHistoryTopupUser();
-    }
-  }
-  if(tipe==='withdraw'){ 
-    contentId='historyWithdrawUser'; iconId='icon-withdraw';
-    if(document.getElementById(contentId).innerHTML.includes('Klik untuk load')){
-      loadHistoryWithdrawUser();
-    }
-  }
-  if(tipe==='job'){ 
-    contentId='historyJobUserWrap'; iconId='icon-job';
-    if(document.getElementById('historyJobUser').innerHTML.includes('Belum ada')){
-      loadHistoryJobUser('posted');
-    }
-  }
+
+  if(tipe==='topup'){ contentId='historyTopupUser'; iconId='icon-topup'; }
+  if(tipe==='withdraw'){ contentId='historyWithdrawUser'; iconId='icon-withdraw'; }
+  if(tipe==='job'){ contentId='historyJobUserWrap'; iconId='icon-job'; }
 
   const el = document.getElementById(contentId);
   const icon = document.getElementById(iconId);
   
-  if(el.style.display==='none'){
+  if(!el) return console.log('ID tidak ketemu:', contentId);
+
+  // kalau masih ketutup
+  if(el.style.display==='none' || el.style.display===''){
     el.style.display='block';
-    icon.innerText='▲';
+    if(icon) icon.innerText='▲';
+    
+    // baru load data pas dibuka pertama kali
+    if(tipe==='topup' && el.innerHTML.includes('Klik')) {
+      await loadHistoryTopupUser();
+    }
+    if(tipe==='withdraw' && el.innerHTML.includes('Klik')) {
+      await loadHistoryWithdrawUser();
+    }
+    if(tipe==='job') {
+      const jobEl = document.getElementById('historyJobUser');
+      if(jobEl.innerHTML.includes('Belum ada')) {
+        await loadHistoryJobUser('posted');
+      }
+    }
   } else {
+    // kalau udah kebuka, tutup lagi
     el.style.display='none';
-    icon.innerText='▼';
+    if(icon) icon.innerText='▼';
   }
 }
 // panggil history pas load profil
