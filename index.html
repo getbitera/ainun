@@ -173,15 +173,15 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div class="nav">
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
-      <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
-      <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼 JOBS</button>
-      <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻 PENYEDIA</button>
-      <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹 VIDEOS</button>
-      <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥 TEMAN <span id="badgeTeman" class="notif-badge">0</span></button>
-      <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬 CHAT <span id="badgeChat" class="notif-badge">0</span></button>
-      <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤 PROFIL</button>
-      <button class="btn-sm btn-menu" onclick="showPage('adminPage',this)" id="btnAdmin" style="display:none">⚙️ ADMIN</button>
-      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
+      <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 </button>
+      <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼</button>
+      <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻</button>
+      <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹</button>
+      <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥<span id="badgeTeman" class="notif-badge">0</span></button>
+      <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬 <span id="badgeChat" class="notif-badge">0</span></button>
+      <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤</button>
+      <button class="btn-sm btn-menu" onclick="showPage('adminPage',this)" id="btnAdmin" style="display:none">⚙️</button>
+      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬</button>
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
@@ -211,9 +211,9 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </section>
 </div>
 
-<div id="jobsPage" class="container" style="display:none"><h2>💼 LOWONGAN</h2><div id="daftarJob" class="grid"></div></div>
+<div id="jobsPage" class="container" style="display:none"><h2>💼 </h2><div id="daftarJob" class="grid"></div></div>
 <div id="penyediaPage" class="container" style="display:none">
-  <h2>👨‍💻 PENYEDIA JASA</h2>
+  <h2>👨‍💻</h2>
   <div class="card">
     <div style="display:flex; gap:10px; margin-bottom:15px">
       <input class="input" id="cariPenyediaInput" placeholder="Cari nama atau skill... contoh: desain, tukang" style="margin:0" onkeydown="if(event.key==='Enter') cariPenyedia()">
@@ -223,7 +223,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div id="daftarPenyedia" class="grid"></div>
 </div>
 <div id="videosPage" class="container" style="display:none">
-  <h2>📹 VIDEO</h2>
+  <h2>📹</h2>
   <button class="btn" onclick="openModal('uploadVideo')">+ TAMBAH VIDEO</button>
   <div class="card">
     <div style="display:flex; gap:10px; margin-bottom:15px">
@@ -235,10 +235,10 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 </div>
 
 <div id="friendsPage" class="container" style="display:none">
-  <h2>👥 TEMAN & PERMINTAAN</h2>
+  <h2>👥 </h2>
   <div class="card"><h3>📩 Permintaan Pertemanan</h3><div id="daftarPermintaan"></div></div>
   <div class="card">
-  <h3>👥 Daftar Teman</h3>
+  <h3>👥</h3>
   <div style="display:flex; gap:10px; margin-bottom:15px">
     <input class="input" id="cariTemanInput" placeholder="Cari nama teman..." style="margin:0" onkeydown="if(event.key==='Enter') cariTeman()">
     <button class="btn" onclick="cariTeman()">CARI</button>
@@ -248,7 +248,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 </div>
 
 <div id="chatPage" class="container" style="display:none">
-  <h2>💬 PESAN</h2>
+  <h2>💬</h2>
   <div class="grid" style="grid-template-columns: 1fr 2fr; gap:20px">
     <div class="card" style="height:500px; overflow-y:auto" id="daftarChat"><h3>Daftar Chat</h3></div>
     <div class="card" style="height:500px; display:flex; flex-direction:column">
