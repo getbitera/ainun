@@ -173,7 +173,8 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div class="nav">
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
-      <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
+      <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜 FEED</button>
+<button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
       <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼 JOBS</button>
       <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻 PENYEDIA</button>
       <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹 VIDEOS</button>
@@ -210,6 +211,38 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     </div>
   </section>
 </div>
+
+
+<div id="feedPage" class="container" style="display:none">
+  <h2>📜 FEED AINUN</h2>
+
+  <div class="card" style="border:2px solid var(--accent)">
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px">
+      <img id="feedFoto" src="https://ui-avatars.com/api/?name=User" style="width:45px;height:45px;border-radius:50%">
+      <b id="feedNama">Login dulu</b>
+      <select id="feedVisibilitas" class="input" style="width:auto; margin-left:auto; margin-top:0">
+        <option value="public">🌍 Umum</option>
+        <option value="teman">👥 Teman</option>
+        <option value="privat">🔒 Privat</option>
+      </select>
+    </div>
+    <textarea id="feedIsi" class="input" rows="3" placeholder="Apa yang kamu pikirkan hari ini?"></textarea>
+    <input type="file" id="inputGambarFeed" accept="image/*" class="input" onchange="previewFeed(event)">
+    <img id="previewFeedImg" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; display:none; margin-top:10px">
+    <p id="namaFileFeed" style="font-size:12px; color:gray"></p>
+    <button class="btn" style="width:100%" onclick="kirimFeed()">🚀 POSTING KE FEED</button>
+  </div>
+
+  <div class="card" style="display:flex; gap:10px; flex-wrap:wrap">
+    <button class="btn btn-sm active" onclick="loadFeed('semua', this)">Semua</button>
+    <button class="btn btn-sm" onclick="loadFeed('public', this)">🌍 Umum</button>
+    <button class="btn btn-sm" onclick="loadFeed('teman', this)">👥 Teman</button>
+    <button class="btn btn-sm" onclick="loadFeed('privat', this)">🔒 Punya Ku</button>
+  </div>
+
+  <div id="daftarFeed" class="grid" style="grid-template-columns:1fr; gap:15px"></div>
+</div>
+
 
 <div id="jobsPage" class="container" style="display:none"><h2>💼 LOWONGAN</h2><div id="daftarJob" class="grid"></div></div>
 <div id="penyediaPage" class="container" style="display:none">
@@ -1732,7 +1765,7 @@ window.showPage = async function(pageId, el){
   }
 
   // 2. SEMBUNYIIN SEMUA PAGE
-  ['homePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'].forEach(id=>{
+  ['homePage','feedPage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'].forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
@@ -1742,6 +1775,13 @@ window.showPage = async function(pageId, el){
   if(el) el.classList.add('active');
 
   // 4. LOAD DATA SESUAI HALAMAN
+  if(pageId==='feedPage'){
+  if(userLogin){
+    document.getElementById('feedFoto').src = userLogin.foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(userLogin.nama);
+    document.getElementById('feedNama').innerText = userLogin.nama;
+  }
+  loadFeed('semua');
+}
   if(pageId==='jobsPage') loadJobs();
 if(pageId==='penyediaPage') loadPenyedia();
   if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
@@ -1946,6 +1986,116 @@ function tampilkanNotifikasi(msg){
 function playSound(){
   new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_d1718f69ab.mp3').play().catch(()=>{});
 }
+
+
+let fileFeed = null;
+
+window.previewFeed = function(e){
+  fileFeed = e.target.files[0];
+  if(!fileFeed) return;
+  document.getElementById('namaFileFeed').innerText = "✅ " + fileFeed.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('previewFeedImg').src = ev.target.result;
+    document.getElementById('previewFeedImg').style.display = 'block';
+  }
+  reader.readAsDataURL(fileFeed);
+}
+
+window.kirimFeed = async function(){
+  if(!userLogin) return alert("Login dulu");
+  const isi = document.getElementById('feedIsi').value.trim();
+  const visibilitas = document.getElementById('feedVisibilitas').value;
+  if(!isi &&!fileFeed) return alert("Tulis sesuatu atau upload gambar");
+
+  try{
+    let urlGambar = null;
+    if(fileFeed){
+      const comp = await compressImage(fileFeed, 1000);
+      const path = `${userLogin.id}/${Date.now()}.jpg`;
+      const { error } = await supabase.storage.from('postingan').upload(path, comp);
+      if(error) throw error;
+      const { data } = await supabase.storage.from('postingan').getPublicUrl(path);
+      urlGambar = data.publicUrl;
+    }
+    const { error } = await supabase.from('postingan').insert({
+      user_id: userLogin.id,
+      isi: isi,
+      gambar_url: urlGambar,
+      visibilitas: visibilitas
+    });
+    if(error) throw error;
+
+    document.getElementById('feedIsi').value='';
+    document.getElementById('inputGambarFeed').value='';
+    document.getElementById('previewFeedImg').style.display='none';
+    document.getElementById('namaFileFeed').innerText='';
+    fileFeed = null;
+    loadFeed('semua');
+  }catch(err){ alert("Gagal: "+err.message) }
+}
+
+async function loadFeed(filter='semua', btnEl){
+  if(btnEl){
+    btnEl.parentElement.querySelectorAll('.btn-sm').forEach(b=>b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+  const container = document.getElementById('daftarFeed');
+  if(!container) return;
+  container.innerHTML = 'Loading feed...';
+
+  let temanIds = [];
+  if(userLogin){
+    const { data: teman } = await supabase.from('friendships').select('requester_id, addressee_id').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
+    if(teman) temanIds = teman.map(f => f.requester_id === userLogin.id? f.addressee_id : f.requester_id);
+  }
+
+  const { data, error } = await supabase.from('postingan').select('*, users!postingan_user_id_fkey(id,nama,foto)').order('created_at',{ascending:false}).limit(50);
+  if(error){ container.innerHTML = error.message; return; }
+
+  let hasil = data;
+  if(userLogin){
+    if(filter==='semua'){
+      hasil = data.filter(p => {
+        if(p.visibilitas==='public') return true;
+        if(p.visibilitas==='privat') return p.user_id===userLogin.id;
+        if(p.visibilitas==='teman') return p.user_id===userLogin.id || temanIds.includes(p.user_id);
+        return false;
+      });
+    } else if(filter==='public') hasil = data.filter(p=>p.visibilitas==='public');
+    else if(filter==='privat') hasil = data.filter(p=>p.visibilitas==='privat' && p.user_id===userLogin.id);
+    else if(filter==='teman') hasil = data.filter(p=>p.visibilitas==='teman' && (p.user_id===userLogin.id || temanIds.includes(p.user_id)));
+  } else {
+    hasil = data.filter(p=>p.visibilitas==='public');
+  }
+
+  if(!hasil || hasil.length===0){ container.innerHTML = '<p class="card">Belum ada postingan</p>'; return; }
+
+  container.innerHTML = '';
+  hasil.forEach(p=>{
+    let badge = p.visibilitas==='public'?'🌍 Umum':p.visibilitas==='teman'?'👥 Teman':'🔒 Privat';
+    let canDelete = userLogin && p.user_id===userLogin.id? `<button class="btn btn-batal btn-sm" onclick="hapusFeed('${p.id}')">Hapus</button>` : '';
+    container.innerHTML += `
+      <div class="card">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px">
+          <img src="${p.users?.foto || 'https://ui-avatars.com/api/?name='+p.users?.nama}" style="width:40px;height:40px;border-radius:50%; cursor:pointer" onclick="lihatProfilOrang('${p.users?.id}')">
+          <div><b style="cursor:pointer; color:var(--accent)" onclick="lihatProfilOrang('${p.users?.id}')">${escapeHtml(p.users?.nama||'User')}</b><br><small style="color:gray">${new Date(p.created_at).toLocaleString('id-ID')} • ${badge}</small></div>
+          <div style="margin-left:auto">${canDelete}</div>
+        </div>
+        <p style="white-space:pre-wrap; margin-bottom:10px">${escapeHtml(p.isi)}</p>
+        ${p.gambar_url?`<img src="${p.gambar_url}" style="width:100%; border-radius:10px; max-height:500px; object-fit:cover; cursor:zoom-in" onclick="openGambarFull('${p.gambar_url}')">`:''}
+      </div>`;
+  });
+}
+
+window.hapusFeed = async function(id){
+  if(!confirm("Hapus postingan ini?")) return;
+  const { error } = await supabase.from('postingan').delete().eq('id', id);
+  if(error) return alert(error.message);
+  loadFeed('semua');
+}
+
+
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
   if(!input.value.trim() ||!convAktif ||!lawanChatAktif) return;
