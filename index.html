@@ -1226,11 +1226,12 @@ window.buatPost = async function(event) {
     if(jobErr) throw jobErr;
 
     // 4. KUNCI DANA LEWAT RPC
-    const { error: lockErr } = await supabase.rpc('rpc_lock_koin_withdraw', { 
-  p_user: userLogin.id, 
-  p_harga: jumlah, 
-  p_lock_id: lockId 
-});
+    const lockId = jobBaru.id;
+    const { error: lockErr } = await supabase.rpc('rpc_lock_koin', {
+      p_user: userLogin.id,
+      p_harga: hadiah,
+      p_lock_id: lockId
+    });
     if(lockErr) {
       await supabase.from('jobs').delete().eq('id', jobBaru.id);
       throw lockErr;
@@ -1468,6 +1469,27 @@ window.klikBintang = async function(skor){
   await kirimRating();
 }
 
+// INI YANG HILANG - TANGANI LINK BIASA, SHORTS, YOUTU.BE
+window.getYoutubeEmbed = function(url){
+  if(!url) return null;
+  try{
+    let videoId = null;
+    // https://www.youtube.com/watch?v=Z5fhE-uciY8&list=...
+    if(url.includes('watch?v=')){
+      videoId = url.split('v=')[1].split('&')[0];
+    }
+    // https://youtu.be/Z5fhE-uciY8
+    else if(url.includes('youtu.be/')){
+      videoId = url.split('youtu.be/')[1].split('?')[0].split('&')[0];
+    }
+    // https://www.youtube.com/shorts/Z5fhE-uciY8
+    else if(url.includes('/shorts/')){
+      videoId = url.split('/shorts/')[1].split('?')[0].split('&')[0];
+    }
+    if(!videoId || videoId.length < 5) return null;
+    return `https://www.youtube.com/embed/${videoId}`;
+  }catch(e){ return null; }
+}
 
 window.simpanVideo = async function(){
   if(!userLogin) return alert("Login dulu");
@@ -1476,7 +1498,7 @@ window.simpanVideo = async function(){
   if(!judul ||!link) return alert("Isi judul dan link dulu");
 
   const embedLink = getYoutubeEmbed(link);
-  if(!embedLink) return alert("Link youtube tidak valid");
+  if(!embedLink) return alert("Link youtube tidak valid. Pakai format youtube.com/watch?v=xxx atau youtube.com/shorts/xxx atau youtu.be/xxx");
 
   const { error } = await supabase.from('videos').insert({
     user_id: userLogin.id,
@@ -1491,7 +1513,6 @@ window.simpanVideo = async function(){
   document.getElementById('linkVideo').value = '';
   loadVideos();
 }
-
 window.cariVideo = async function(){
   const keyword = document.getElementById('cariVideoInput').value.toLowerCase();
   if(!keyword) return loadVideos();
@@ -1504,18 +1525,35 @@ window.cariVideo = async function(){
 }
 
 function tampilkanVideo(data){
-  const container = document.getElementById('daftarVideo'); container.innerHTML = '';
+  const container = document.getElementById('daftarVideo'); 
+  container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Video tidak ditemukan</p>';
   data.forEach(v=>{
+    const isOwner = userLogin && v.user_id === userLogin.id;
     container.innerHTML += `<div class="card">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer" onclick="lihatProfilOrang('${v.users.id}')">
-        <img src="${v.users.foto||'https://ui-avatars.com/api/?name='+v.users.nama}" style="width:32px;height:32px;border-radius:50%">
-        <b style="font-size:14px; color:var(--accent)">${v.users.nama}</b>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+        <div style="display:flex; align-items:center; gap:10px; cursor:pointer" onclick="lihatProfilOrang('${v.users.id}')">
+          <img src="${v.users.foto||'https://ui-avatars.com/api/?name='+v.users.nama}" style="width:32px;height:32px;border-radius:50%">
+          <b style="font-size:14px; color:var(--accent)">${v.users.nama}</b>
+        </div>
+        ${isOwner ? `<button class="btn btn-batal btn-sm" style="padding:6px 10px; font-size:12px" onclick="hapusVideo('${v.id}')">🗑️ HAPUS</button>` : ''}
       </div>
       <h3>${v.judul}</h3>
       <iframe src="${v.link}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%; height:180px; border-radius:10px"></iframe>
     </div>`
   })
+}
+
+window.hapusVideo = async function(idVideo){
+  if(!userLogin) return alert("Login dulu");
+  if(!confirm("Yakin mau hapus video ini? Gak bisa dibalikin lagi loh.")) return;
+
+  const { error } = await supabase.from('videos').delete().eq('id', idVideo).eq('user_id', userLogin.id);
+  
+  if(error) return alert("Gagal hapus: " + error.message);
+  
+  alert("Video berhasil dihapus");
+  loadVideos(); // refresh list
 }
 
 // Ganti fungsi loadVideos lama kamu jadi ini
