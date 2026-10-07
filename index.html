@@ -307,12 +307,19 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <span id="icon-job">▼</span>
   </div>
   <div id="historyJobUserWrap" style="display:none; margin-top:15px">
-    <div style="display:flex; gap:10px; margin-bottom:10px">
-      <button class="btn btn-sm" onclick="loadHistoryJobUser('posted')">Job Ku Post</button>
-      <button class="btn btn-sm" onclick="loadHistoryJobUser('taken')">Job Ku Kerjakan</button>
+  <div class="grid" style="grid-template-columns:1fr 1fr; gap:15px">
+    <!-- KIRI: JOB KU POST -->
+    <div>
+      <h4 style="color:var(--accent); margin-bottom:10px">📤 Job Ku Post</h4>
+      <div id="historyJobPosted"><p>Loading...</p></div>
     </div>
-    <div id="historyJobUser"><p>Belum ada data</p></div>
+    <!-- KANAN: JOB KU KERJAKAN -->
+    <div>
+      <h4 style="color:#27AE60; margin-bottom:10px">🛠️ Job Ku Kerjakan</h4>
+      <div id="historyJobTaken"><p>Loading...</p></div>
+    </div>
   </div>
+</div>
 </div>
 </div>
 <div class="modal" id="login">
@@ -1553,26 +1560,50 @@ async function loadHistoryWithdrawUser(){
   });
 }
 
-async function loadHistoryJobUser(tipe='posted'){
-  const c = document.getElementById('historyJobUser');
-  if(!c || !userLogin) return;
-  c.innerHTML = 'Loading...';
-  let query = supabase.from('jobs').select('*').order('created_at',{ascending:false}).limit(20);
-  if(tipe==='posted') query = query.eq('user_id', userLogin.id);
-  else query = query.eq('diambil_oleh', userLogin.id);
+async function loadHistoryJobUser(){
+  if(!userLogin) return;
   
-  const { data } = await query;
-  if(!data || data.length===0){ c.innerHTML = '<p>Belum ada job</p>'; return; }
-  c.innerHTML = '';
-  data.forEach(j=>{
-    c.innerHTML += `<div style="border:1px solid var(--border); padding:10px; margin-bottom:8px; border-radius:8px">
-      <b>${j.judul}</b> - ${j.harga.toLocaleString()} Koin<br>
-      Status: <b style="color:${j.status==='selesai' ? 'green' : 'orange'}">${j.status}</b><br>
-      <small>${new Date(j.created_at).toLocaleString('id-ID')}</small>
-    </div>`;
-  });
-}
+  const cPosted = document.getElementById('historyJobPosted');
+  const cTaken = document.getElementById('historyJobTaken');
+  if(!cPosted || !cTaken) return;
 
+  cPosted.innerHTML = 'Loading...';
+  cTaken.innerHTML = 'Loading...';
+
+  // 1. JOB YANG AKU POST
+  const { data: posted } = await supabase.from('jobs').select('*').eq('user_id', userLogin.id).order('created_at',{ascending:false}).limit(20);
+  
+  if(!posted || posted.length===0){
+    cPosted.innerHTML = '<p style="color:gray">Belum pernah post job</p>';
+  } else {
+    cPosted.innerHTML = '';
+    posted.forEach(j=>{
+      let warnaStatus = j.status==='selesai' ? 'green' : j.status==='open' ? '#3498DB' : 'orange';
+      cPosted.innerHTML += `<div style="border:1px solid var(--border); border-left:4px solid ${warnaStatus}; padding:10px; margin-bottom:8px; border-radius:8px; background:#fff">
+        <b>${escapeHtml(j.judul)}</b><br>
+        <small>${j.harga.toLocaleString()} Koin • <b style="color:${warnaStatus}">${j.status.toUpperCase()}</b></small><br>
+        <small style="color:gray">${new Date(j.created_at).toLocaleDateString('id-ID')}</small>
+      </div>`;
+    });
+  }
+
+  // 2. JOB YANG AKU KERJAKAN
+  const { data: taken } = await supabase.from('jobs').select('*').eq('diambil_oleh', userLogin.id).order('created_at',{ascending:false}).limit(20);
+  
+  if(!taken || taken.length===0){
+    cTaken.innerHTML = '<p style="color:gray">Belum pernah ngerjain job</p>';
+  } else {
+    cTaken.innerHTML = '';
+    taken.forEach(j=>{
+      let warnaStatus = j.status==='selesai' ? 'green' : 'orange';
+      cTaken.innerHTML += `<div style="border:1px solid var(--border); border-left:4px solid ${warnaStatus}; padding:10px; margin-bottom:8px; border-radius:8px; background:#fff">
+        <b>${escapeHtml(j.judul)}</b><br>
+        <small>${j.harga.toLocaleString()} Koin • <b style="color:${warnaStatus}">${j.status.toUpperCase()}</b></small><br>
+        <small style="color:gray">${new Date(j.created_at).toLocaleDateString('id-ID')}</small>
+      </div>`;
+    });
+  }
+}
 
 window.toggleHistory = async function(tipe){
   let contentId = '';
@@ -1584,36 +1615,21 @@ window.toggleHistory = async function(tipe){
 
   const el = document.getElementById(contentId);
   const icon = document.getElementById(iconId);
-  
-  if(!el) return console.log('ID tidak ketemu:', contentId);
+  if(!el) return;
 
-  // kalau masih ketutup
   if(el.style.display==='none' || el.style.display===''){
     el.style.display='block';
     if(icon) icon.innerText='▲';
     
-    // baru load data pas dibuka pertama kali
-    if(tipe==='topup' && el.innerHTML.includes('Klik')) {
-      await loadHistoryTopupUser();
-    }
-    if(tipe==='withdraw' && el.innerHTML.includes('Klik')) {
-      await loadHistoryWithdrawUser();
-    }
-    if(tipe==='job') {
-      const jobEl = document.getElementById('historyJobUser');
-      if(jobEl.innerHTML.includes('Belum ada')) {
-        await loadHistoryJobUser('posted');
-      }
-    }
+    if(tipe==='topup') await loadHistoryTopupUser();
+    if(tipe==='withdraw') await loadHistoryWithdrawUser();
+    if(tipe==='job') await loadHistoryJobUser(); // sekarang langsung load 2 sekaligus
+
   } else {
-    // kalau udah kebuka, tutup lagi
     el.style.display='none';
     if(icon) icon.innerText='▼';
   }
 }
-// panggil history pas load profil
-// tambahin di dalam fungsi loadMyProfile() di paling bawah:
-
 
 
 async function loadTemanDiProfil(){ 
