@@ -251,6 +251,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <img id="previewFeedImg" style="width:100%; max-height:300px; object-fit:cover; border-radius:10px; display:none; margin-top:10px">
     <p id="namaFileFeed" style="font-size:12px; color:gray"></p>
    <button id="btnKirimFeed" class="btn" style="width:100%" onclick="kirimFeed()">🚀 POSTING KE FEED</button>
+    </div> 
 
   <div class="card" style="display:flex; gap:10px; flex-wrap:wrap">
     <button class="btn btn-sm active" onclick="loadFeed('semua', this)">Semua</button>
@@ -1765,51 +1766,76 @@ window.lihatProfilOrang = async function(idOrang){
 
   showPage('profilOrangPage');
 }
-
 window.showPage = async function(pageId, el){
-  document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-  
-  // 1. KUNCI ADMIN PAGE
+  // 0. AMANKAN EL - simpan dulu yang diklik
+  const clickedEl = el;
+
+  // 1. CEK ADMIN - HARUS SEBELUM GANTI TAMPILAN
   if(pageId === 'adminPage'){
     if(!userLogin){
-      alert("Login dulu");
+      alert("Login dulu buat akses admin");
+      showPage('homePage', document.querySelector('[onclick*="homePage"]'));
       return;
     }
-    // CEK LANGSUNG KE DB
-    const { data: userData } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
-    if(userData?.role !== 'admin'){
-      alert("Akses ditolak. Kamu bukan admin!");
-      pageId = 'homePage'; // Paksa balik ke home
+    // cek role terbaru dari DB (bukan dari cache)
+    const { data: userData, error } = await supabase.from('users').select('role').eq('id', userLogin.id).single();
+    if(error || userData?.role !== 'admin'){
+      alert("⛔ Akses ditolak. Kamu bukan admin!");
+      showPage('homePage', document.querySelector('[onclick*="homePage"]'));
+      return;
     }
   }
 
-  // 2. SEMBUNYIIN SEMUA PAGE
-  ['homePage','feedPage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'].forEach(id=>{
+  // 2. GANTI TOMBOL ACTIVE
+  document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+  if(clickedEl) clickedEl.classList.add('active');
+
+  // 3. SEMBUNYIIN SEMUA PAGE
+  const allPages = ['homePage','feedPage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'];
+  allPages.forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
   
-  // 3. BARU TAMPILIN YG DIKLIK
-  document.getElementById(pageId).style.display='block';
-  if(el) el.classList.add('active');
-
-  // 4. LOAD DATA SESUAI HALAMAN
-  if(pageId==='feedPage'){
-  if(userLogin){
-    document.getElementById('feedFoto').src = userLogin.foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(userLogin.nama);
-    document.getElementById('feedNama').innerText = userLogin.nama;
+  // 4. TAMPILIN YANG DIKLIK
+  const targetPage = document.getElementById(pageId);
+  if(!targetPage){
+    console.error("Page tidak ketemu:", pageId);
+    document.getElementById('homePage').style.display='block';
+    return;
   }
-  loadFeed('semua');
-}
-  if(pageId==='jobsPage') loadJobs();
-if(pageId==='penyediaPage') loadPenyedia();
-  if(pageId==='friendsPage') { loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
-  if(pageId==='myProfilePage') { loadMyProfile(); loadTemanDiProfil(); }
-  if(pageId==='videosPage') loadVideos();
-  if(pageId==='chatPage') { loadDaftarChat(); }
-  if(pageId==='adminPage') loadAdminPanel(); // cuma admin yg sampe sini
-}
+  targetPage.style.display='block';
+  window.scrollTo(0,0); // biar ke atas kayak JOB
 
+  // 5. LOAD DATA SESUAI HALAMAN
+  try{
+    if(pageId==='feedPage'){
+      if(userLogin){
+        const fotoEl = document.getElementById('feedFoto');
+        const namaEl = document.getElementById('feedNama');
+        if(fotoEl) fotoEl.src = userLogin.foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(userLogin.nama);
+        if(namaEl) namaEl.innerText = userLogin.nama;
+      }
+      loadFeed('semua');
+    }
+    if(pageId==='jobsPage') loadJobs();
+    if(pageId==='penyediaPage') loadPenyedia();
+    if(pageId==='friendsPage'){ 
+      loadPermintaan(); 
+      loadDaftarTeman(); 
+      loadDaftarChat(); 
+    }
+    if(pageId==='myProfilePage'){ 
+      loadMyProfile(); 
+      loadTemanDiProfil(); 
+    }
+    if(pageId==='videosPage') loadVideos();
+    if(pageId==='chatPage') loadDaftarChat();
+    if(pageId==='adminPage') loadAdminPanel();
+  }catch(err){
+    console.error("Gagal load page", pageId, err);
+  }
+}
 
 window.cariPenyedia = async function(){
   const keyword = document.getElementById('cariPenyediaInput').value.toLowerCase();
@@ -2010,38 +2036,6 @@ function playSound(){
 let fileFeed = null;
 let isPostingFeed = false;
 
-// --- KOMPRES KHUSUS HP (720px, gak kepotong, ringan) ---
-async function compressImageFeed(file, maxWidth = 720){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = e => { img.src = e.target.result; };
-    reader.onerror = reject;
-    img.onload = () => {
-      let w = img.width;
-      let h = img.height;
-      if(w > maxWidth){
-        h = h * (maxWidth / w);
-        w = maxWidth;
-      }
-      if(h > 1280){
-        w = w * (1280 / h);
-        h = 1280;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0,0,w,h);
-      ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob(blob => {
-        resolve(blob);
-      }, 'image/jpeg', 0.7);
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 window.previewFeed = function(e){
   fileFeed = e.target.files[0];
@@ -2500,6 +2494,15 @@ async function cekRoleAdmin(){
     btnAdmin.style.display = 'block'; 
   }
 }
+
+
+// override aman
+window.loadJobs = loadJobs;
+window.loadPenyedia = loadPenyedia;
+window.loadVideos = loadVideos;
+window.loadDaftarChat = loadDaftarChat;
+window.loadPermintaan = loadPermintaan;
+window.loadDaftarTeman = loadDaftarTeman;
 
 });
 
