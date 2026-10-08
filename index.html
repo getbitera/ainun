@@ -335,7 +335,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <div id="myProfilePage" class="container" style="display:none">
   <div class="profil-header">
-   <img id="myCover" src="solusiin.png" class="profil-cover" style="background: linear-gradient(90deg, #4A7C8A, #3E6A77);">
+   <img id="myCover" src="default-cover.jpg" class="profil-cover" style="background: linear-gradient(90deg, #4A7C8A, #3E6A77);">
     <button class="btn btn-sm" style="position:absolute; right:20px; margin-top:-50px" onclick="document.getElementById('uploadCover').click()">📷 Ganti Cover</button>
     <input type="file" id="uploadCover" style="display:none" accept="image/*">
     <div class="profil-info">
@@ -1607,9 +1607,8 @@ async function loadMyProfile() {
     setText('myYoutube', data.youtube || '-');
     setText('myRating', `⭐ ${rating}`);
 
-    setSrc('myFoto', data.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=random`);
-setSrc('myCover', data.cover || 'solusiin.png');
-document.getElementById('myCover').style.background = data.cover ? '' : 'linear-gradient(90deg, #4A7C8A, #3E6A77)';
+    setSrc('myFoto', data.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=4A7C8A&color=FFF`);
+setSrc('myCover', data.cover || 'default-cover.jpg');
 
     // --- FORM EDIT ---
     setValue('editNama', data.nama || '');
@@ -1779,7 +1778,7 @@ window.lihatProfilOrang = async function(idOrang){
   profilOrangPage.innerHTML = `
       <button class="btn btn-batal" onclick="showPage('penyediaPage')">⬅️ KEMBALI</button>
       <div class="profil-header">
-    <img src="${data.cover||'solusiin.png'}" class="profil-cover" style="${!data.cover ? 'background: linear-gradient(90deg, #4A7C8A, #3E6A77);' : ''}"> class="profil-cover">
+    <img src="${data.cover||'default-cover.jpg'}" class="profil-cover">
         <div class="profil-info">
           <img src="${data.foto||'https://ui-avatars.com/api/?name='+data.nama}" class="profil-foto">
           <div><h2>${data.nama}</h2><p style="color:gray">📍 Status: <span style="color:#27AE60; font-weight:bold">Aktif</span></p></div>
