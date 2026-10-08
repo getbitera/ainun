@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEVEL 1 - 16 SOAL</title>
+<title>LEVEL 1 - 16 SOAL - FULL RANDOM</title>
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:600px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
@@ -20,14 +20,14 @@ body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin
 </head>
 <body>
 <div class="container">
-<h2 style="color:#004D40">🟢 LEVEL 1 - 16 SOAL - MODE 100%</h2>
+<h2 style="color:#004D40">🟢 LEVEL 1 - 16 SOAL - FULL RANDOM 100%</h2>
 <div class="info"><span id="noSoal">Soal 1/16</span><span id="benar">BENAR: 0/16</span><span id="totalTimer">48.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
 <div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px;line-height:1.6"></div>
 <button id="btnNext" class="next-btn" onclick="lanjutKeLevel2()">➡️ LANJUT KE LEVEL 2 (100% BENAR) ➡️</button>
-<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 ULANGI LEVEL 1</button>
+<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 ULANGI LEVEL 1 (SOAL AKAN ACAK LAGI)</button>
 </div>
 <script>
 const SOAL_ORIG=[
@@ -49,41 +49,39 @@ const SOAL_ORIG=[
 {q:"Proses pembentukan glukosa dari lemak?",a:["Glikolisis","Ketogenesis","Fotosintesis","Respirasi"],k:1}
 ];
 
-// FUNGSI ACAK JAWABAN BIAR GAK DOMINAN B
+function shuffle(arr){
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
 function acakJawaban(soal){
   let list = soal.a.map((txt,i)=>({txt, isBenar: i===soal.k}));
-  // shuffle Fisher-Yates
-  for(let i=list.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [list[i],list[j]]=[list[j],list[i]];
-  }
+  list = shuffle(list);
   return {
     q: soal.q,
     a: list.map(x=>x.txt),
     k: list.findIndex(x=>x.isBenar)
   };
 }
-const SOAL = SOAL_ORIG.map(s=>acakJawaban(s));
+// 2x ACAK: 1. Acak urutan soal, 2. Acak jawaban
+const SOAL = shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
 
 let idx=0,benar=0,totalTime=48,sisaTotal=48,timer,salahList=[];
 function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
-function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/16`;setTimeout(()=>{idx++;render();},450);}
+function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/16`;setTimeout(()=>{idx++;render();},400);}
 function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
-function lanjutKeLevel2(){
-  if(benar!==16) return; // double lock
-  localStorage.setItem('level1_benar', benar);
-  window.location.href='level2.html';
-}
+function lanjutKeLevel2(){if(benar!==16) return;localStorage.setItem('level1_benar', benar);window.location.href='level2.html';}
 function end(){
   clearInterval(timer);
   document.getElementById('soalText').innerText='LEVEL 1 SELESAI!';
   document.getElementById('pilihan').innerHTML='';
   let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:12px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:12px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length}:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 16/16!</div>`;
-  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 16</div><div style="font-size:13px;color:#555">${benar===16? 'WOW 100%! Lanjut Level 2 kebuka' : 'Wajib 100% (16/16) untuk lanjut. Ayo ulangi!'}</div>${listSalah}`;
+  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 16</div><div style="font-size:13px;color:#555">${benar===16? 'WOW 100%! Lanjut Level 2 kebuka' : 'Wajib 100% (16/16) untuk lanjut. Soal akan acak lagi kalau ulangi!'}</div>${listSalah}`;
   document.getElementById('btnUlang').style.display='block';
-  if(benar===16){
-    document.getElementById('btnNext').style.display='block';
-  }
+  if(benar===16){document.getElementById('btnNext').style.display='block';}
 }
 render();start();
 </script>
