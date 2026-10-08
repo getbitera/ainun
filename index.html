@@ -163,6 +163,19 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 }
 
 
+
+
+@keyframes kedipIjo {
+  0%,100% { background: #DCF8C6; }
+  50% { background: #4CAF50; color: white; }
+}
+@keyframes kedipMerah {
+  0%,100% { background: #FFCDD2; }
+  50% { background: #F44336; color: white; }
+}
+.blink-ijo { animation: kedipIjo 0.5s 3; background: #DCF8C6!important; }
+.blink-merah { animation: kedipMerah 0.5s 3; background: #FFCDD2!important; }
+
 </style>
 </head>
 <body>
@@ -284,30 +297,29 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 
 <div id="gamePage" class="container" style="display:none">
-  <h2>🎮 GAME AINUN - TAP TO EARN</h2>
-  <div class="card" style="text-align:center; border:3px solid var(--accent)">
-    <h3>SALDO: <span id="gameSaldo">0</span> KOIN</h3>
-    <p style="color:gray">Tap logo secepat mungkin! 100 Tap = 100 Koin</p>
+  <h2>🎮 TTS SAINS - LEVEL 1</h2>
+  <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:center; background:var(--card); padding:15px; border-radius:15px; border:2px solid var(--border)">
     
-    <div id="gameArea" style="background:var(--bg); padding:40px; border-radius:15px; margin:20px 0; user-select:none; cursor:pointer" onclick="tapGame()">
-      <img src="solusiin.png" id="gameLogo" style="width:120px; height:120px; border-radius:20px; border:3px solid var(--accent); transition:0.1s">
-      <h1 id="tapCount" style="font-size:60px; color:var(--accent); margin-top:20px">0</h1>
-      <p> TAP!</p>
+    <!-- PAPAN TTS PERSIS KAYAK FOTO LO -->
+    <div id="ttsPapan" style="display:grid; grid-template-columns: repeat(5, 55px); grid-template-rows: repeat(5, 55px); gap:2px; background:#000; border:3px solid #000"></div>
+    
+    <!-- CLUE LIST -->
+    <div style="flex:1; min-width:300px; text-align:left; font-size:13px">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px">
+        <div>
+          <b>MENDATAR</b>
+          <div id="clueM" style="margin-top:8px; line-height:1.8"></div>
+        </div>
+        <div>
+          <b>MENURUN</b>
+          <div id="clueD" style="margin-top:8px; line-height:1.8"></div>
+        </div>
+      </div>
+      <button class="btn" style="width:100%; margin-top:15px" onclick="cekJawabanTTS()">✅ CEK JAWABAN</button>
+      <p id="hasilTTSFinal" style="text-align:center; font-weight:bold; margin-top:10px"></p>
     </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-      <button class="btn" onclick="claimGame()">💰 CLAIM KE SALDO</button>
-      <button class="btn btn-batal" onclick="resetGame()">🔄 RESET</button>
-    </div>
-    <p id="gameInfo" style="margin-top:15px; font-size:13px; color:gray"></p>
-  </div>
-
-  <div class="card">
-    <h3>🏆 Leaderboard Tap Hari Ini</h3>
-    <div id="leaderboardGame"><p>Loading...</p></div>
   </div>
 </div>
-
 
 <div id="jobsPage" class="container" style="display:none"><h2>💼 LOWONGAN</h2><div id="daftarJob" class="grid"></div></div>
 <div id="penyediaPage" class="container" style="display:none">
@@ -2587,48 +2599,125 @@ window.loadDaftarChat = loadDaftarChat;
 window.loadPermintaan = loadPermintaan;
 window.loadDaftarTeman = loadDaftarTeman;
 
+// === PAPAN FINAL YANG UDAH BENER 100% ===
+const papanFinal = [
+  [{n:1,a:"O"}, {a:"K"}, {a:"T"}, {n:2,a:"A"}, {a:"F"}],
+  [{a:"R"}, {b:1}, {b:1}, {a:"O"}, {b:1}],
+  [{n:3,a:"I"}, {n:4,a:"A"}, {b:1}, {n:5,a:"M"}, {n:6,a:"E"}],
+  [{b:1}, {a:"C"}, {b:1}, {b:1}, {a:"G"}],
+  [{n:7,a:"R"}, {a:"I"}, {a:"A"}, {a:"N"}, {a:"G"}]
+];
 
+// SOAL DI HTML (sesuai request lo)
+const cluesFinal = {
+  mendatar: [
+    "1. Tangga nada diatonis (5)",
+    "3. Dia (2)",
+    "5. Negara bag AS ibu kota Augusta (2)",
+    "7. Bahagia (5)" // UDAH GANTI dari Diulang jangkrik
+  ],
+  menurun: [
+    "1. Pernah menjadi mata uang kita (3)",
+    "2. Anak laba-laba (Sunda) (3)", // AOM
+    "4. Pati, tepung (3)",
+    "6. Telur (Inggris) (3)"
+  ]
+};
 
+let allInputs = [];
 
-let tapCountLocal = parseInt(localStorage.getItem('ainun_tap')||'0');
+function renderPapan(){
+  const papan = document.getElementById('ttsPapan');
+  const cm = document.getElementById('clueM');
+  const cd = document.getElementById('clueD');
+  if(!papan) return;
+  papan.innerHTML = '';
+  cm.innerHTML = cluesFinal.mendatar.join('<br>');
+  cd.innerHTML = cluesFinal.menurun.join('<br>');
+  allInputs = [];
 
-window.tapGame = function(){
-  tapCountLocal++;
-  document.getElementById('tapCount').innerText = tapCountLocal;
-  localStorage.setItem('ainun_tap', tapCountLocal);
-  const logo = document.getElementById('gameLogo');
-  logo.style.transform = 'scale(0.9)';
-  setTimeout(()=> logo.style.transform='scale(1)', 80);
-  if(tapCountLocal % 10 === 0) document.getElementById('gameInfo').innerText = `🔥 ${tapCountLocal} tap! Claim sekarang!`;
-}
+  papanFinal.forEach(row=>{
+    row.forEach(cell=>{
+      let div = document.createElement('div');
+      div.style.cssText = 'width:55px;height:55px;background:#FFF;display:flex;align-items:center;justify-content:center;position:relative;';
+      if(cell.b){
+        div.style.background = '#000';
+      } else {
+        div.dataset.ans = cell.a;
+        let nomor = cell.n ? `<span style="position:absolute;top:2px;left:3px;font-size:10px;font-weight:900">${cell.n}</span>` : '';
+        let inp = document.createElement('input');
+        inp.maxLength = 1;
+        inp.style.cssText = 'width:100%;height:100%;border:none;text-align:center;text-transform:uppercase;font-weight:900;font-size:20px;background:transparent';
+        
+        // AUTO LONCAT KE SEBELAH
+        inp.addEventListener('input', (e)=>{
+          e.target.value = e.target.value.toUpperCase();
+          let idx = allInputs.indexOf(e.target);
+          if(e.target.value && idx < allInputs.length - 1){
+            allInputs[idx+1].focus();
+          }
+        });
+        inp.addEventListener('keydown', (e)=>{
+          let idx = allInputs.indexOf(e.target);
+          if(e.key === 'Backspace' && !e.target.value && idx > 0){
+            allInputs[idx-1].focus();
+            allInputs[idx-1].value = '';
+          }
+        });
 
-window.claimGame = async function(){
-  if(!userLogin) return alert("Login dulu");
-  if(tapCountLocal < 100) return alert(`Min 100 tap buat claim. Kamu baru ${tapCountLocal}`);
-  
-  const koinDapat = Math.floor(tapCountLocal / 1); // 1 tap = 1 koin
-  if(!confirm(`Claim ${koinDapat} koin ke saldo?`)) return;
-
-  // insert koin pecahan langsung
-  const { error } = await supabase.from('koin_pecahan').insert({
-    pemilik_id: userLogin.id,
-    nominal: koinDapat,
-    induk_seri: 'GAME-' + Date.now()
+        div.innerHTML = nomor;
+        div.appendChild(inp);
+        allInputs.push(inp);
+      }
+      papan.appendChild(div);
+    });
   });
-  if(error) return alert(error.message);
+  if(allInputs[0]) allInputs[0].focus();
+}
+
+// === CEK JAWABAN + KEDIP + SUPABASE ===
+async function cekJawabanTTS(){
+  // Kalau lo mau kunci di Supabase, uncomment ini:
+  // const { data } = await supabase.from('tts_level1_kunci').select('jawaban').order('id');
+  // let kunci = data.map(d=>d.jawaban).join('').split(''); 
+  // Untuk sekarang pakai kunci lokal dulu biar jalan
   
-  alert(`Berhasil claim ${koinDapat} koin!`);
-  tapCountLocal = 0;
-  localStorage.setItem('ainun_tap', '0');
-  document.getElementById('tapCount').innerText = '0';
-  await loadSaldoBerseri();
+  let kunci = ['O','K','T','A','F','R','O','I','A','M','E','C','G','R','I','A','N','G'];
+  // Urutan input: O K T A F | R O | I A M E | C G | R I A N G = 18 kotak putih
+
+  let benar = 0;
+  allInputs.forEach((inp, i)=>{
+    let div = inp.parentElement;
+    div.classList.remove('blink-ijo','blink-merah');
+    void div.offsetWidth; // reset animasi
+    
+    if(inp.value.toUpperCase() === kunci[i]){
+      div.classList.add('blink-ijo');
+      div.style.background = '#DCF8C6';
+      benar++;
+    } else {
+      div.classList.add('blink-merah');
+      div.style.background = '#FFCDD2';
+    }
+  });
+
+  let hasil = document.getElementById('hasilTTSFinal');
+  if(benar === allInputs.length){
+    hasil.innerHTML = `🎉 BENAR SEMUA ${benar}/${allInputs.length} - LEVEL 1 LOLOS!`;
+    hasil.style.color = '#00C853';
+    // Kirim ke Supabase kalau mau simpan progress
+    // await supabase.from('progress').insert({level:1, status:'lolos'})
+  } else {
+    hasil.innerHTML = `❌ ${benar}/${allInputs.length} benar - yang merah kedip salah`;
+    hasil.style.color = '#D50000';
+  }
 }
 
-window.resetGame = function(){
-  if(confirm("Reset tap jadi 0?")){ tapCountLocal=0; localStorage.setItem('ainun_tap','0'); document.getElementById('tapCount').innerText='0'; }
-}
+// Jalankan pas halaman kebuka
+setTimeout(renderPapan, 300);
 
-// biar gamePage kebaca di showPage()
+ 
+
 
 });
 
