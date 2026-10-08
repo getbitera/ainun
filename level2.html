@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEVEL 2 - 32 SOAL</title>
+<title>LEVEL 2 - 32 SOAL - MODE 100%</title>
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:650px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
@@ -21,18 +21,18 @@ body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin
 </head>
 <body>
 <div class="container">
-<h2 style="color:#004D40">🔵 LEVEL 2 - 32 SOAL</h2>
+<h2 style="color:#004D40">🔵 LEVEL 2 - 32 SOAL - MODE 100%</h2>
 <div class="info"><span id="noSoal">Soal 1/32</span><span id="benar">BENAR: 0/32</span><span id="totalTimer">96.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
 <div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px"></div>
-<button id="btnNext" class="btn-next" onclick="lanjutKeLevel3()">➡️ LANJUT KE LEVEL 3 ➡️</button>
+<button id="btnNext" class="btn-next" onclick="lanjutKeLevel3()">➡️ LANJUT KE LEVEL 3 (100% BENAR) ➡️</button>
 <button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI LEVEL 2</button>
 <div style="margin-top:10px"><a href="level1.html" style="color:#00796B;font-weight:900;text-decoration:none">⬅️ Kembali ke Level 1</a></div>
 </div>
 <script>
-const SOAL=[
+const SOAL_ORIG=[
 {q:"Enzim pemecah protein di lambung?",a:["Amilase","Pepsin","Lipase","Tripsin"],k:1},
 {q:"Hormon pengatur gula darah?",a:["Adrenalin","Insulin","Tiroksin","Estrogen"],k:1},
 {q:"Bagian otak untuk keseimbangan?",a:["Cerebrum","Cerebellum","Medula","Hipotalamus"],k:1},
@@ -66,6 +66,17 @@ const SOAL=[
 {q:"Unsur gas mulia?",a:["Oksigen","Helium","Nitrogen","Hidrogen"],k:1},
 {q:"Penyakit autoimun?",a:["Lupus","Flu","TBC","Demam"],k:0}
 ];
+
+function acakJawaban(soal){
+  let list = soal.a.map((txt,i)=>({txt, isBenar: i===soal.k}));
+  for(let i=list.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [list[i],list[j]]=[list[j],list[i]];
+  }
+  return {q: soal.q, a: list.map(x=>x.txt), k: list.findIndex(x=>x.isBenar)};
+}
+const SOAL = SOAL_ORIG.map(s=>acakJawaban(s));
+
 let idx=0,benar=0,totalTime=96,sisaTotal=96,timer,salahList=[];
 function render(){
 if(idx>=SOAL.length){end();return;}
@@ -86,7 +97,7 @@ if(i===pilih && i!==k) el.classList.add('salah');
 });
 if(pilih===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[k]}`);}
 document.getElementById('benar').innerText=`BENAR: ${benar}/32`;
-setTimeout(()=>{idx++;render();},450);
+setTimeout(()=>{idx++;render();},400);
 }
 function start(){
 timer=setInterval(()=>{
@@ -98,6 +109,7 @@ if(sisaTotal<=0){end();}
 },100);
 }
 function lanjutKeLevel3(){
+  if(benar!==32) return;
   localStorage.setItem('level2_benar', benar);
   window.location.href='level3.html';
 }
@@ -105,10 +117,10 @@ function end(){
 clearInterval(timer);
 document.getElementById('soalText').innerText='LEVEL 2 SELESAI!';
 document.getElementById('pilihan').innerHTML='';
-let listSalah = salahList.length>0 ? `<div style="text-align:left;margin-top:15px;background:#FFF3E0;padding:10px;border-radius:10px;font-size:13px"><b>YANG SALAH (${salahList.length}):</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px">🔥 SEMPURNA! SEMUA BENAR</div>`;
-document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 32</div><div style="font-size:13px;color:#555">${benar>=20 ? 'Lolos! Bisa lanjut Level 3' : 'Minimal 20 benar untuk lanjut Level 3'}<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
+let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:13px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length} SOAL:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 32/32! LO GILA!</div>`;
+document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 32</div><div style="font-size:13px;color:#555">${benar===32? '100%! Lanjut Level 3 kebuka!' : 'Wajib 100% (32/32) untuk lanjut Level 3!'}<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
 document.getElementById('btnUlang').style.display='block';
-if(benar>=20){
+if(benar===32){
   document.getElementById('btnNext').style.display='block';
 }
 }
