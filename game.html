@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTS SAINS - LEVEL 1</title>
+<style>
+:root{--card:#fff;--border:#000}
+body{font-family:Arial;background:#f0f0f0;margin:0}
+.container{max-width:900px;margin:20px auto}
+#ttsPapan{display:grid;grid-template-columns:repeat(5,55px);grid-template-rows:repeat(5,55px);gap:2px;background:#000;border:3px solid #000}
+@keyframes kedipIjo{0%,100%{background:#DCF8C6}50%{background:#00E676;transform:scale(1.08)}}
+@keyframes kedipMerah{0%,100%{background:#FFCDD2}50%{background:#FF1744;color:#fff;transform:scale(1.08)}}
+.blink-ijo{animation:kedipIjo 0.35s 4!important}
+.blink-merah{animation:kedipMerah 0.35s 4!important}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>🎮 TTS SAINS - LEVEL 1</h2>
+<div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center;background:var(--card);padding:15px;border-radius:15px;border:2px solid var(--border)">
+  <div id="ttsPapan"></div>
+  <div style="flex:1;min-width:300px;text-align:left;font-size:13px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+      <div><b>MENDATAR</b><div id="clueM" style="margin-top:8px;line-height:1.8"></div></div>
+      <div><b>MENURUN</b><div id="clueD" style="margin-top:8px;line-height:1.8"></div></div>
+    </div>
+    <button style="width:100%;margin-top:15px;padding:12px;background:#004d40;color:#fff;border:none;border-radius:8px;font-weight:900;cursor:pointer" onclick="cekJawabanTTS()">✅ CEK JAWABAN</button>
+    <p id="hasilTTSFinal" style="text-align:center;font-weight:bold;margin-top:10px"></p>
+    <a href="index.html" style="display:block;text-align:center;margin-top:10px">⬅️ Kembali ke Home</a>
+  </div>
+</div>
+</div>
+
+<script>
+// --- TEMPEL SCRIPT YANG UDAH BENER TADI DI SINI ---
+const papan = [[{n:1,a:'O'},{a:'K'},{a:'T'},{n:2,a:'A'},{a:'F'}],[{a:'R'},{b:1},{b:1},{a:'O'},{b:1}],[{n:3,a:'I'},{n:4,a:'A'},{b:1},{n:5,a:'M'},{n:6,a:'E'}],[{b:1},{a:'C'},{b:1},{b:1},{a:'G'}],[{n:7,a:'R'},{a:'I'},{a:'A'},{a:'N'},{a:'G'}]];
+let inputs=[],arah='mendatar',posAktif={r:0,c:0},inputMap={};
+const words={mendatar:[{n:1,cells:[[0,0],[0,1],[0,2],[0,3],[0,4]]},{n:3,cells:[[2,0],[2,1]]},{n:5,cells:[[2,3],[2,4]]},{n:7,cells:[[4,0],[4,1],[4,2],[4,3],[4,4]]}],menurun:[{n:1,cells:[[0,0],[1,0],[2,0]]},{n:2,cells:[[0,3],[1,3],[2,3]]},{n:4,cells:[[2,1],[3,1],[4,1]]},{n:6,cells:[[2,4],[3,4],[4,4]]}]};
+function getWordAt(r,c,dir){return words[dir].find(w=>w.cells.some(([rr,cc])=>rr===r&&cc===c))}
+function getNextCell(r,c,dir){let w=getWordAt(r,c,dir);if(!w)return null;let i=w.cells.findIndex(([rr,cc])=>rr===r&&cc===c);if(i<w.cells.length-1)return w.cells[i+1];let wi=words[dir].indexOf(w);let nw=words[dir][wi+1];return nw?nw.cells[0]:null}
+function getPrevCell(r,c,dir){let w=getWordAt(r,c,dir);if(!w)return null;let i=w.cells.findIndex(([rr,cc])=>rr===r&&cc===c);if(i>0)return w.cells[i-1];return null}
+function renderTTS(){const el=document.getElementById('ttsPapan');const cm=document.getElementById('clueM');const cd=document.getElementById('clueD');el.innerHTML='';inputs=[];inputMap={};cm.innerHTML=`1. Tangga nada diatonis (5)<br>3. Dia (2)<br>5. Negara bag AS ibu kota Augusta (2)<br>7. Bahagia (5)`;cd.innerHTML=`1. Pernah menjadi mata uang kita (3)<br>2. Anak laba-laba (Sunda) (3)<br>4. Pati, tepung (3)<br>6. Telur (Inggris) (3)`;papan.forEach((row,r)=>{row.forEach((cell,c)=>{let d=document.createElement('div');d.style.cssText='width:55px;height:55px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #999';d.dataset.r=r;d.dataset.c=c;if(cell.b){d.style.background='#000'}else{d.dataset.ans=cell.a;if(cell.n)d.innerHTML=`<span style="position:absolute;top:2px;left:3px;font-size:10px;font-weight:900">${cell.n}</span>`;let inp=document.createElement('input');inp.style.cssText='width:100%;height:100%;border:none;text-align:center;text-transform:uppercase;font-weight:900;font-size:20px;background:transparent';d.appendChild(inp);inputs.push(inp);inputMap[`${r}-${c}`]=inp;d.addEventListener('click',()=>{if(posAktif.r===r&&posAktif.c===c)arah=arah==='mendatar'?'menurun':'mendatar';posAktif={r,c};inp.focus()});inp.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().slice(0,1);if(!e.target.value)return;let next=getNextCell(r,c,arah);if(next){let[nr,nc]=next;inputMap[`${nr}-${nc}`]?.focus()}});inp.addEventListener('keydown',e=>{let next=null;if(e.key==='ArrowRight'){arah='mendatar';next=getNextCell(r,c,'mendatar')}if(e.key==='ArrowLeft'){arah='mendatar';next=getPrevCell(r,c,'mendatar')}if(e.key==='ArrowDown'){arah='menurun';next=getNextCell(r,c,'menurun')}if(e.key==='ArrowUp'){arah='menurun';next=getPrevCell(r,c,'menurun')}if(e.key==='Backspace'&&!e.target.value)next=getPrevCell(r,c,arah);if(next){e.preventDefault();let[nr,nc]=next;inputMap[`${nr}-${nc}`]?.focus()}})}el.appendChild(d)})})}window.cekJawabanTTS=function(){let kunciList=['O','K','T','A','F','R','O','I','A','M','E','C','G','R','I','A','N','G'];let benar=0;inputs.forEach((inp,i)=>{let box=inp.parentElement;box.classList.remove('blink-ijo','blink-merah');void box.offsetWidth;if(inp.value.toUpperCase().trim()===kunciList[i]){box.classList.add('blink-ijo');benar++}else{box.classList.add('blink-merah')}});let hasilEl=document.getElementById('hasilTTSFinal');if(benar===inputs.length){hasilEl.innerHTML=`✅ BENAR SEMUA ${benar}/${inputs.length} - KEDIP IJO!`;hasilEl.style.color='#00C853'}else{hasilEl.innerHTML=`❌ ${benar}/${inputs.length} benar`;hasilEl.style.color='#D50000'}};setTimeout(renderTTS,200);
+</script>
+</body>
+</html>
