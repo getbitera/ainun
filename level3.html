@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEVEL 3 - 74 SOAL</title>
+<style>
+body{font-family:Arial;background:linear-gradient(135deg,#BF360C,#FF6E40);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
+.container{max-width:700px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #3E2723;text-align:center}
+.timer{height:12px;background:#FFCCBC;border-radius:6px;overflow:hidden;margin:10px 0}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%;transition:width 0.1s linear}
+.soal{font-size:17px;font-weight:900;margin:15px 0;min-height:60px;color:#3E2723;text-align:left}
+.pil{padding:11px;background:#FBE9E7;border:2px solid #FF8A65;border-radius:10px;cursor:pointer;font-weight:700;margin-bottom:6px;color:#3E2723;text-align:left;font-size:13px}
+.pil.bener{background:#00C853!important;color:#fff;border-color:#00C853}
+.pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#BF360C;font-size:13px}
+#hasil{line-height:1.6}
+.btn-next{display:none;margin:15px auto;padding:14px 25px;background:#3E2723;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
+.btn-ulang{margin:8px auto;padding:12px 20px;background:#FBE9E7;color:#3E2723;border:2px solid #3E2723;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+</style>
+</head>
+<body>
+<div class="container">
+<h2 style="color:#3E2723">🔴 LEVEL 3 - 74 SOAL - FINAL BOSS</h2>
+<div class="info"><span id="noSoal">Soal 1/74</span><span id="benar">BENAR: 0/74</span><span id="totalTimer">222.0s</span></div>
+<div class="timer"><div id="timerBar"></div></div>
+<div class="soal" id="soalText"></div>
+<div id="pilihan"></div>
+<div id="hasil" style="font-weight:900;color:#3E2723;margin-top:15px"></div>
+<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI LEVEL 3</button>
+<div style="margin-top:12px;display:flex;justify-content:space-between"><a href="level1.html" style="color:#BF360C;font-weight:900;text-decoration:none">⬅️ Level 1</a><a href="level2.html" style="color:#BF360C;font-weight:900;text-decoration:none">Level 2 ➡️</a></div>
+</div>
+<script>
+const SOAL=[
+{q:"Hukum kekekalan energi dicetuskan oleh?",a:["Newton","Joule","Einstein","Archimedes"],k:1},
+{q:"Jaringan pengangkut air pada tumbuhan?",a:["Floem","Xilem","Kambium","Epidermis"],k:1},
+{q:"Jumlah tulang manusia dewasa?",a:["206","210","200","196"],k:0},
+{q:"Planet dengan cincin paling jelas?",a:["Jupiter","Saturnus","Uranus","Neptunus"],k:1},
+{q:"Unsur paling elektronegatif?",a:["Oksigen","Fluor","Klor","Nitrogen"],k:1},
+{q:"Bagian sel yang mengatur keluar masuk zat?",a:["Dinding sel","Membran sel","Sitoplasma","Nukleus"],k:1},
+{q:"Penyakit akibat kekurangan vitamin C?",a:["Beri-beri","Skorbut","Rakhitis","Anemia"],k:1},
+{q:"Alat ukur kuat arus listrik?",a:["Voltmeter","Amperemeter","Ohmmeter","Barometer"],k:1},
+{q:"Fotosintesis menghasilkan?",a:["CO2 dan Air","Glukosa dan O2","Protein","Lemak"],k:1},
+{q:"Golongan darah resesif?",a:["A","B","O","AB"],k:2},
+{q:"Bunyi pantul yang terdengar setelah bunyi asli disebut?",a:["Gaung","Gema","Dengung","Resonansi"],k:1},
+{q:"Zat yang mempercepat reaksi kimia?",a:["Inhibitor","Katalis","Reaktan","Produk"],k:1},
+{q:"Bagian otak untuk memori jangka panjang?",a:["Hipokampus","Amigdala","Cerebellum","Medula"],k:0},
+{q:"Hormon pertumbuhan dihasilkan oleh?",a:["Tiroid","Hipofisis","Adrenal","Pankreas"],k:1},
+{q:"Reaksi penguraian air dengan listrik?",a:["Hidrolisis","Elektrolisis","Fotosintesis","Osmosis"],k:1},
+{q:"Satuan energi dalam SI?",a:["Watt","Joule","Newton","Pascal"],k:1},
+{q:"Makhluk hidup yang bisa buat makanan sendiri?",a:["Konsumen","Produsen","Dekomposer","Parasit"],k:1},
+{q:"Kromosom seks pada pria?",a:["XX","XY","YY","XO"],k:1},
+{q:"Lapisan atmosfer tempat terjadinya cuaca?",a:["Stratosfer","Troposfer","Mesosfer","Termosfer"],k:1},
+{q:"Asam amino esensial berjumlah?",a:["10","8","9","20"],k:2},
+{q:"Gaya yang berlawanan dengan gerak?",a:["Gravitasi","Gesek","Sentripetal","Magnet"],k:1},
+{q:"Organ ekskresi selain ginjal adalah?",a:["Jantung","Kulit","Usus","Lambung"],k:1},
+{q:"Unsur dengan nomor atom 1?",a:["Helium","Hidrogen","Litium","Berilium"],k:1},
+{q:"Proses pengeluaran air dari tumbuhan?",a:["Transpirasi","Translasi","Transkripsi","Transportasi"],k:0},
+{q:"Penyebab siang malam?",a:["Revolusi bumi","Rotasi bumi","Gravitasi","Inklinasi"],k:1},
+{q:"Vaksin ditemukan oleh?",a:["Louis Pasteur","Edward Jenner","Alexander Fleming","Robert Koch"],k:1},
+{q:"Bentuk DNA seperti?",a:["Single helix","Double helix","Triple helix","Lurus"],k:1},
+{q:"Suhu nol mutlak dalam Celcius?",a:["0°C","-273°C","-100°C","-373°C"],k:1},
+{q:"Hewan mamalia bertelur?",a:["Kelelawar","Platipus","Lumba-lumba","Kanguru"],k:1},
+{q:"Unsur utama penyusun tulang?",a:["Besi","Kalsium","Kalium","Natrium"],k:1},
+{q:"Gerhana bulan terjadi saat?",a:["Bulan baru","Bulan purnama","Bulan sabit","Kuartir"],k:1},
+{q:"Alat optik untuk melihat bintang?",a:["Mikroskop","Teleskop","Periskop","Kaleidoskop"],k:1},
+{q:"Perubahan wujud padat ke gas?",a:["Mencair","Menyublim","Menguap","Mengkristal"],k:1},
+{q:"Bagian darah untuk pembekuan?",a:["Eritrosit","Leukosit","Trombosit","Plasma"],k:2},
+{q:"Energi kinetik tergantung pada?",a:["Massa dan kecepatan","Massa dan tinggi","Gaya dan jarak","Tekanan"],k:0},
+{q:"Hormon yang mengatur metabolisme?",a:["Insulin","Tiroksin","Adrenalin","Testosteron"],k:1},
+{q:"Jumlah gigi orang dewasa?",a:["28","30","32","34"],k:2},
+{q:"Batuan yang terbentuk dari magma?",a:["Sedimen","Beku","Metamorf","Kapur"],k:1},
+{q:"Proses pembentukan sel darah merah?",a:["Eritropoiesis","Leukopoiesis","Trombopoiesis","Hemolisis"],k:0},
+{q:"Sifat cahaya dapat dipantulkan disebut?",a:["Refraksi","Refleksi","Difraksi","Interferensi"],k:1},
+{q:"Enzim pencernaan di mulut?",a:["Pepsin","Amilase","Lipase","Tripsin"],k:1},
+{q:"Senyawa kimia pembawa energi sel?",a:["ADP","ATP","DNA","RNA"],k:1},
+{q:"Lapisan jantung paling dalam?",a:["Perikardium","Miokardium","Endokardium","Epikardium"],k:2},
+{q:"Gangguan penglihatan rabun jauh?",a:["Miopi","Hipermetropi","Astigmatisma","Presbiopi"],k:0},
+{q:"Unsur gas untuk fotosintesis?",a:["O2","N2","CO2","H2"],k:2},
+{q:"Bagian telinga untuk keseimbangan?",a:["Koklea","Kanals semisirkularis","Gendang","Tulang martil"],k:1},
+{q:"Hukum Mendel 1 disebut hukum?",a:["Segregasi","Asortasi","Dominansi","Kodominansi"],k:0},
+{q:"Alat ukur kelembaban udara?",a:["Higrometer","Barometer","Anemometer","Termometer"],k:0},
+{q:"Vitamin larut dalam lemak?",a:["B dan C","A, D, E, K","Hanya C","Hanya B"],k:1},
+{q:"Proses masuknya air ke sel?",a:["Difusi","Osmosis","Imbibisi","Aktif"],k:1},
+{q:"Bintang terdekat dengan bumi?",a:["Sirius","Matahari","Alpha Centauri","Polaris"],k:1},
+{q:"Bagian nefron yang menyaring darah?",a:["Glomerulus","Tubulus","Lengkung Henle","Kapsula Bowman"],k:0},
+{q:"Rumus kecepatan?",a:["Jarak x Waktu","Jarak / Waktu","Gaya x Jarak","Massa x Percepatan"],k:1},
+{q:"Organisme yang hidup di suhu ekstrem?",a:["Mesofil","Ekstremofil","Psikrofil","Termofil"],k:1},
+{q:"Penyebab pelangi?",a:["Pemantulan cahaya","Pembiasan dan dispersi cahaya","Difraksi","Polarisasi"],k:1},
+{q:"Jumlah lapisan kulit manusia?",a:["2","3","4","5"],k:1},
+{q:"Unsur penyusun protein?",a:["Glukosa","Asam amino","Asam lemak","Nukleotida"],k:1},
+{q:"Gerak tumbuhan ke arah cahaya?",a:["Geotropisme","Fototropisme","Hidrotropisme","Tigmotropisme"],k:1},
+{q:"Hewan bernafas dengan trakea?",a:["Ikan","Serangga","Cacing","Burung"],k:1},
+{q:"Satuan tekanan SI?",a:["Newton","Joule","Pascal","Bar"],k:2},
+{q:"Bagian mata yang mengatur cahaya masuk?",a:["Kornea","Iris dan Pupil","Retina","Lensa"],k:1},
+{q:"Proses pembentukan urine tahap akhir?",a:["Filtrasi","Reabsorpsi","Augmentasi","Ekskresi"],k:2},
+{q:"Rumus kimia garam dapur?",a:["KCl","NaCl","NaOH","HCl"],k:1},
+{q:"Hormon stres?",a:["Insulin","Kortisol","Serotonin","Dopamin"],k:1},
+{q:"Otot yang bekerja tanpa sadar?",a:["Otot lurik","Otot polos","Otot rangka","Otot jantung"],k:1},
+{q:"Lapisan ozon ada di?",a:["Troposfer","Stratosfer","Mesosfer","Eksosfer"],k:1},
+{q:"Alat ukur pH?",a:["Barometer","pH meter","Amperemeter","Higrometer"],k:1},
+{q:"Penyakit kelebihan hormon tiroid?",a:["Hipotiroid","Hipertiroid","Diabetes","Gondok"],k:1},
+{q:"Gen pembawa sifat terletak di?",a:["Sitoplasma","Kromosom","Mitokondria","Ribosom"],k:1},
+{q:"Perubahan energi listrik jadi cahaya?",a:["Setrika","Lampu","Kipas","Bel listrik"],k:1},
+{q:"Bagian sel tumbuhan yang tidak ada di hewan?",a:["Mitokondria","Dinding sel dan kloroplas","Nukleus","Membran"],k:1},
+{q:"Jumlah planet di tata surya?",a:["7","8","9","10"],k:1},
+{q:"Proses pernapasan sel terjadi di?",a:["Nukleus","Mitokondria","Ribosom","Kloroplas"],k:1},
+{q:"Sifat magnet yang tolak menolak?",a:["Kutub senama","Kutub beda","Kutub utara selatan","Semua"],k:0},
+{q:"Antibiotik pertama?",a:["Streptomisin","Penisilin","Tetrasiklin","Amoksisilin"],k:1}
+];
+let idx=0,benar=0,totalTime=222,sisaTotal=222,timer,salahList=[];
+function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/74`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
+function jawab(p){let k=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===k)el.classList.add('bener');if(i===p&&i!==k)el.classList.add('salah');});if(p===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[k]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/74`;setTimeout(()=>{idx++;render();},400);}
+function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
+function end(){clearInterval(timer);document.getElementById('soalText').innerText='LEVEL 3 SELESAI - FINAL!';document.getElementById('pilihan').innerHTML='';let listSalah=salahList.length>0 ? `<div style="text-align:left;margin-top:15px;background:#FFF3E0;padding:10px;border-radius:10px;font-size:11px;max-height:200px;overflow-y:auto"><b>YANG SALAH (${salahList.length}):</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:20px">👑 LEGEND! SEMUA BENAR 74/74!</div>`;let l1=localStorage.getItem('level1_benar')||0;let l2=localStorage.getItem('level2_benar')||0;document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 74</div><div style="font-size:13px;color:#555">Total Perjalanan: Level1 ${l1}/16 | Level2 ${l2}/32 | Level3 ${benar}/74<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;document.getElementById('btnUlang').style.display='block';}
+render();start();
+</script>
+</body>
+</html>
