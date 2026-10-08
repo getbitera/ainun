@@ -200,16 +200,17 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   <div class="nav">
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
-      <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜 FEED</button>
-<button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠 HOME</button>
-      <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼 JOBS</button>
-      <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻 PENYEDIA</button>
-      <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹 VIDEOS</button>
-      <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥 TEMAN <span id="badgeTeman" class="notif-badge">0</span></button>
-      <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬 CHAT <span id="badgeChat" class="notif-badge">0</span></button>
-      <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤 PROFIL</button>
+   <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜</button>
+<button class="btn-sm btn-menu" onclick="showPage('gamePage',this)">🎮</button>
+<button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠</button>
+      <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼</button>
+      <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻</button>
+      <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹</button>
+      <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥<span id="badgeTeman" class="notif-badge">0</span></button>
+      <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬<span id="badgeChat" class="notif-badge">0</span></button>
+      <button class="btn-sm btn-menu" onclick="showPage('myProfilePage',this)">👤</button>
       <button class="btn-sm btn-menu" onclick="showPage('adminPage',this)" id="btnAdmin" style="display:none">⚙️ ADMIN</button>
-      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬 CS</button>
+      <button class="btn-sm btn-cs" onclick="openModal('cs')">💬</button>
     </div>
    <div class="menu-btn" id="menuBtn">
       <button class="btn-sm btn-login" onclick="openModal('login')">LOGIN</button>
@@ -279,6 +280,32 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
 
   <div id="daftarFeed" class="grid" style="grid-template-columns:1fr; gap:15px"></div>
+</div>
+
+
+<div id="gamePage" class="container" style="display:none">
+  <h2>🎮 GAME AINUN - TAP TO EARN</h2>
+  <div class="card" style="text-align:center; border:3px solid var(--accent)">
+    <h3>SALDO: <span id="gameSaldo">0</span> KOIN</h3>
+    <p style="color:gray">Tap logo secepat mungkin! 100 Tap = 100 Koin</p>
+    
+    <div id="gameArea" style="background:var(--bg); padding:40px; border-radius:15px; margin:20px 0; user-select:none; cursor:pointer" onclick="tapGame()">
+      <img src="solusiin.png" id="gameLogo" style="width:120px; height:120px; border-radius:20px; border:3px solid var(--accent); transition:0.1s">
+      <h1 id="tapCount" style="font-size:60px; color:var(--accent); margin-top:20px">0</h1>
+      <p> TAP!</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+      <button class="btn" onclick="claimGame()">💰 CLAIM KE SALDO</button>
+      <button class="btn btn-batal" onclick="resetGame()">🔄 RESET</button>
+    </div>
+    <p id="gameInfo" style="margin-top:15px; font-size:13px; color:gray"></p>
+  </div>
+
+  <div class="card">
+    <h3>🏆 Leaderboard Tap Hari Ini</h3>
+    <div id="leaderboardGame"><p>Loading...</p></div>
+  </div>
 </div>
 
 
@@ -1847,7 +1874,7 @@ window.showPage = async function(pageId, el){
   if(clickedEl) clickedEl.classList.add('active');
 
   // 3. SEMBUNYIIN SEMUA PAGE
-  const allPages = ['homePage','feedPage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'];
+  const allPages = ['homePage','feedPage','gamePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'];
   allPages.forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
@@ -2559,6 +2586,49 @@ window.loadVideos = loadVideos;
 window.loadDaftarChat = loadDaftarChat;
 window.loadPermintaan = loadPermintaan;
 window.loadDaftarTeman = loadDaftarTeman;
+
+
+
+
+let tapCountLocal = parseInt(localStorage.getItem('ainun_tap')||'0');
+
+window.tapGame = function(){
+  tapCountLocal++;
+  document.getElementById('tapCount').innerText = tapCountLocal;
+  localStorage.setItem('ainun_tap', tapCountLocal);
+  const logo = document.getElementById('gameLogo');
+  logo.style.transform = 'scale(0.9)';
+  setTimeout(()=> logo.style.transform='scale(1)', 80);
+  if(tapCountLocal % 10 === 0) document.getElementById('gameInfo').innerText = `🔥 ${tapCountLocal} tap! Claim sekarang!`;
+}
+
+window.claimGame = async function(){
+  if(!userLogin) return alert("Login dulu");
+  if(tapCountLocal < 100) return alert(`Min 100 tap buat claim. Kamu baru ${tapCountLocal}`);
+  
+  const koinDapat = Math.floor(tapCountLocal / 1); // 1 tap = 1 koin
+  if(!confirm(`Claim ${koinDapat} koin ke saldo?`)) return;
+
+  // insert koin pecahan langsung
+  const { error } = await supabase.from('koin_pecahan').insert({
+    pemilik_id: userLogin.id,
+    nominal: koinDapat,
+    induk_seri: 'GAME-' + Date.now()
+  });
+  if(error) return alert(error.message);
+  
+  alert(`Berhasil claim ${koinDapat} koin!`);
+  tapCountLocal = 0;
+  localStorage.setItem('ainun_tap', '0');
+  document.getElementById('tapCount').innerText = '0';
+  await loadSaldoBerseri();
+}
+
+window.resetGame = function(){
+  if(confirm("Reset tap jadi 0?")){ tapCountLocal=0; localStorage.setItem('ainun_tap','0'); document.getElementById('tapCount').innerText='0'; }
+}
+
+// biar gamePage kebaca di showPage()
 
 });
 
