@@ -1,106 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TTS SAINS - LEVEL 1</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEVEL 1 - 16 SOAL</title>
 <style>
-:root{--card:#fff;--border:#000}
-body{font-family:Arial;background:#f0f0f0;margin:0;padding:10px}
-.container{max-width:900px;margin:20px auto}
-#ttsPapan{display:grid;grid-template-columns:repeat(5,55px);grid-template-rows:repeat(5,55px);gap:2px;background:#000;border:3px solid #000; width:fit-content}
-#ttsPapan input{width:100%;height:100%;border:none;text-align:center;text-transform:uppercase;font-weight:900;font-size:20px;background:transparent}
-#ttsPapan input:focus{outline:2px solid #FFEB3B}
-@keyframes kedipIjo{0%,100%{background:#DCF8C6}50%{background:#00E676;transform:scale(1.08)}}
-@keyframes kedipMerah{0%,100%{background:#FFCDD2}50%{background:#FF1744;color:#fff;transform:scale(1.08)}}
-.blink-ijo{animation:kedipIjo 0.35s 4!important}
-.blink-merah{animation:kedipMerah 0.35s 4!important}
+body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
+.container{max-width:600px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
+.timer{height:12px;background:#B2DFDB;border-radius:6px;overflow:hidden;margin:10px 0}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%}
+.soal{font-size:19px;font-weight:900;margin:15px 0;min-height:60px;color:#004D40;text-align:left}
+.pil{padding:14px;background:#E0F2F1;border:2px solid #4DB6AC;border-radius:12px;cursor:pointer;font-weight:700;margin-bottom:8px;color:#004D40;text-align:left}
+.pil.bener{background:#00C853!important;color:#fff}
+.pil.salah{background:#FF3D00!important;color:#fff}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#00796B}
+.next-btn{display:none;margin:15px auto;padding:14px 25px;background:#004D40;color:#fff;border:none;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;animation:bounce 1s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
 <div class="container">
-<h2>🎮 TTS SAINS - LEVEL 1</h2>
-<div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center;background:var(--card);padding:15px;border-radius:15px;border:2px solid var(--border)">
-  <div id="ttsPapan"></div>
-  <div style="flex:1;min-width:300px;text-align:left;font-size:13px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
-      <div><b>MENDATAR</b><div id="clueM" style="margin-top:8px;line-height:1.8"></div></div>
-      <div><b>MENURUN</b><div id="clueD" style="margin-top:8px;line-height:1.8"></div></div>
-    </div>
-    <button style="width:100%;margin-top:15px;padding:12px;background:#004d40;color:#fff;border:none;border-radius:8px;font-weight:900;cursor:pointer" onclick="cekJawabanTTS()">✅ CEK JAWABAN</button>
-    <p id="hasilTTSFinal" style="text-align:center;font-weight:bold;margin-top:10px"></p>
-    <a href="index.html" style="display:block;text-align:center;margin-top:10px">⬅️ Kembali ke Home</a>
-  </div>
+<h2 style="color:#004D40">🟢 LEVEL 1 - 16 SOAL</h2>
+<div class="info"><span id="noSoal">Soal 1/16</span><span id="skor">Skor: 0</span><span id="totalTimer">48.0s</span></div>
+<div class="timer"><div id="timerBar"></div></div>
+<div class="soal" id="soalText"></div>
+<div id="pilihan"></div>
+<div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px"></div>
+<button id="btnNext" class="next-btn" onclick="window.location.href='level2.html'">➡️ LANJUT KE LEVEL 2 (32 SOAL) ➡️</button>
 </div>
-</div>
-
 <script>
-const papan = [[{n:1,a:'O'},{a:'K'},{a:'T'},{n:2,a:'A'},{a:'F'}],[{a:'R'},{b:1},{b:1},{a:'O'},{b:1}],[{n:3,a:'I'},{n:4,a:'A'},{b:1},{n:5,a:'M'},{n:6,a:'E'}],[{b:1},{a:'C'},{b:1},{b:1},{a:'G'}],[{n:7,a:'R'},{a:'I'},{a:'A'},{a:'N'},{a:'G'}]];
-let inputs=[],arah='mendatar',posAktif={r:0,c:0},inputMap={};
-const words={mendatar:[{n:1,cells:[[0,0],[0,1],[0,2],[0,3],[0,4]]},{n:3,cells:[[2,0],[2,1]]},{n:5,cells:[[2,3],[2,4]]},{n:7,cells:[[4,0],[4,1],[4,2],[4,3],[4,4]]}],menurun:[{n:1,cells:[[0,0],[1,0],[2,0]]},{n:2,cells:[[0,3],[1,3],[2,3]]},{n:4,cells:[[2,1],[3,1],[4,1]]},{n:6,cells:[[2,4],[3,4],[4,4]]}]};
-
-function getWordAt(r,c,dir){return words[dir].find(w=>w.cells.some(([rr,cc])=>rr===r&&cc===c))}
-function getNextCell(r,c,dir){let w=getWordAt(r,c,dir);if(!w)return null;let i=w.cells.findIndex(([rr,cc])=>rr===r&&cc===c);if(i<w.cells.length-1)return w.cells[i+1];let wi=words[dir].indexOf(w);let nw=words[dir][wi+1];return nw?nw.cells[0]:null}
-function getPrevCell(r,c,dir){let w=getWordAt(r,c,dir);if(!w)return null;let i=w.cells.findIndex(([rr,cc])=>rr===r&&cc===c);if(i>0)return w.cells[i-1];return null}
-
-function renderTTS(){
-  const el=document.getElementById('ttsPapan');
-  const cm=document.getElementById('clueM');
-  const cd=document.getElementById('clueD');
-  if(!el) return;
-  el.innerHTML=''; inputs=[]; inputMap={};
-  cm.innerHTML=`1. Tangga nada diatonis (5)<br>3. Dia (2)<br>5. Negara bag AS ibu kota Augusta (2)<br>7. Bahagia (5)`;
-  cd.innerHTML=`1. Pernah menjadi mata uang kita (3)<br>2. Anak laba-laba (Sunda) (3)<br>4. Pati, tepung (3)<br>6. Telur (Inggris) (3)`;
-  papan.forEach((row,r)=>{
-    row.forEach((cell,c)=>{
-      let d=document.createElement('div');
-      d.style.cssText='width:55px;height:55px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #999';
-      d.dataset.r=r; d.dataset.c=c;
-      if(cell.b){ d.style.background='#000'; }
-      else {
-        if(cell.n) d.innerHTML=`<span style="position:absolute;top:2px;left:3px;font-size:10px;font-weight:900">${cell.n}</span>`;
-        let inp=document.createElement('input'); d.appendChild(inp);
-        inputs.push(inp); inputMap[`${r}-${c}`]=inp;
-        const onFocus=()=>{ posAktif={r,c}; let hasM=getWordAt(r,c,'mendatar'), hasN=getWordAt(r,c,'menurun'); if(hasM&&!hasN) arah='mendatar'; if(!hasM&&hasN) arah='menurun'; };
-        d.addEventListener('click',()=>{ if(posAktif.r===r&&posAktif.c===c) arah=arah==='mendatar'?'menurun':'mendatar'; onFocus(); inp.focus(); });
-        inp.addEventListener('focus', onFocus);
-        inp.addEventListener('input', e=>{
-          e.target.value=e.target.value.toUpperCase().slice(0,1);
-          if(!e.target.value) return;
-          let next=getNextCell(r,c,arah);
-          if(!next){ let other=arah==='mendatar'?'menurun':'mendatar'; next=getNextCell(r,c,other); if(next) arah=other; }
-          if(next){ let [nr,nc]=next; setTimeout(()=>inputMap[`${nr}-${nc}`]?.focus(),10); }
-        });
-        inp.addEventListener('keydown', e=>{
-          let next=null;
-          if(e.key==='ArrowRight'){arah='mendatar';next=getNextCell(r,c,'mendatar')}
-          if(e.key==='ArrowLeft'){arah='mendatar';next=getPrevCell(r,c,'mendatar')}
-          if(e.key==='ArrowDown'){arah='menurun';next=getNextCell(r,c,'menurun')}
-          if(e.key==='ArrowUp'){arah='menurun';next=getPrevCell(r,c,'menurun')}
-          if(e.key==='Backspace' &&!e.target.value) next=getPrevCell(r,c,arah);
-          if(next){e.preventDefault();let[nr,nc]=next;inputMap[`${nr}-${nc}`]?.focus()}
-        });
-      }
-      el.appendChild(d);
-    });
-  });
-}
-
-window.cekJawabanTTS=function(){
-  let kunci=['O','K','T','A','F','R','O','I','A','M','E','C','G','R','I','A','N','G'];
-  let benar=0;
-  inputs.forEach((inp,i)=>{
-    let box=inp.parentElement; box.classList.remove('blink-ijo','blink-merah'); void box.offsetWidth;
-    if(inp.value.toUpperCase().trim()===kunci[i]){box.classList.add('blink-ijo');benar++;}else{box.classList.add('blink-merah');}
-  });
-  let hasil=document.getElementById('hasilTTSFinal');
-  hasil.innerHTML = benar===inputs.length? `✅ BENAR SEMUA ${benar}/${inputs.length}` : `❌ ${benar}/${inputs.length} benar`;
-  hasil.style.color = benar===inputs.length? '#00C853' : '#D50000';
-};
-
-// INI YANG KEMARIN HILANG - BIANG KEROK BLANK HITAM
-document.addEventListener('DOMContentLoaded', renderTTS);
-setTimeout(renderTTS, 300);
+const SOAL=[
+{q:"Sel saraf pengirim sinyal disebut?",a:["Organ","Akson","Neuron","Kranial"],k:2},
+{q:"Gaya tarik bumi disebut gaya?",a:["Magnet","Gravitasi","Gesek","Pegas"],k:1},
+{q:"Gas yang dibutuhkan untuk bernapas?",a:["Karbon","Nitrogen","Oksigen","Hidrogen"],k:2},
+{q:"Materi genetik pembawa sifat?",a:["RNA","DNA","Enzim","Protein"],k:1},
+{q:"Kemampuan melakukan usaha disebut?",a:["Gaya","Daya","Energi","Momentum"],k:2},
+{q:"Atom yang bermuatan listrik disebut?",a:["Molekul","Ion","Proton","Neutron"],k:1},
+{q:"Partikel terkecil dari unsur?",a:["Atom","Sel","Molekul","Senyawa"],k:0},
+{q:"Patogen super kecil penyebab penyakit?",a:["Bakteri","Jamur","Virus","Protozoa"],k:2},
+{q:"Kumpulan jaringan membentuk?",a:["Sel","Organ","Sistem","Organisme"],k:1},
+{q:"Biokatalisator dalam tubuh?",a:["Hormon","Enzim","Vitamin","Mineral"],k:1},
+{q:"Alat reproduksi pada jamur?",a:["Biji","Spora","Tunas","Akar"],k:1},
+{q:"Cairan merah yang mengalir di tubuh?",a:["Limfa","Plasma","Darah","Cairan"],k:2},
+{q:"Seluruh materi genetik disebut?",a:["Genom","Gen","Kromosom","Fenotip"],k:0},
+{q:"Organ terbesar pada manusia?",a:["Jantung","Paru","Kulit","Hati"],k:2},
+{q:"Sistem penghantar impuls?",a:["Otot","Tulang","Saraf","Darah"],k:2},
+{q:"Proses pembentukan glukosa dari lemak?",a:["Glikolisis","Ketogenesis","Fotosintesis","Respirasi"],k:1}
+];
+let idx=0,skor=0,totalTime=48,sisaTotal=48,timer;
+function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
+function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b)skor+=10;document.getElementById('skor').innerText=`Skor: ${skor}`;setTimeout(()=>{idx++;render();},500);}
+function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
+function end(){clearInterval(timer);document.getElementById('soalText').innerText='LEVEL 1 SELESAI!';document.getElementById('pilihan').innerHTML='';document.getElementById('hasil').innerHTML=`Skor: ${skor}/160<br>${skor>=100?'Lanjut Level 2!':'Coba lagi biar lolos!'}`;if(skor>=60)document.getElementById('btnNext').style.display='block';}
+render();start();
 </script>
 </body>
 </html>
