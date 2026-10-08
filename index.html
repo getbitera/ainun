@@ -254,7 +254,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 
 <!-- CARD POPUP 5 GAME (awal sembunyi) -->
-<div id="popupGame" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:15px">
+<div id="popupGame" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100000;align-items:center;justify-content:center;padding:15px">
   <div style="background:#fff;width:100%;max-width:350px;border-radius:20px;border:3px solid #000;padding:15px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <b>🎮 Pilih Game</b>
@@ -2594,9 +2594,23 @@ window.loadPermintaan = loadPermintaan;
 window.loadDaftarTeman = loadDaftarTeman;
 
 
-function bukaGame(){ document.getElementById('popupGame').style.display='flex'; }
-function tutupGame(){ document.getElementById('popupGame').style.display='none'; }
+// FIX FINAL - HARUS PAKAI window. BIAR TOMBOL HEADER BISA PANGGIL
+window.bukaGame = function(){ 
+  const p = document.getElementById('popupGame');
+  if(p){ 
+    p.style.display='flex'; 
+    p.style.zIndex = '100000'; // biar di atas header z-index 9998
+  }
+}
+window.tutupGame = function(){ 
+  const p = document.getElementById('popupGame');
+  if(p){ p.style.display='none'; }
+}
 
+// biar kalau klik di luar card, ketutup
+document.getElementById('popupGame')?.addEventListener('click', function(e){
+  if(e.target.id === 'popupGame') window.tutupGame();
+});
 
 
 });
