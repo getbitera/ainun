@@ -200,7 +200,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
    <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜</button>
-<button onclick="window.location.href='game.html'">🎮</button>
+<button onclick="bukaGame()" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
 <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠</button>
       <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼</button>
       <button class="btn-sm btn-menu" onclick="showPage('penyediaPage',this)">👨‍💻</button>
@@ -250,6 +250,38 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </section>
 </div>
 
+
+
+
+<!-- CARD POPUP 5 GAME (awal sembunyi) -->
+<div id="popupGame" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:15px">
+  <div style="background:#fff;width:100%;max-width:350px;border-radius:20px;border:3px solid #000;padding:15px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <b>🎮 Pilih Game</b>
+      <button onclick="tutupGame()" style="border:none;background:#000;color:#fff;border-radius:50%;width:30px;height:30px;font-weight:900;cursor:pointer">X</button>
+    </div>
+    
+    <div style="display:grid;gap:10px;margin-top:15px">
+      <div onclick="location.href='games/tts.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
+        <span style="font-size:24px">📝</span><div><b>TTS Sains 1-10</b><br><small>Teka-teki silang</small></div>
+      </div>
+      <div onclick="location.href='games/refleksi.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
+        <span style="font-size:24px">🧠</span><div><b>Refleksi Berpikir</b><br><small>Gaya & preferensi</small></div>
+      </div>
+      <div onclick="location.href='games/aritmatika.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
+        <span style="font-size:24px">🔢</span><div><b>Runut Fokus</b><br><small>Logika cepat</small></div>
+      </div>
+      <div onclick="location.href='games/imajinasi.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
+        <span style="font-size:24px">🎨</span><div><b>Imajinasi Lucu</b><br><small>Gambar buatan sendiri</small></div>
+      </div>
+      <div onclick="location.href='games/stress.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center;background:#E8F5E9">
+        <span style="font-size:24px">💚</span><div><b>Kelola Stress</b><br><small>Cara beresin masalah</small></div>
+      </div>
+    </div>
+
+<small style="display:block;text-align:center;margin-top:12px;opacity:0.6">*Semua hanya game edukasi, bukan tes psikologi</small>
+  </div>
+</div>
 
 <div id="feedPage" class="container" style="display:none">
   <h2>📜 FEED AINUN</h2>
@@ -2562,6 +2594,8 @@ window.loadPermintaan = loadPermintaan;
 window.loadDaftarTeman = loadDaftarTeman;
 
 
+function bukaGame(){ document.getElementById('popupGame').style.display='flex'; }
+function tutupGame(){ document.getElementById('popupGame').style.display='none'; }
 
 
 
