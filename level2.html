@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEVEL 2 - 32 SOAL - TES HAPALAN</title>
+<title>LEVEL 2 - 32 SOAL</title>
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:650px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
@@ -14,18 +14,21 @@ body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin
 .pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
 .info{display:flex;justify-content:space-between;font-weight:900;color:#00796B;font-size:14px}
 #hasil{line-height:1.6}
-.btn-ulang{margin:15px auto;padding:14px 25px;background:#004D40;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+.btn-next{display:none;margin:15px auto;padding:14px 25px;background:#FF6F00;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;width:100%;animation:bounce 1s infinite}
+.btn-ulang{margin:8px auto;padding:12px 20px;background:#E0F2F1;color:#004D40;border:2px solid #004D40;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
 <div class="container">
 <h2 style="color:#004D40">🔵 LEVEL 2 - 32 SOAL</h2>
-<div class="info"><span id="noSoal">Soal 1/32</span><span id="nempel">NEMPEL: 0/32</span><span id="totalTimer">96.0s</span></div>
+<div class="info"><span id="noSoal">Soal 1/32</span><span id="benar">BENAR: 0/32</span><span id="totalTimer">96.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
 <div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px"></div>
-<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI TES HAPALAN</button>
+<button id="btnNext" class="btn-next" onclick="lanjutKeLevel3()">➡️ LANJUT KE LEVEL 3 ➡️</button>
+<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI LEVEL 2</button>
 <div style="margin-top:10px"><a href="level1.html" style="color:#00796B;font-weight:900;text-decoration:none">⬅️ Kembali ke Level 1</a></div>
 </div>
 <script>
@@ -63,7 +66,7 @@ const SOAL=[
 {q:"Unsur gas mulia?",a:["Oksigen","Helium","Nitrogen","Hidrogen"],k:1},
 {q:"Penyakit autoimun?",a:["Lupus","Flu","TBC","Demam"],k:0}
 ];
-let idx=0,nempel=0,totalTime=96,sisaTotal=96,timer,belumNempel=[];
+let idx=0,benar=0,totalTime=96,sisaTotal=96,timer,salahList=[];
 function render(){
 if(idx>=SOAL.length){end();return;}
 document.getElementById('noSoal').innerText=`Soal ${idx+1}/32`;
@@ -75,14 +78,14 @@ b.onclick=()=>jawab(i);div.appendChild(b);
 });
 }
 function jawab(pilih){
-let benar=SOAL[idx].k;
+let k=SOAL[idx].k;
 document.querySelectorAll('.pil').forEach((el,i)=>{
 el.style.pointerEvents='none';
-if(i===benar) el.classList.add('bener');
-if(i===pilih && i!==benar) el.classList.add('salah');
+if(i===k) el.classList.add('bener');
+if(i===pilih && i!==k) el.classList.add('salah');
 });
-if(pilih===benar){nempel++;}else{belumNempel.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[benar]}`);}
-document.getElementById('nempel').innerText=`NEMPEL: ${nempel}/32`;
+if(pilih===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[k]}`);}
+document.getElementById('benar').innerText=`BENAR: ${benar}/32`;
 setTimeout(()=>{idx++;render();},450);
 }
 function start(){
@@ -94,13 +97,20 @@ document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';
 if(sisaTotal<=0){end();}
 },100);
 }
+function lanjutKeLevel3(){
+  localStorage.setItem('level2_benar', benar);
+  window.location.href='level3.html';
+}
 function end(){
 clearInterval(timer);
-document.getElementById('soalText').innerText='SELESAI - HASIL TES HAPALAN';
+document.getElementById('soalText').innerText='LEVEL 2 SELESAI!';
 document.getElementById('pilihan').innerHTML='';
-let listBelum = belumNempel.length>0 ? `<div style="text-align:left;margin-top:15px;background:#FFF3E0;padding:10px;border-radius:10px;font-size:13px"><b>YANG BELUM  (${belumNempel.length}):</b><br>${belumNempel.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px">🔥 ! LUAR BIASA</div>`;
-document.getElementById('hasil').innerHTML=`<div style="font-size:22px">NEMPEL: ${nempel} dari 32</div><div style="font-size:14px;color:#555">Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listBelum}`;
+let listSalah = salahList.length>0 ? `<div style="text-align:left;margin-top:15px;background:#FFF3E0;padding:10px;border-radius:10px;font-size:13px"><b>YANG SALAH (${salahList.length}):</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px">🔥 SEMPURNA! SEMUA BENAR</div>`;
+document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 32</div><div style="font-size:13px;color:#555">${benar>=20 ? 'Lolos! Bisa lanjut Level 3' : 'Minimal 20 benar untuk lanjut Level 3'}<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
 document.getElementById('btnUlang').style.display='block';
+if(benar>=20){
+  document.getElementById('btnNext').style.display='block';
+}
 }
 render();start();
 </script>
