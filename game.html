@@ -7,25 +7,27 @@
 body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:600px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
 .timer{height:12px;background:#B2DFDB;border-radius:6px;overflow:hidden;margin:10px 0}
-#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%;transition:width 0.1s linear}
 .soal{font-size:19px;font-weight:900;margin:15px 0;min-height:60px;color:#004D40;text-align:left}
 .pil{padding:14px;background:#E0F2F1;border:2px solid #4DB6AC;border-radius:12px;cursor:pointer;font-weight:700;margin-bottom:8px;color:#004D40;text-align:left}
-.pil.bener{background:#00C853!important;color:#fff}
-.pil.salah{background:#FF3D00!important;color:#fff}
-.info{display:flex;justify-content:space-between;font-weight:900;color:#00796B}
-.next-btn{display:none;margin:15px auto;padding:14px 25px;background:#004D40;color:#fff;border:none;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;animation:bounce 1s infinite}
+.pil.bener{background:#00C853!important;color:#fff;border-color:#00C853}
+.pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#00796B;font-size:14px}
+.next-btn{display:none;margin:15px auto;padding:14px 25px;background:#004D40;color:#fff;border:none;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;width:100%;animation:bounce 1s infinite}
+.ulang-btn{display:none;margin:8px auto;padding:12px 20px;background:#E0F2F1;color:#004D40;border:2px solid #004D40;border-radius:12px;font-weight:900;font-size:14px;cursor:pointer;width:100%}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
 <div class="container">
 <h2 style="color:#004D40">🟢 LEVEL 1 - 16 SOAL</h2>
-<div class="info"><span id="noSoal">Soal 1/16</span><span id="skor">Skor: 0</span><span id="totalTimer">48.0s</span></div>
+<div class="info"><span id="noSoal">Soal 1/16</span><span id="benar">BENAR: 0/16</span><span id="totalTimer">48.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
-<div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px"></div>
-<button id="btnNext" class="next-btn" onclick="window.location.href='level2.html'">➡️ LANJUT KE LEVEL 2 (32 SOAL) ➡️</button>
+<div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px;line-height:1.6"></div>
+<button id="btnNext" class="next-btn" onclick="lanjutKeLevel2()">➡️ LANJUT KE LEVEL 2 ➡️</button>
+<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 ULANGI LEVEL 1</button>
 </div>
 <script>
 const SOAL=[
@@ -46,11 +48,23 @@ const SOAL=[
 {q:"Sistem penghantar impuls?",a:["Otot","Tulang","Saraf","Darah"],k:2},
 {q:"Proses pembentukan glukosa dari lemak?",a:["Glikolisis","Ketogenesis","Fotosintesis","Respirasi"],k:1}
 ];
-let idx=0,skor=0,totalTime=48,sisaTotal=48,timer;
+let idx=0,benar=0,totalTime=48,sisaTotal=48,timer,salahList=[];
 function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
-function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b)skor+=10;document.getElementById('skor').innerText=`Skor: ${skor}`;setTimeout(()=>{idx++;render();},500);}
+function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/16`;setTimeout(()=>{idx++;render();},450);}
 function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
-function end(){clearInterval(timer);document.getElementById('soalText').innerText='LEVEL 1 SELESAI!';document.getElementById('pilihan').innerHTML='';document.getElementById('hasil').innerHTML=`Skor: ${skor}/160<br>${skor>=100?'Lanjut Level 2!':'Coba lagi biar lolos!'}`;if(skor>=60)document.getElementById('btnNext').style.display='block';}
+function lanjutKeLevel2(){
+  localStorage.setItem('level1_benar', benar);
+  window.location.href='level2.html';
+}
+function end(){
+  clearInterval(timer);
+  document.getElementById('soalText').innerText='LEVEL 1 SELESAI!';
+  document.getElementById('pilihan').innerHTML='';
+  let listSalah = salahList.length>0 ? `<div style="text-align:left;margin-top:12px;background:#FFF3E0;padding:10px;border-radius:10px;font-size:12px"><b>YANG SALAH (${salahList.length}):</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px">🔥 SEMPURNA! SEMUA BENAR</div>`;
+  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 16</div><div style="font-size:13px;color:#555">${benar>=10 ? 'Lolos! Bisa lanjut Level 2' : 'Minimal 10 benar untuk lanjut ke Level 2'}</div>${listSalah}`;
+  document.getElementById('btnUlang').style.display='block';
+  if(benar>=10){document.getElementById('btnNext').style.display='block';}
+}
 render();start();
 </script>
 </body>
