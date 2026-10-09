@@ -2516,9 +2516,16 @@ window.loadPostGrup = async function(groupId){
       let komenPost = allKomens?.filter(k=>k.post_id===p.id) || [];
       let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
 
-      c.innerHTML += `
-        <div class="card">
-          <div style="display:flex;gap:8px;align-items:center">
+     let isAdmin = userLogin?.role === 'admin' || userLogin?.email === 'admin@myainun.com';
+let canDeleteGrup = userLogin && (p.user_id === userLogin.id || isAdmin);
+c.innerHTML += `
+  <div class="card">
+    <div style="display:flex;gap:8px;align-items:center">
+      <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:32px;height:32px;border-radius:50%">
+      <b>${p.users?.nama||'User'}</b>
+      <small style="margin-left:auto;color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+      ${canDeleteGrup? `<button class="btn btn-batal btn-sm" style="padding:4px 8px;font-size:11px;margin-left:8px" onclick="hapusPostGrup('${p.id}','${p.gambar_url||''}')">🗑️ HAPUS</button>` : ''}
+    </div>
             <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:32px;height:32px;border-radius:50%">
             <b>${p.users?.nama||'User'}</b>
             <small style="margin-left:auto;color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
@@ -2580,6 +2587,34 @@ window.kirimPostGrup = async function(){
     await supabase.from('group_posts').insert({group_id:window.grupAktif, user_id:userLogin.id, isi:isi, gambar_url:upUrl, youtube_url:yt||null, tipe:yt?'youtube':(upUrl?'image':'text')});
   }catch(e){ console.log(e.message); }
   document.getElementById('grupIsi').value=''; document.getElementById('grupYoutube').value=''; let pv=document.getElementById('previewGrupImg'); if(pv) pv.style.display='none'; window.grupFile=null; let gi=document.getElementById('grupGambar'); if(gi) gi.value=''; loadPostGrup(window.grupAktif); loadGroups();
+}
+
+window.hapusPostGrup = async function(postId, gambarUrl){
+  if(!userLogin) return alert("Login dulu");
+  if(!confirm("Yakin hapus postingan grup ini? Gak bisa balik lagi.")) return;
+
+  try{
+    // 1. hapus file gambar dari storage kalau ada
+    if(gambarUrl && gambarUrl.includes('postingan')){
+      let path = gambarUrl.split('/postingan/')[1];
+      if(path) await supabase.storage.from('postingan').remove([path]);
+    }
+    // 2. hapus like & komen dulu
+    await supabase.from('group_post_likes').delete().eq('post_id', postId);
+    await supabase.from('group_post_comments').delete().eq('post_id', postId);
+    // 3. hapus post nya
+    const { error } = await supabase.from('group_posts').delete().eq('id', postId).eq('user_id', userLogin.id);
+    if(error) throw error;
+
+    // hapus juga dari localStorage
+    let posts = JSON.parse(localStorage.getItem('local_group_posts')||'[]').filter(p=>p.id!= postId);
+    localStorage.setItem('local_group_posts', JSON.stringify(posts));
+
+    alert("Postingan grup dihapus");
+    loadPostGrup(window.grupAktif);
+  }catch(e){
+    alert("Gagal hapus: "+e.message);
+  }
 }
 window.toggleLikeGrup = async function(postId){
   if(!userLogin) return alert('Login dulu'); let likes=JSON.parse(localStorage.getItem('local_group_likes')||'[]'); let idx=likes.findIndex(l=>l.post_id===postId&&l.user_id===userLogin.id); let btn=document.getElementById(`likeGrupBtn-${postId}`);
