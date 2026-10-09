@@ -289,11 +289,12 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <div id="groupsPage" class="container" style="display:none">
   <h2>👥 GRUP AINUN - 5 GRUP</h2>
   <style>
-   .grup-tabs-mendatar{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
-   .grup-tabs-mendatar::-webkit-scrollbar{display:none}
-   .grup-tab-hp{min-width:155px;flex:0 0 155px;padding:14px;border-radius:16px;border:2px solid var(--border);background:var(--card);cursor:pointer}
-   .grup-tab-hp.aktif{border-color:var(--accent);background:#E8F4F8;transform:scale(1.03)}
-   .grup-konten-bawah{margin-top:15px}
+   .grup-tabs-mendatar{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .grup-tabs-mendatar::-webkit-scrollbar{display:none}
+  .grup-tab-hp{min-width:155px;flex:0 0 155px;padding:14px;border-radius:16px;border:2px solid var(--border);background:#fff;cursor:pointer;transition:0.1s}
+  /* INI YANG BIKIN TETEP PUTIH - GAK ADA PERUBAHAN WARNA PAS KLIK */
+  .grup-tab-hp.aktif{border-color:var(--border);background:#fff;transform:none;box-shadow:none}
+  .grup-konten-bawah{margin-top:15px}
   </style>
   <div class="grup-tabs-mendatar" id="listGroups"></div>
   <div class="grup-konten-bawah">
@@ -380,19 +381,34 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 <div id="chatPage" class="container" style="display:none">
   <h2>💬 PESAN</h2>
-  <div class="grid" style="grid-template-columns: 1fr 2fr; gap:20px">
-    <div class="card" style="height:500px; overflow-y:auto" id="daftarChat"><h3>Daftar Chat</h3></div>
-    <div class="card" style="height:500px; display:flex; flex-direction:column">
-      <div id="chatHeader" style="border-bottom:2px solid var(--border); padding-bottom:10px; margin-bottom:10px; font-weight:bold">Pilih teman untuk chat</div>
-      <div id="isiChat" style="flex:1; overflow-y:auto; border:2px solid var(--border); padding:10px; margin-bottom:10px; border-radius:10px; background:#E5DDD5"></div>
-      <div style="display:flex; gap:10px">
+  <style>
+    .chat-layout{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+    #daftarChat{background:var(--card);padding:15px;border-radius:15px;border:2px solid var(--border);}
+    #listChatTeman{height:430px;overflow-y:auto;margin-top:10px}
+    #boxChat{height:500px;display:flex;flex-direction:column;background:var(--card);padding:15px;border-radius:15px;border:2px solid var(--border);}
+    @media(max-width:800px){
+      .chat-layout{grid-template-columns:1fr!important}
+      #daftarChat{order:1;height:auto!important}
+      #listChatTeman{height:auto!important;max-height:150px;display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+      #listChatTeman .chat-item{flex:0 0 110px;min-width:110px;flex-direction:column;text-align:center;border:2px solid var(--border);border-radius:12px;padding:10px;justify-content:center}
+      #boxChat{order:2;height:68vh!important}
+    }
+  </style>
+  <div class="chat-layout">
+    <div id="daftarChat">
+      <h3 style="margin:0">Daftar Chat</h3>
+      <div id="listChatTeman"><p>Loading...</p></div>
+    </div>
+    <div id="boxChat">
+      <div id="chatHeader" style="border-bottom:2px solid var(--border);padding-bottom:10px;margin-bottom:10px;font-weight:bold">Pilih teman untuk chat</div>
+      <div id="isiChat" style="flex:1;overflow-y:auto;border:2px solid var(--border);padding:10px;margin-bottom:10px;border-radius:10px;background:#E5DDD5"></div>
+      <div style="display:flex;gap:10px">
         <input class="input" id="inputPesan" placeholder="Ketik pesan..." style="margin:0" onkeydown="if(event.key==='Enter') kirimPesan()">
         <button class="btn" onclick="kirimPesan()">KIRIM</button>
       </div>
     </div>
   </div>
 </div>
-
 <div id="myProfilePage" class="container" style="display:none">
   <div class="profil-header">
    <img id="myCover" src="default-cover.jpg" class="profil-cover" style="background: linear-gradient(90deg, #4A7C8A, #3E6A77);">
@@ -2026,24 +2042,21 @@ window.bukaChat = async function(lawanId) {
 async function loadDaftarChat() {
   if(!userLogin) return;
   const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
-  const list = document.getElementById('daftarChat');
-  list.innerHTML = '<h3>Daftar Chat</h3>';
-  if(!data || data.length === 0){ list.innerHTML += '<p>Belum ada teman</p>'; return; }
-
-  list.innerHTML = '<h3>Daftar Chat</h3>'; // reset
+  const list = document.getElementById('listChatTeman');
+  if(!list) return;
+  list.innerHTML = '';
+  if(!data || data.length === 0){ list.innerHTML = '<p>Belum ada teman</p>'; return; }
   data.forEach(f => {
-    const lawan = f.requester_id === userLogin.id? f.addressee : f.requester;
+    const lawan = f.requester_id === userLogin.id ? f.addressee : f.requester;
     if(!lawan) return;
     const item = document.createElement('div');
     item.className = 'chat-item';
     item.id = `chat-${lawan.id}`;
-    item.style.position = 'relative';
     item.onclick = () => bukaChat(lawan.id);
     item.innerHTML = `<img src="${lawan.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(lawan.nama)}"><div><b>${escapeHtml(lawan.nama)}</b></div>`;
     list.appendChild(item);
   });
 }
-
 async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
