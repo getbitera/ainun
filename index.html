@@ -2501,10 +2501,16 @@ window.kirimPostGrup = async function(){
   document.getElementById('grupIsi').value=''; document.getElementById('grupYoutube').value=''; document.getElementById('previewGrupImg').style.display='none'; window.grupFile=null; document.getElementById('grupGambar').value='';
   loadPostGrup(window.grupAktif);
 }
+
+
 window.loadPostGrup = function(groupId){
   const c = document.getElementById('daftarPostGrup');
   if(!c) return;
   let all = JSON.parse(localStorage.getItem('local_group_posts')||'[]').filter(p=>p.group_id===groupId);
+  // ambil like & komen dari local
+  let likes = JSON.parse(localStorage.getItem('local_group_likes')||'[]');
+  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]');
+
   if(all.length===0){ c.innerHTML='<p class="card">Belum ada postingan. Jadi yang pertama!</p>'; return; }
   c.innerHTML='';
   all.forEach(p=>{
@@ -2514,9 +2520,96 @@ window.loadPostGrup = function(groupId){
       let emb = getYoutubeEmbed(p.youtube_url);
       if(emb) media=`<iframe src="${emb}" style="width:100%; height:250px; border-radius:10px; margin-top:10px" frameborder="0" allowfullscreen></iframe>`;
     }
-    c.innerHTML+=`<div class="card"><div style="display:flex; gap:8px; align-items:center"><img src="${p.users?.foto||''}" style="width:32px;height:32px;border-radius:50%"><b>${escapeHtml(p.users?.nama||'User')}</b><small style="margin-left:auto; color:gray">${new Date(p.created_at).toLocaleTimeString('id-ID')}</small></div><p style="white-space:pre-wrap; margin-top:8px">${escapeHtml(p.isi||'')}</p>${media}</div>`;
+    
+    let likePost = likes.filter(l=>l.post_id===p.id);
+    let komenPost = komens.filter(k=>k.post_id===p.id);
+    let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
+
+    c.innerHTML+=`<div class="card">
+      <div style="display:flex; gap:8px; align-items:center">
+        <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+p.users?.nama}" style="width:32px;height:32px;border-radius:50%">
+        <b>${escapeHtml(p.users?.nama||'User')}</b>
+        <small style="margin-left:auto; color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+      </div>
+      <p style="white-space:pre-wrap; margin-top:8px">${escapeHtml(p.isi||'')}</p>
+      ${media}
+      <div class="feed-action">
+        <button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')">❤️ ${likePost.length} Like</button>
+        <button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'; document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button>
+      </div>
+      <div id="komenWrapGrup-${p.id}" class="komen-box" style="${komenPost.length>0?'':'display:none'}">
+        <div id="listKomenGrup-${p.id}">
+          ${komenPost.map(k=>`
+            <div class="komen-item">
+              <img src="${k.foto||'https://ui-avatars.com/api/?name='+k.nama}" style="width:28px;height:28px;border-radius:50%">
+              <div><b>${escapeHtml(k.nama)}</b> ${escapeHtml(k.isi)}<br><small style="color:gray">${new Date(k.created_at).toLocaleTimeString('id-ID')}</small></div>
+              ${userLogin && k.user_id===userLogin.id? `<a style="margin-left:auto; cursor:pointer" onclick="hapusKomenGrup('${k.id}','${p.id}')">✕</a>`:''}
+            </div>
+          `).join('')}
+        </div>
+        <div class="komen-input-wrap">
+          <input id="inputKomenGrup-${p.id}" class="input" style="margin:0" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')">
+          <button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">Kirim</button>
+        </div>
+      </div>
+    </div>`;
   });
 }
+
+window.toggleLikeGrup = async function(postId){
+  if(!userLogin) return alert('Login dulu');
+  let likes = JSON.parse(localStorage.getItem('local_group_likes')||'[]');
+  let idx = likes.findIndex(l=>l.post_id===postId && l.user_id===userLogin.id);
+  const btn = document.getElementById(`likeGrupBtn-${postId}`);
+  
+  if(idx>=0){
+    likes.splice(idx,1);
+    btn.classList.remove('active');
+  } else {
+    likes.push({post_id:postId, user_id:userLogin.id, created_at: new Date().toISOString()});
+    btn.classList.add('active');
+    // coba supabase juga kalau ada tabel
+    try{ await supabase.from('group_post_likes').insert({post_id:postId, user_id:userLogin.id}); }catch(e){}
+  }
+  localStorage.setItem('local_group_likes', JSON.stringify(likes));
+  let jml = likes.filter(l=>l.post_id===postId).length;
+  btn.innerText = `❤️ ${jml} Like`;
+}
+
+window.kirimKomenGrup = async function(postId){
+  if(!userLogin) return alert('Login dulu');
+  const input = document.getElementById(`inputKomenGrup-${postId}`);
+  const isi = input.value.trim();
+  if(!isi) return;
+  
+  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]');
+  let baru = {
+    id: 'gk_'+Date.now(),
+    post_id: postId,
+    user_id: userLogin.id,
+    nama: userLogin.nama,
+    foto: userLogin.foto,
+    isi: isi,
+    created_at: new Date().toISOString()
+  };
+  komens.push(baru);
+  localStorage.setItem('local_group_komens', JSON.stringify(komens));
+  try{ await supabase.from('group_post_comments').insert({post_id:postId, user_id:userLogin.id, isi:isi}); }catch(e){}
+  
+  input.value='';
+  document.getElementById(`komenWrapGrup-${postId}`).style.display='block';
+  const list = document.getElementById(`listKomenGrup-${postId}`);
+  list.innerHTML += `<div class="komen-item"><img src="${baru.foto}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(baru.nama)}</b> ${escapeHtml(baru.isi)}</div></div>`;
+  loadPostGrup(window.grupAktif); // refresh angka komen
+}
+
+window.hapusKomenGrup = function(komenId, postId){
+  if(!confirm('Hapus komen?')) return;
+  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]').filter(k=>k.id!==komenId);
+  localStorage.setItem('local_group_komens', JSON.stringify(komens));
+  loadPostGrup(postId);
+}
+
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
   if(!input.value.trim() ||!convAktif ||!lawanChatAktif) return;
