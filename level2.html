@@ -123,7 +123,7 @@ function end(){
 clearInterval(timer);
 document.getElementById('soalText').innerText='LEVEL 2 SELESAI!';
 document.getElementById('pilihan').innerHTML='';
-let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:13px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length} SOAL:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 32/32! LO GILA!</div>`;
+let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:13px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length} SOAL:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 32/32!</div>`;
 document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 32</div><div style="font-size:13px;color:#555">${benar===32? '100%! Lanjut Level 3 kebuka!' : 'Wajib 100% (32/32) untuk lanjut! Soal akan acak lagi kalau ulangi!'}<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
 document.getElementById('btnUlang').style.display='block';
 if(benar===32){
