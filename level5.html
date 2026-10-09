@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEVEL 5 - 296 SOAL</title>
+<style>
+body{font-family:Arial;background:linear-gradient(135deg,#F8BBD0,#F48FB1,#EC407A);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
+.container{max-width:700px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #880E4F;text-align:center}
+.timer{height:12px;background:#FFCCBC;border-radius:6px;overflow:hidden;margin:10px 0}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%;transition:width 0.1s linear}
+.soal{font-size:17px;font-weight:900;margin:15px 0;min-height:60px;color:#880E4F;text-align:left}
+.pil{padding:11px;background:#FCE4EC;border:2px solid #F48FB1;border-radius:10px;cursor:pointer;font-weight:700;margin-bottom:6px;color:#880E4F;text-align:left;font-size:13px}
+.pil.bener{background:#00C853!important;color:#fff;border-color:#00C853}
+.pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#880E4F;font-size:13px}
+#hasil{line-height:1.6}
+.btn-next{display:none;margin:15px auto;padding:14px 25px;background:#880E4F;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;width:100%;animation:bounce 1s infinite}
+.btn-ulang{margin:8px auto;padding:12px 20px;background:#FCE4EC;color:#880E4F;border:2px solid #880E4F;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+</style>
+</head>
+<body>
+<div class="container">
+<h2 style="color:#880E4F">💖 LEVEL 5 - 296 SOAL 💖</h2>
+<div class="info"><span id="noSoal">Soal 1/296</span><span id="benar">BENAR: 0/296</span><span id="totalTimer">888.0s</span></div>
+<div class="timer"><div id="timerBar"></div></div>
+<div class="soal" id="soalText"></div>
+<div id="pilihan"></div>
+<div id="hasil" style="font-weight:900;color:#880E4F;margin-top:15px"></div>
+<button id="btnNext" class="btn-next" onclick="lanjutKeLevel6()">👑 LANJUT KE LEVEL 6 👑</button>
+<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI LEVEL 5 (SOAL ACAK LAGI)</button>
+<div style="margin-top:12px;display:flex;justify-content:space-between"><a href="level4.html" style="color:#880E4F;font-weight:900;text-decoration:none">⬅️ Level 4</a><a href="level6.html" style="color:#880E4F;font-weight:900;text-decoration:none">Level 6 ➡️</a></div>
+</div>
+<script>
+const SOAL_ORIG=[
+{q:"Protein penyusun 75% kulit dermis?",a:["Kolagen","Keratin","Melanin","Elastin"],k:0},
+{q:"Elastin memberi sifat?",a:["Elastisitas balik","Kekerasan","Warna","Kelembaban"],k:0},
+{q:"Hyaluronic Acid mampu mengikat air?",a:["1000x beratnya","10x","1x","0x"],k:0},
+{q:"Ceramide fungsi?",a:["Barrier anti air hilang","Bikin warna","Bikin rambut","Bikin kuku"],k:0},
+{q:"Kolagen mulai turun usia?",a:["20an akhir 1% per tahun","50an","10an","70an"],k:0},
+{q:"Enzim penghancur kolagen?",a:["MMP / Kolagenase","Amilase","Laktase","Pepsin"],k:0},
+{q:"Enzim penghancur elastin?",a:["Elastase","Amilase","Lipase","Pepsin"],k:0},
+{q:"Fibroblas menghasilkan?",a:["Kolagen, elastin, HA","Melanin","Keratin","Minyak"],k:0},
+{q:"Keratinosit 90% di?",a:["Epidermis","Dermis","Otot","Tulang"],k:0},
+{q:"Melanosit menghasilkan?",a:["Melanin","Kolagen","Elastin","HA"],k:0},
+{q:"Sel Langerhans adalah sel?",a:["Imun","Lemak","Otot","Saraf"],k:0},
+{q:"Lapisan kulit terluar?",a:["Stratum korneum","Dermis","Hipodermis","Otot"],k:0},
+{q:"Dermis mengandung?",a:["Kolagen & elastin","Hanya air","Hanya lemak","Hanya tulang"],k:0},
+{q:"Hipodermis berisi?",a:["Lemak","Tulang","Otot saja","Darah saja"],k:0},
+{q:"Skin barrier terdiri dari?",a:["Ceramide, cholesterol, fatty acid 1:2:1","Air saja","Minyak saja","Protein saja"],k:0},
+{q:"pH kulit sehat?",a:["4.5-5.5 asam lemah","7 netral","9 basa","2 sangat asam"],k:0},
+{q:"Sabun batang pH 9-10 efek?",a:["Merusak barrier","Memperbaiki barrier","Tidak efek","Melembabkan"],k:0},
+{q:"AHA larut?",a:["Air","Minyak","Lemak","Bensin"],k:0},
+{q:"BHA larut?",a:["Minyak, masuk pori","Air saja","Tidak larut","Hanya lemak"],k:0},
+{q:"Glycolic acid ukuran?",a:["Paling kecil AHA","Paling besar","Sedang","Tidak ada ukuran"],k:0},
+{q:"Lactic acid bonus?",a:["Humektan melembabkan","Mengeringkan","Memutihkan gigi","Tidak ada"],k:0},
+{q:"Mandelic acid cocok?",a:["Sensitif & jerawat gelap","Hanya kaki","Hanya tangan","Tidak cocok wajah"],k:0},
+{q:"Salicylic acid konsentrasi OTC?",a:["0.5-2%","10%","20%","50%"],k:0},
+{q:"PHA contoh?",a:["Gluconolactone","Glycolic","Salicylic","Retinol"],k:0},
+{q:"Azelaic acid untuk?",a:["Jerawat, flek, rosacea","Ketombe","Kuku","Gigi"],k:0},
+{q:"Tranexamic acid untuk flek?",a:["Melasma membandel","Jerawat aktif","Rambut rontok","Kuku"],k:0},
+{q:"Kojic acid asal?",a:["Jamur fermentasi","Jeruk","Apel","Beras"],k:0},
+{q:"Alpha arbutin vs hydroquinone?",a:["Lebih aman","Lebih berbahaya","Sama bahaya","Tidak aktif"],k:0},
+{q:"Licorice root efek?",a:["Cerah + anti inflamasi","Hitamkan","Keringkan","Besar pori"],k:0},
+{q:"Vitamin C L-AA butuh pH?",a:["<3.5","7","9","12"],k:0},
+{q:"Vitamin C + E + Ferulic?",a:["Stabil & sinergi 8x","Batal","Berbahaya","Tidak efek"],k:0},
+{q:"Niacinamide % aman pemula?",a:["2-5%","20%","50%","100%"],k:0},
+{q:"Retinol adalah?",a:["Vitamin A","Vitamin C","Vitamin B3","Vitamin D"],k:0},
+{q:"Bakuchiol sumber?",a:["Babchi Psoralea","Lidah buaya","Jeruk","Apel"],k:0},
+{q:"Zinc oxide proteksi?",a:["Broad UVA+UVB","UVB saja","UVC","Tidak"],k:0},
+{q:"SPF ukur?",a:["UVB","UVA","UVC","Visible"],k:0},
+{q:"PA ukur?",a:["UVA","UVB","UVC","Blue"],k:0},
+{q:"SPF 50 blok?",a:["98% UVB","50%","100%","30%"],k:0},
+{q:"Sunscreen reapply tiap?",a:["2-3 jam","24 jam","Seminggu","Sebulan"],k:0},
+{q:"Telomere adalah?",a:["Ujung kromosom pelindung","Mitokondria","Ribosom","Nukleus"],k:0},
+{q:"NAD+ fungsi?",a:["Energi & perbaikan DNA","Bikin gula","Bikin garam","Tidak ada"],k:0},
+{q:"Autophagy dipicu?",a:["Puasa & olahraga","Makan terus","Gula","Begadang"],k:0},
+{q:"AGEs kepanjangan?",a:["Advanced Glycation End Products","Aging","Anti Aging","Young"],k:0},
+{q:"Glikasi karena?",a:["Gula ikat protein","Garam ikat protein","Air ikat protein","Minyak ikat protein"],k:0},
+{q:"Omega-3 EPA DHA efek?",a:["Anti inflamasi","Pro inflamasi","Tidak efek","Bikin jerawat"],k:0},
+{q:"Astaxanthin dari?",a:["Alga, salmon","Sapi","Ayam","Gula"],k:0},
+{q:"Resveratrol dari?",a:["Kulit anggur merah","Air","Gula","Garam"],k:0},
+{q:"Tidur ideal?",a:["7-9 jam","3 jam","12 jam","Tidak tidur"],k:0},
+{q:"Rokok efek kulit?",a:["Keriput 10 tahun lebih cepat","Awet muda","Tidak efek","Putih"],k:0},
+{q:"MMP-1 hancurkan?",a:["Kolagen I & III","Elastin saja","HA saja","Air"],k:0},
+{q:"MMP-9 hancurkan?",a:["Kolagen IV & elastin","Keratin","Melanin","Air"],k:0},
+{q:"UV induksi MMP?",a:["Ya, naikkan MMP","Tidak, turunkan","Tidak efek","Hancurkan UV"],k:0},
+{q:"Anti MMP alami?",a:["Vit C, green tea, retinol","Gula","Garam","Air"],k:0},
+{q:"Fibroblas menua jadi?",a:["Miofibroblas & lambat","Makin cepat","Mati langsung","Jadi melanin"],k:0},
+{q:"Kulit menipis per dekade?",a:["6%","0%","50%","100%"],k:0},
+{q:"Epidermis turnover muda?",a:["28 hari","100 hari","1 hari","1 tahun"],k:0},
+{q:"Epidermis turnover tua?",a:["45-60 hari","10 hari","28 hari","1 hari"],k:0},
+{q:"Stratum korneum berapa lapis?",a:["15-20 lapis","1 lapis","100 lapis","0 lapis"],k:0},
+{q:"NMF adalah?",a:["Natural Moisturizing Factor","No Moisturizing","New Moist","Not Moist"],k:0},
+{q:"NMF mengandung?",a:["Asam amino, urea, laktat","Gula saja","Garam saja","Air saja"],k:0},
+{q:"Urea % untuk lembab?",a:["5-10%","50%","100%","0%"],k:0},
+{q:"Lactic acid % toner?",a:["5-10%","50%","100%","0%"],k:0},
+{q:"Glycolic acid % peeling klinik?",a:["20-70%","1%","5%","100%"],k:0},
+{q:"Salicylic acid % peeling?",a:["20-30%","1%","100%","0%"],k:0},
+{q:"Jessner peel berisi?",a:["Lactic, salicylic, resorcinol","Air saja","Gula saja","Garam"],k:0},
+{q:"TCA peel?",a:["Trichloroacetic acid","Tea","Coffee","Acid biasa"],k:0},
+{q:"Retinol irritation disebut?",a:["Retinization","Alergi","Jerawat","Flek"],k:0},
+{q:"Retinol purging berapa lama?",a:["2-6 minggu","1 hari","1 tahun","Tidak pernah"],k:0},
+{q:"Bakuchiol aman hamil?",a:["Relatif aman vs retinol","Tidak aman","Bahaya","Tidak ada data"],k:0},
+{q:"Peptide signal contoh?",a:["Palmitoyl tripeptide","Gula","Garam","Air"],k:0},
+{q:"Peptide carrier contoh?",a:["Copper peptide GHK-Cu","Gula","Garam","Air"],k:0},
+{q:"Peptide neurotransmitter contoh?",a:["Argireline","Gula","Garam","Air"],k:0},
+{q:"Centella untuk luka?",a:["Ya, madecassoside","Tidak","Bikin luka","Hitamkan"],k:0},
+{q:"Cica vs Centella?",a:["Sama","Beda","Cica lebih kuat","Centella tidak ada"],k:0},
+{q:"Propolis untuk?",a:["Antibakteri & repair","Memutihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Snail mucin mengandung?",a:["HA, glycolic, protein","Air saja","Gula saja","Garam"],k:0},
+{q:"Bee venom efek?",a:["Plumping sementara","Permanen","Tidak efek","Bahaya pasti"],k:0},
+{q:"Squalane comedogenic?",a:["0-1 rendah","5 tinggi","3 sedang","10 sangat tinggi"],k:0},
+{q:"Mineral oil comedogenic?",a:["0-2 tergantung","5 pasti","10 pasti","Tidak ada"],k:0},
+{q:"Isopropyl myristate comedogenic?",a:["5 tinggi","0 rendah","1 rendah","Tidak ada"],k:0},
+{q:"Zinc oxide % minimal efektif?",a:["5%+","0.1%","0%","100%"],k:0},
+{q:"Titanium % minimal?",a:["5%+","0.1%","0%","100%"],k:0},
+{q:"Tinosorb S & M adalah?",a:["Filter UVA UVB modern Eropa","Filter lama","Tidak ada","Bahan pewarna"],k:0},
+{q:"Mexoryl SX & XL adalah?",a:["Filter L'Oreal","Filter biasa","Tidak ada","Pewarna"],k:0},
+{q:"PA ++++ berapa PPD?",a:["16+","2","4","8"],k:0},
+{q:"PPD adalah?",a:["Persistent Pigment Darkening","No","Not","None"],k:0},
+{q:"Critical wavelength?",a:[">370nm broad spectrum","<300nm","200nm","100nm"],k:0},
+{q:"Water resistant 40 menit artinya?",a:["Tahan 40 menit air","Tahan 24 jam","Tidak tahan","Seharian"],k:0},
+{q:"Very water resistant?",a:["80 menit","40 menit","24 jam","10 menit"],k:0},
+{q:"Sunscreen jumlah kurang efek?",a:["SPF turun drastis","Tetap sama","Naik","Tidak efek"],k:0},
+{q:"Indoor butuh reapply?",a:["Jika dekat jendela","Tidak pernah","Selalu 1 jam","Tidak perlu"],k:0},
+{q:"Kaca mobil blok UVA?",a:["Tidak 100%, UVA tembus","Blok 100%","Blok semua","Tidak ada UV"],k:0},
+{q:"Awan blok UV?",a:["Tidak, 80% tembus","Blok 100%","Blok semua","Tidak ada UV"],k:0},
+{q:"Bayangan jam 12?",a:["UV tetap ada pantulan","Tidak ada UV","Aman total","Tidak perlu sunscreen"],k:0},
+{q:"Salju pantulkan UV?",a:["Ya, 80-90%","Tidak","0%","10%"],k:0},
+{q:"Pasir pantulkan UV?",a:["Ya, 15-25%","Tidak","0%","100%"],k:0},
+{q:"Air pantulkan UV?",a:["Ya, 10-30%","Tidak","0%","100%"],k:0},
+{q:"Ketinggian naik UV?",a:["Naik 4-5% per 1000 kaki","Turun","Tetap","Hilang"],k:0},
+{q:"Vitamin D & sunscreen?",a:["Tetap dapat Vit D, pakai tetap","Tidak dapat Vit D","Harus tanpa sunscreen","Tidak perlu Vit D"],k:0},
+{q:"Vit D dari makanan?",a:["Salmon, telur, fortifikasi","Air","Gula","Garam"],k:0},
+{q:"K2 untuk?",a:["Arahkan kalsium ke tulang","Bikin jerawat","Tidak efek","Hitamkan"],k:0},
+{q:"Magnesium untuk tidur?",a:["Ya, relaksasi","Tidak, bikin melek","Bikin jerawat","Hitamkan"],k:0},
+{q:"Glycine untuk tidur & kolagen?",a:["Ya, 3g malam","Tidak","Bikin jerawat","Hitamkan"],k:0},
+{q:"Theanine untuk stres?",a:["Ya, calming","Tidak, bikin stres","Bikin jerawat","Hitamkan"],k:0},
+{q:"Ashwagandha untuk kortisol?",a:["Ya, adaptogen turun kortisol","Naikkan kortisol","Tidak efek","Bikin jerawat"],k:0},
+{q:"Rhodiola untuk?",a:["Energi & stres","Tidur","Jerawat","Hitam"],k:0},
+{q:"Ginseng untuk?",a:["Antioksidan & energi","Bikin tua","Tidak efek","Hitam"],k:0},
+{q:"Kombucha untuk kulit?",a:["Probiotik usus","Langsung kulit","Tidak efek","Hitam"],k:0},
+{q:"Kimchi untuk kulit?",a:["Probiotik","Bikin jerawat","Tidak efek","Hitam"],k:0},
+{q:"Yogurt untuk kulit?",a:["Probiotik & lactic","Bikin jerawat pasti","Tidak efek","Hitam"],k:0},
+{q:"Dark chocolate 70%+?",a:["Flavonoid antioksidan","Bikin jerawat pasti","Tidak efek","Gula saja"],k:0},
+{q:"Green tea minum?",a:["EGCG anti aging","Bikin tua","Tidak efek","Hitamkan"],k:0},
+{q:"Kopi efek kulit?",a:["Antioksidan tapi jangan berlebihan","Bikin putih","Bikin hitam pasti","Tidak efek"],k:0},
+{q:"Matcha vs green tea?",a:["Matcha lebih pekat EGCG","Sama","Green tea lebih pekat","Tidak ada"],k:0},
+{q:"Air lemon untuk kulit?",a:["Vit C tapi asam, hati-hati","Pemutih permanen","Tidak efek","Bikin putih instan"],k:0},
+{q:"Cuka apel untuk kulit?",a:["Asam, hati-hati iritasi","Aman semua","Wajib","Pemutih"],k:0},
+{q:"Baking soda untuk wajah?",a:["Jangan, pH 9 merusak","Bagus","Wajib","Pemutih"],k:0},
+{q:"Lemon + matahari?",a:["Phytophotodermatitis bahaya","Bagus","Putihkan","Tidak efek"],k:0},
+{q:"Facial oil untuk berminyak?",a:["Boleh, jojoba squalane","Tidak boleh","Bikin minyak","Jerawat pasti"],k:0},
+{q:"Minyak kelapa comedogenic?",a:["4 tinggi","0 rendah","1 rendah","Tidak ada"],k:0},
+{q:"Shea butter comedogenic?",a:["0-2 rendah","5 tinggi","4 tinggi","10"],k:0},
+{q:"Aloe comedogenic?",a:["0 rendah","5 tinggi","4 tinggi","10"],k:0},
+{q:"Niacinamide + zinc untuk?",a:["Minyak & jerawat","Putih saja","Hitamkan","Tidak efek"],k:0},
+{q:"Salicylic + niacinamide?",a:["Boleh, jerawat & minyak","Tidak boleh","Batal","Bahaya"],k:0},
+{q:"Vitamin C + SPF?",a:["Wajib combo pagi","Tidak boleh","Batal","Bahaya"],k:0},
+{q:"Retinol + moisturizer?",a:["Sandwich kurangi iritasi","Tidak boleh","Batal","Bahaya"],k:0},
+{q:"Moisturizer + occlusive?",a:["Kunci hidrasi","Tidak perlu","Bikin jerawat","Hitamkan"],k:0},
+{q:"Humidifier untuk kulit?",a:["Ya, bantu lembab","Tidak, keringkan","Bikin jerawat","Hitamkan"],k:0},
+{q:"AC bikin kering?",a:["Ya, TEWL naik","Tidak, lembabkan","Tidak efek","Putihkan"],k:0},
+{q:"Mandi air panas lama?",a:["Keringkan kulit","Lembabkan","Putihkan","Tidak efek"],k:0},
+{q:"Handuk kasar gosok wajah?",a:["Iritasi, tepuk saja","Bagus","Wajib gosok","Putihkan"],k:0},
+{q:"Sarung bantal ganti?",a:["2-3 hari sekali","Sebulan","Setahun","Tidak perlu"],k:0},
+{q:"HP kotor efek kulit?",a:["Jerawat pipi","Tidak efek","Putihkan","Hitamkan"],k:0},
+{q:"Kuas makeup kotor?",a:["Jerawat & infeksi","Tidak efek","Putihkan","Bagus"],k:0},
+{q:"Makeup tidur?",a:["Jerawat & kusam","Tidak efek","Bagus","Putihkan"],k:0},
+{q:"Exfoliasi bibir?",a:["1x/minggu gentle","Tiap hari","Tidak pernah","Pakai AHA 30%"],k:0},
+{q:"Scrub gula untuk wajah?",a:["Jangan, terlalu kasar","Bagus","Wajib","Putihkan"],k:0},
+{q:"Peeling enzim papain dari?",a:["Pepaya","Nanas","Apel","Jeruk"],k:0},
+{q:"Bromelain dari?",a:["Nanas","Pepaya","Apel","Jeruk"],k:0},
+{q:"Ice roller untuk?",a:["Kempeskan bengkak sementara","Hilangkan keriput permanen","Putihkan","Tidak efek"],k:0},
+{q:"Gua sha bahan giok vs quartz?",a:["Sama fungsi, beda suhu","Giok lebih bagus","Quartz lebih bagus","Tidak ada beda"],k:0},
+{q:"Face taping malam?",a:["Tidak terbukti, bisa iritasi","Hilangkan keriput permanen","Wajib","Bagus"],k:0},
+{q:"Puasa 16:8 efek kulit?",a:["Autophagy & glowing","Kusam","Jerawat","Tidak efek"],k:0},
+{q:"Protein tinggi untuk kulit?",a:["Ya 1-1.2g/kg","Tidak perlu","Bikin jerawat","Bikin hitam"],k:0},
+{q:"Garam tinggi efek?",a:["Bengkak wajah","Glowing","Putih","Tidak efek"],k:0},
+{q:"Gula tinggi efek?",a:["Glikasi & kusam","Glowing","Putih","Tidak efek"],k:0},
+{q:"Minyak rosehip untuk?",a:["Bekas luka & anti aging","Jerawat aktif","Tidak efek","Hitamkan"],k:0},
+{q:"Oatmeal mask untuk?",a:["Gatal & kemerahan","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Caffeine topikal?",a:["Kempeskan & antioksidan","Bikin bengkak","Tidak efek","Hitamkan"],k:0},
+{q:"Allantoin untuk?",a:["Repair & soothing","Eksfoliasi keras","Sunscreen","Tidak efek"],k:0},
+{q:"Panthenol B5 untuk?",a:["Repair barrier","Keringkan","Hitamkan","Tidak efek"],k:0},
+{q:"Slugging untuk jerawat?",a:["Hindari, sumbat","Wajib","Bagus","Putihkan"],k:0},
+{q:"Skinimalism?",a:["Pakai sedikit tapi efektif","Pakai 10 lapis","Tidak pakai","Bikin jerawat"],k:0},
+{q:"Purging vs breakout?",a:["Purging di area biasa jerawat","Sama","Breakout di area biasa","Tidak ada beda"],k:0},
+{q:"Fungal acne pemicu?",a:["Fermentasi, minyak tertentu","Bakteri","Virus","Tidak ada"],k:0},
+{q:"Nizoral untuk fungal?",a:["Ketoconazole antifungal","Tidak","Picu","Tidak efek"],k:0},
+{q:"Mandi setelah gym?",a:["Wajib cegah jerawat badan","Tidak perlu","Bikin kering","Tidak efek"],k:0},
+{q:"Dairy & jerawat?",a:["Beberapa sensitif","Semua jerawat","Tidak ada hubungan","Putihkan"],k:0},
+{q:"Whey protein & jerawat?",a:["Beberapa jerawat","Tidak","Putihkan","Bagus semua"],k:0},
+{q:"Makeup non-comedogenic?",a:["Lebih aman pori","Pasti aman","Tidak ada arti","Bikin jerawat pasti"],k:0},
+{q:"Sunscreen + Vit C?",a:["Vit C dulu baru sunscreen","Sunscreen dulu","Campur","Tidak boleh bareng"],k:0},
+{q:"Sunscreen kadaluarsa?",a:["Efektivitas turun","Tetap sama","Makin kuat","Tidak efek"],k:0},
+{q:"Kacamata UV400?",a:["Blok 99-100% UVA UVB","Blok 50%","Tidak blok","Hanya gaya"],k:0},
+{q:"Mendung butuh sunscreen?",a:["Ya, 80% UV tembus","Tidak","Kadang","Tidak perlu"],k:0},
+{q:"Di mobil butuh sunscreen?",a:["Ya, UVA tembus kaca","Tidak","Kadang","Tidak perlu"],k:0},
+{q:"Ibu hamil retinol?",a:["Hindari","Aman","Wajib","Tidak efek"],k:0},
+{q:"Patch test?",a:["Coba di rahang/telinga 24-48 jam","Langsung seluruh wajah","Tidak perlu","Di tangan saja cukup"],k:0},
+{q:"Double cleansing perlu?",a:["Jika pakai sunscreen/makeup","Selalu tidak perlu","Hanya pagi","Tidak pernah"],k:0},
+{q:"Micellar water perlu bilas?",a:["Lebih baik bilas","Tidak perlu","Wajib tidak bilas","Bikin kering"],k:0},
+{q:"Toner wajib?",a:["Tidak wajib, optional","Wajib","Bikin jerawat","Putihkan"],k:0},
+{q:"Essence beda toner?",a:["Lebih kental nutrisi","Sama","Toner lebih kental","Tidak ada beda"],k:0},
+{q:"Serum vs ampoule?",a:["Ampoule lebih pekat","Serum lebih pekat","Sama","Tidak ada beda"],k:0},
+{q:"Moisturizer untuk berminyak?",a:["Gel water based","Krim berat","Tidak perlu","Minyak"],k:0},
+{q:"Sunscreen untuk berminyak?",a:["Gel fluid matte","Krim berat","Tidak perlu","Minyak"],k:0},
+{q:"Retinol untuk pemula?",a:["0.25-0.3% 2x/minggu","1% tiap hari","10%","Tidak boleh"],k:0},
+{q:"Retinol sandwich?",a:["Moisturizer-retinol-moisturizer","Retinol-retinol","Tidak ada","Sandwich makan"],k:0},
+{q:"Vitamin C untuk pemula?",a:["10% MAP/SAP","30% LAA","100%","Tidak boleh"],k:0},
+{q:"Niacinamide iritasi?",a:["Jarang, tapi bisa 10%+","Tidak pernah","Pasti iritasi","Bikin hitam"],k:0},
+{q:"AHA BHA boleh tiap hari?",a:["Tergantung %, pemula 2-3x/minggu","Wajib tiap hari","Tidak boleh sama sekali","1x/tahun"],k:0},
+{q:"Exfoliasi & retinol bareng?",a:["Jangan bareng malam sama","Boleh bareng","Wajib bareng","Tidak efek"],k:0},
+{q:"Vitamin C & niacinamide?",a:["Boleh bareng","Tidak boleh","Batal","Bahaya"],k:0},
+{q:"Hyaluronic di kulit kering?",a:["Pakai di lembab + kunci occlusive","Pakai kering saja","Tidak boleh","Bikin kering"],k:0},
+{q:"Sheet mask tiap hari?",a:["Boleh kalau gentle, tapi 2-3x cukup","Wajib 10x","Tidak boleh","Bikin jerawat"],k:0},
+{q:"Clay mask untuk?",a:["Minyak & pori","Kering","Putihkan permanen","Tidak efek"],k:0},
+{q:"Sleeping mask untuk?",a:["Kunci hidrasi malam","Ganti sunscreen","Putihkan","Tidak efek"],k:0},
+{q:"Lip balm dengan SPF?",a:["Ya, bibir butuh proteksi","Tidak","Bikin hitam","Tidak efek"],k:0},
+{q:"Leher butuh skincare?",a:["Ya, sama kayak wajah","Tidak","Bikin jerawat","Hitamkan"],k:0},
+{q:"Tangan butuh sunscreen?",a:["Ya, penuaan terlihat di tangan","Tidak","Bikin hitam","Tidak efek"],k:0},
+{q:"Kaki butuh sunscreen?",a:["Ya jika terbuka","Tidak","Bikin hitam","Tidak efek"],k:0},
+{q:"Rambut butuh UV protection?",a:["Ya, topi/spray","Tidak","Bikin putih","Tidak efek"],k:0},
+{q:"Topi lebar untuk awet muda?",a:["Ya, blok fisik","Tidak","Bikin jerawat","Hitamkan"],k:0},
+{q:"Blue light dari HP?",a:["Kecil vs UV, tapi jaga jarak","Lebih bahaya dari UV","Tidak ada","Bikin putih"],k:0},
+{q:"Polusi efek kulit?",a:["Oxidative stress & kusam","Glowing","Putih","Tidak efek"],k:0},
+{q:"Anti polusi skincare?",a:["Antioksidan + cleansing","Tidak ada","Air saja","Gula"],k:0},
+{q:"Stres efek kulit?",a:["Kortisol naik jerawat & kusam","Glowing","Putih","Tidak efek"],k:0},
+{q:"Meditasi untuk kulit?",a:["Ya, turun kortisol","Tidak","Bikin jerawat","Hitamkan"],k:0},
+{q:"Olahraga untuk kulit?",a:["Glowing sirkulasi naik","Kusam","Jerawat pasti","Tidak efek"],k:0},
+{q:"Keringat setelah olahraga?",a:["Bilas, jangan didiamkan","Diamkan saja","Bagus untuk kulit","Putihkan"],k:0},
+{q:"Air putih untuk kulit?",a:["Bantu hidrasi, tapi bukan segalanya","Hanya air = glowing","Tidak efek","Bikin jerawat"],k:0},
+{q:"Gula & keriput?",a:["Ya, glikasi","Tidak","Bikin putih","Glowing"],k:0},
+{q:"Tidur tengkurap efek?",a:["Keriput & bengkak","Glowing","Putih","Tidak efek"],k:0},
+{q:"Bantal sutra untuk kulit?",a:["Kurangi gesekan","Tidak efek","Bikin jerawat","Hitamkan"],k:0},
+{q:"Keramas tiap hari?",a:["Tergantung scalp, jangan berlebihan","Wajib tiap jam","Tidak boleh","Bikin botak"],k:0},
+{q:"Sisir rambut basah?",a:["Jangan, rapuh","Boleh","Wajib","Tidak efek"],k:0},
+{q:"Kuku butuh sunscreen?",a:["Ya, tangan & kuku","Tidak","Bikin putih","Tidak efek"],k:0},
+{q:"Cuticle oil untuk?",a:["Lembabkan kutikula","Potong","Tidak efek","Hitamkan"],k:0},
+{q:"Parfum di leher?",a:["Hindari, fotosensitif","Wajib","Putihkan","Tidak efek"],k:0},
+{q:"Skincare 10 step wajib?",a:["Tidak, sesuaikan kebutuhan","Wajib 10","Wajib 20","Tidak pakai"],k:0},
+{q:"Usia 20an butuh anti aging?",a:["Ya, preventif sunscreen & antioksidan","Tidak, nanti 40an","Bikin tua","Tidak efek"],k:0},
+{q:"Usia 30an fokus?",a:["Kolagen & retinol preventif","Tidak perlu","Air saja","Gula"],k:0},
+{q:"Usia 40an fokus?",a:["Retinol, peptide, lembab ekstra","Tidak perlu","Air saja","Gula"],k:0},
+{q:"Usia 50an fokus?",a:["Barrier, lembab, hormone & nutrisi","Tidak perlu","Air saja","Gula"],k:0},
+{q:"Genetik vs lifestyle awet muda?",a:["80% lifestyle 20% genetik","100% genetik","100% lifestyle","Tidak ada"],k:0},
+{q:"Senam wajah?",a:["Kontroversi, bisa keriput jika salah","Pasti awet muda","Wajib","Tidak efek"],k:0},
+{q:"Gua sha tiap hari?",a:["2-3x/minggu cukup","Tiap jam","Tidak boleh","Wajib 10x"],k:0},
+{q:"Jade roller dingin untuk?",a:["Kempeskan bengkak","Hilangkan keriput permanen","Putihkan","Tidak efek"],k:0},
+{q:"LED mask untuk?",a:["Stimulasi kolagen","Putihkan instan","Tidak efek","Hitamkan"],k:0},
+{q:"Microcurrent untuk?",a:["Kencangkan sementara","Permanen","Tidak efek","Hitamkan"],k:0},
+{q:"Botox untuk preventif?",a:["Ya, baby botox 20an akhir","Tidak","Bikin tua","Hitamkan"],k:0},
+{q:"Filler untuk awet muda?",a:["Volume hilang","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Laser untuk flek?",a:["Ya, dengan dokter","Tidak","Bikin hitam","Tidak efek"],k:0},
+{q:"Chemical peel dokter?",a:["Ya, untuk tekstur & flek","Tidak","Bikin hitam","Tidak efek"],k:0},
+{q:"Microneedling untuk?",a:["Kolagen induction","Putihkan instan","Tidak efek","Hitamkan"],k:0},
+{q:"PRP untuk?",a:["Growth factor repair","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"DNA repair enzyme?",a:["Photolyase, T4 endonuclease","Tidak ada","Gula","Garam"],k:0},
+{q:"Ekstrak edelweiss untuk?",a:["Antioksidan","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Ekstrak licorice untuk?",a:["Cerahkan","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Ekstrak centella untuk?",a:["Calming","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Ekstrak green tea untuk?",a:["Anti inflamasi","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Ekstrak chamomile untuk?",a:["Soothing","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Minyak argan untuk?",a:["Lembab & antioksidan","Bikin jerawat pasti","Hitamkan","Tidak efek"],k:0},
+{q:"Minyak jojoba mirip?",a:["Sebum manusia","Air","Gula","Garam"],k:0},
+{q:"Minyak rosehip untuk scar?",a:["Ya, bantu pudar","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Shea butter untuk?",a:["Occlusive lembab","Bikin jerawat pasti","Hitamkan","Tidak efek"],k:0},
+{q:"Ceramide untuk barrier?",a:["Ya, kunci","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Cholesterol untuk barrier?",a:["Ya, bagian barrier","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Fatty acid untuk barrier?",a:["Ya, bagian barrier","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Niacinamide untuk barrier?",a:["Ya, ceramide naik","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Panthenol untuk barrier?",a:["Ya, repair","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Madecassoside untuk?",a:["Repair luka","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Allantoin untuk?",a:["Soothing","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Bisabolol untuk?",a:["Soothing","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Aloe vera untuk?",a:["Soothing lembab","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Honey untuk?",a:["Humektan & antibakteri","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Propolis untuk?",a:["Repair antibakteri","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Beta glucan untuk?",a:["Soothing immunity","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Mushroom untuk?",a:["Antioksidan","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Turmeric untuk?",a:["Anti inflamasi, hati-hati noda","Hitamkan","Tidak efek","Bikin jerawat"],k:0},
+{q:"Vitamin K untuk?",a:["Dark circle vascular","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Caffeine untuk mata bengkak?",a:["Ya, vasokonstriksi","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Peptide untuk mata?",a:["Ya, kencangkan","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Retinol untuk mata?",a:["Ya, low % hati-hati","Tidak boleh","Hitamkan","Bikin jerawat"],k:0},
+{q:"Sunscreen untuk mata?",a:["Ya, mineral gentle","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Kacamata hitam untuk mata?",a:["Cegah keriput mata","Tidak","Hitamkan","Bikin jerawat"],k:0},
+{q:"Kulit kusam karena dehidrasi vs melanin?",a:["Dehidrasi = kusam sementara, melanin = hiperpigmentasi","Sama","Tidak ada beda","Melanin bikin glowing"],k:0},
+{q:"Polusi PM2.5 efek kulit?",a:["Oxidative stress, inflamasi, kusam","Glowing","Putihkan","Tidak efek"],k:0},
+{q:"Antioksidan pagi urutan?",a:["Vitamin C setelah toner sebelum sunscreen","Setelah sunscreen","Campur sunscreen","Tidak pakai"],k:0},
+{q:"Retinaldehyde vs retinol?",a:["Retinaldehyde lebih kuat 10x lebih cepat konversi","Sama","Retinol lebih kuat","Tidak ada beda"],k:0},
+{q:"Tretinoin butuh resep?",a:["Ya, resep dokter","OTC bebas","Tidak ada","Suplemen"],k:0},
+{q:"Adapalene untuk jerawat & anti aging?",a:["Ya, generasi 3 retinoid","Tidak","Hanya jerawat","Bikin tua"],k:0},
+{q:"Niacinamide untuk sebum?",a:["Ya, kurangi produksi minyak","Naikkan minyak","Tidak efek","Bikin jerawat"],k:0},
+{q:"Zinc PCA untuk berminyak?",a:["Ya, kontrol sebum antibakteri","Tidak","Bikin minyak","Hitamkan"],k:0},
+{q:"Green tea EGCG topikal %?",a:["2-5%","50%","100%","0%"],k:0},
+{q:"Resveratrol topikal malam?",a:["Ya, antioksidan malam","Pagi saja","Tidak boleh","Siang saja"],k:0},
+{q:"Ferulic acid fungsi?",a:["Stabilkan Vit C+E naik 8x","Putihkan saja","Hitamkan","Tidak efek"],k:0},
+{q:"Vitamin E tocopherol comedogenic?",a:["2 sedang","0 rendah","5 tinggi","Tidak ada"],k:0},
+{q:"CoQ10 untuk kulit?",a:["Antioksidan energi sel","Putihkan","Hitamkan","Tidak efek"],k:0},
+{q:"Peptide copper GHK-Cu untuk?",a:["Repair & kolagen","Putihkan saja","Hitamkan","Tidak efek"],k:0},
+{q:"Matrixyl 3000 adalah?",a:["Peptide duo anti keriput","Sunscreen","AHA","BHA"],k:0},
+{q:"Argireline cara kerja?",a:["Relaksasi otot mirip botox topikal","Kencangkan permanen","Putihkan","Tidak efek"],k:0},
+{q:"DNA repair sunscreen ada?",a:["Ya, dengan photolyase","Tidak ada","Hanya SPF","Gula"],k:0},
+{q:"Sunscreen stick untuk reapply?",a:["Ya, praktis di atas makeup","Tidak boleh","Bikin jerawat","Hitamkan"],k:0},
+{q:"Sunscreen spray efektivitas?",a:["Kurang rata, harus diratakan","Paling rata","Tidak perlu rata","100% rata"],k:0},
+{q:"Baju UPF 50+ artinya?",a:["Blok 98% UV","Blok 50%","Tidak blok","Blok 10%"],k:0},
+{q:"Kacamata besar untuk anti aging?",a:["Ya, cegah keriput crow feet","Tidak","Bikin keriput","Hitamkan"],k:0},
+{q:"Tidur 7-9 jam efek growth hormone?",a:["GH puncak saat tidur deep","Tidak ada GH","GH siang","Tidak tidur"],k:0},
+{q:"Posisi tidur telentang untuk awet muda?",a:["Ya, cegah keriput bantal","Tengkurap bagus","Miring bagus","Tidak efek"],k:0},
+{q:"Diet mediterranean untuk kulit?",a:["Ya, anti inflamasi terbaik","Tidak","Bikin jerawat","Bikin kusam"],k:0},
+{q:"Intermittent fasting 14:10 untuk kulit?",a:["Bisa glowing autophagy","Bikin kusam","Jerawat","Tidak efek"],k:0},
+];
+
+function shuffle(arr){
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function acakJawaban(soal){
+  let list = soal.a.map((txt,i)=>({txt, isBenar: i===soal.k}));
+  list = shuffle(list);
+  return {q: soal.q, a: list.map(x=>x.txt), k: list.findIndex(x=>x.isBenar)};
+}
+const SOAL = shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
+
+let idx=0,benar=0,totalTime=888,sisaTotal=888,timer,salahList=[];
+function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/296`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
+function jawab(p){let k=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===k)el.classList.add('bener');if(i===p&&i!==k)el.classList.add('salah');});if(p===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[k]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/296`;setTimeout(()=>{idx++;render();},350);}
+function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
+function lanjutKeLevel6(){if(benar!==296) return;localStorage.setItem('level5_benar', benar);window.location.href='level6.html';}
+function end(){
+  clearInterval(timer);
+  document.getElementById('soalText').innerText='LEVEL 5 SELESAI!';
+  document.getElementById('pilihan').innerHTML='';
+  let listSalah=salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:11px;max-height:200px;overflow-y:auto;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length} SOAL:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:20px">👑 LEGEND! 296/296 SEMPURNA!</div>`;
+  let l1=localStorage.getItem('level1_benar')||0;
+  let l2=localStorage.getItem('level2_benar')||0;
+  let l3=localStorage.getItem('level3_benar')||0;
+  let l4=localStorage.getItem('level4_benar')||0;
+  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 296</div><div style="font-size:13px;color:#555">${benar===296? '100%! Lo layak ke Level 6!' : 'Wajib 100% (296/296) untuk lanjut! Soal akan acak lagi kalau ulangi!'}<br>Total: L1 ${l1}/16 | L2 ${l2}/32 | L3 ${l3}/74 | L4 ${l4} | L5 ${benar}/296<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
+  document.getElementById('btnUlang').style.display='block';
+  if(benar===296){document.getElementById('btnNext').style.display='block';}
+}
+render();start();
+</script>
+</body>
+</html>
