@@ -200,6 +200,7 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     <div class="logo" onclick="showPage('homePage')"><img src="solusiin.png" class="logo-img"><div class="logo-text">GET <span>AINUN</span></div></div>
     <div class="menu-atas">
    <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜</button>
+   <button class="btn-sm btn-menu" onclick="showPage('groupsPage',this)">👥 GRUP</button>
 <button onclick="bukaGame()" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
 <button class="btn-sm btn-menu active" onclick="showPage('homePage',this)">🏠</button>
       <button class="btn-sm btn-menu" onclick="showPage('jobsPage',this)">💼</button>
@@ -280,6 +281,29 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
     </div>
 
 <small style="display:block;text-align:center;margin-top:12px;opacity:0.6">*Semua hanya game edukasi, bukan tes psikologi</small>
+  </div>
+</div>
+
+
+
+<!-- FIX GRUP - HARUS TERPISAH, JANGAN DI DALAM friendsPage -->
+<div id="groupsPage" class="container" style="display:none">
+  <h2>👥 GRUP AINUN - 5 GRUP</h2>
+  <div class="grid" style="grid-template-columns: 300px 1fr; gap:20px">
+    <div class="card" style="height:fit-content">
+      <h3>Daftar Grup</h3>
+      <div id="listGroups"></div>
+    </div>
+    <div>
+      <div id="groupHeader" class="card" style="display:none"></div>
+      <div id="groupPostForm" class="card" style="display:none; border:2px solid var(--accent)">
+        <textarea id="grupIsi" class="input" rows="3" placeholder="Tulis di grup..."></textarea>
+        <input type="file" id="grupGambar" accept="image/*" class="input">
+        <input id="grupYoutube" class="input" placeholder="Link YouTube">
+        <button class="btn" style="width:100%" onclick="kirimPostGrup()">🚀 POST KE GRUP</button>
+      </div>
+      <div id="daftarPostGrup"></div>
+    </div>
   </div>
 </div>
 
@@ -1880,7 +1904,7 @@ window.showPage = async function(pageId, el){
   if(clickedEl) clickedEl.classList.add('active');
 
   // 3. SEMBUNYIIN SEMUA PAGE
-  const allPages = ['homePage','feedPage','gamePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'];
+  const allPages = ['homePage','feedPage','groupsPage','gamePage','jobsPage','penyediaPage','videosPage','friendsPage','myProfilePage','chatPage','profilOrangPage','adminPage'];
   allPages.forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
@@ -1907,6 +1931,8 @@ window.showPage = async function(pageId, el){
       }
       loadFeed('semua');
     }
+
+    if(pageId==='groupsPage') loadGroups();
     if(pageId==='jobsPage') loadJobs();
     if(pageId==='penyediaPage') loadPenyedia();
     if(pageId==='friendsPage'){ 
@@ -2343,6 +2369,285 @@ window.hapusKomen = async function(komenId, postId){
   if(!error) loadFeed('semua');
 }
 
+
+let grupAktif = null;
+const GRUP_HARDCODE = [
+  {id:'entertain', nama:'GRUP ENTERTAIN', slug:'entertain', deskripsi:'Grup publik semua orang bisa join', tipe:'public', icon:'🎭'},
+  {id:'the-gifted', nama:'THE GIFTED', slug:'the-gifted', deskripsi:'Grup privat hanya admin add', tipe:'private', icon:'🧠'},
+  {id:'bahasa', nama:'GRUP BAHASA', slug:'bahasa', deskripsi:'Publik belajar bahasa', tipe:'public', icon:'🗣️'},
+  {id:'ekonomi', nama:'GRUP EKONOMI', slug:'ekonomi', deskripsi:'Publik ekonomi & bisnis', tipe:'public', icon:'💰'},
+  {id:'kinestetik', nama:'GRUP KINESTETIK', slug:'kinestetik', deskripsi:'Publik olahraga & gerak', tipe:'public', icon:'🏃'},
+];
+
+async function loadGroups(){
+  let data = GRUP_HARDCODE;
+  try{
+    const { data: db } = await supabase.from('groups').select('*');
+    if(db && db.length>0) data = db;
+  }catch(e){}
+
+  const c = document.getElementById('listGroups');
+  if(!c) return;
+  c.innerHTML='';
+  data.forEach(g=>{
+    let lock = g.tipe==='private'? '🔒 PRIVATE' : '🌍 PUBLIK';
+    let active = grupAktif===g.id? 'border:3px solid var(--accent); background:#E8F4F8' : '';
+    c.innerHTML+=`<div class="card" style="padding:12px; cursor:pointer; margin-bottom:8px; ${active}" onclick="bukaGrup('${g.id}')">
+      <b>${g.icon} ${g.nama}</b><br><small>${lock} • ${g.deskripsi}</small><br>
+      <button class="btn-sm" style="margin-top:6px; width:100%">Buka Grup</button>
+    </div>`;
+  });
+  if(!grupAktif) bukaGrup(data[0].id);
+}
+
+async function bukaGrup(id){
+  grupAktif=id;
+  let g = GRUP_HARDCODE.find(x=>x.id===id);
+  try{
+    const { data } = await supabase.from('groups').select('*').eq('id',id).single();
+    if(data) g=data;
+  }catch(e){}
+
+  // CEK MEMBER & REQUEST
+  let isMember = false;
+  let hasRequest = false;
+  if(userLogin){
+    try{
+      const { data: mem } = await supabase.from('group_members').select('*').eq('group_id',id).eq('user_id',userLogin.id).maybeSingle();
+      if(mem) isMember = true;
+      const { data: req } = await supabase.from('group_join_requests').select('*').eq('group_id',id).eq('user_id',userLogin.id).eq('status','pending').maybeSingle();
+      if(req) hasRequest = true;
+    }catch(e){}
+  }
+
+  let btnAction = '';
+  if(!userLogin){
+    btnAction = `<button class="btn" onclick="openModal('login')">LOGIN DULU UNTUK GABUNG</button>`;
+  } else if(isMember){
+    btnAction = `<div style="background:#E8F5E9; padding:10px; border-radius:8px; text-align:center">
+      <b style="color:#27AE60">✅ Kamu sudah anggota</b><br>
+      <button class="btn btn-batal btn-sm" style="margin-top:6px" onclick="keluarGrup('${g.id}')">Keluar Grup</button>
+    </div>`;
+  } else if(g.tipe==='public'){
+    btnAction = `<button class="btn btn-sukses" style="width:100%" onclick="joinGrupPublik('${g.id}')">➕ GABUNG GRUP (Langsung Jadi Anggota)</button>`;
+  } else {
+    if(hasRequest){
+      btnAction = `<div style="background:#FFF3E0; padding:10px; border-radius:8px; text-align:center"><b style="color:orange">⏳ Request menunggu admin</b></div>`;
+    } else {
+      btnAction = `<button class="btn" style="width:100%; background:#FF9800" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST GABUNG THE GIFTED (Butuh Admin)</button>`;
+    }
+  }
+
+  document.getElementById('groupHeader').style.display='block';
+  document.getElementById('groupHeader').innerHTML=`
+    <h3>${g.icon} ${g.nama} ${g.tipe==='private'?'🔒 PRIVATE':''}</h3>
+    <p>${g.deskripsi}</p>
+    <p style="font-size:13px; color:gray">${g.tipe==='private'?'Hanya admin bisa add orang':'Publik - semua bisa join'}</p>
+    <div style="margin-top:10px">${btnAction}</div>
+    <div id="adminRequestList" style="margin-top:15px"></div>
+  `;
+
+  // form posting cuma untuk member
+  const postForm = document.getElementById('groupPostForm');
+  if(postForm) postForm.style.display = isMember? 'block' : 'none';
+
+  loadGroups();
+  loadPostGrup(id);
+  if(userLogin) loadRequestUntukAdmin(id);
+}
+
+// PUBLIK LANGSUNG JOIN
+async function joinGrupPublik(groupId){
+  if(!userLogin) return alert('Login dulu');
+  const { error } = await supabase.from('group_members').insert({group_id:groupId, user_id:userLogin.id});
+  if(error){
+    if(error.message.includes('duplicate') || error.message.includes('unique')) return alert('Kamu sudah anggota');
+    return alert(error.message);
+  }
+  alert('✅ Berhasil gabung!');
+  bukaGrup(groupId);
+}
+
+// PRIVATE REQUEST
+async function requestJoinGifted(groupId){
+  if(!userLogin) return alert('Login dulu');
+  const { error } = await supabase.from('group_join_requests').insert({group_id:groupId, user_id:userLogin.id, status:'pending'});
+  if(error){
+    if(error.message.includes('unique')) return alert('Kamu sudah request, tunggu admin');
+    return alert(error.message);
+  }
+  alert('📩 Request terkirim ke admin');
+  bukaGrup(groupId);
+}
+
+async function loadRequestUntukAdmin(groupId){
+  if(!userLogin) return;
+  const { data: u } = await supabase.from('users').select('role').eq('id',userLogin.id).single();
+  if(u?.role!=='admin') return;
+
+  const { data: reqs } = await supabase.from('group_join_requests').select('*, users!group_join_requests_user_id_fkey(id,nama,foto)').eq('group_id',groupId).eq('status','pending');
+  const c = document.getElementById('adminRequestList');
+  if(!c) return;
+  if(!reqs || reqs.length===0){
+    c.innerHTML = `<p style="font-size:12px; color:gray">Tidak ada request pending (Admin)</p>`;
+    return;
+  }
+  c.innerHTML = `<h4>📩 Request Masuk (Admin) - ${reqs.length}</h4>`;
+  reqs.forEach(r=>{
+    c.innerHTML+=`<div class="card" style="padding:10px; margin-top:8px; display:flex; align-items:center; gap:10px">
+      <img src="${r.users?.foto||''}" style="width:40px; height:40px; border-radius:50%">
+      <div style="flex:1"><b>${r.users?.nama}</b><br><small>${new Date(r.created_at).toLocaleString('id-ID')}</small></div>
+      <button class="btn btn-sukses btn-sm" onclick="approveRequest('${r.id}','${r.group_id}','${r.user_id}')">TERIMA</button>
+      <button class="btn btn-batal btn-sm" onclick="rejectRequest('${r.id}')">TOLAK</button>
+    </div>`;
+  });
+}
+
+async function approveRequest(reqId, groupId, userId){
+  await supabase.from('group_members').insert({group_id:groupId, user_id:userId});
+  await supabase.from('group_join_requests').update({status:'approved'}).eq('id',reqId);
+  alert('Diterima');
+  bukaGrup(groupId);
+}
+async function rejectRequest(reqId){
+  await supabase.from('group_join_requests').update({status:'rejected'}).eq('id',reqId);
+  alert('Ditolak');
+  loadRequestUntukAdmin(grupAktif);
+}
+async function keluarGrup(groupId){
+  if(!confirm('Yakin keluar grup?')) return;
+  await supabase.from('group_members').delete().eq('group_id',groupId).eq('user_id',userLogin.id);
+  bukaGrup(groupId);
+}
+
+// sisanya tetap punya lu
+let grupFile=null;
+function previewGrupGambar(e){
+  grupFile=e.target.files[0];
+  const r=new FileReader();
+  r.onload=ev=>{
+    const el=document.getElementById('previewGrupImg');
+    el.src=ev.target.result; el.style.display='block';
+  };
+  if(grupFile) r.readAsDataURL(grupFile);
+}
+function togglePollForm(){
+  const f=document.getElementById('grupPollingForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+}
+
+async function kirimPostGrup(){
+  if(!userLogin) return alert('Login dulu');
+  const isi=document.getElementById('grupIsi').value.trim();
+  const yt=document.getElementById('grupYoutube').value.trim();
+  let gambarUrl=null;
+  let tipe='text';
+
+  if(grupFile){
+    const comp=await compressImage(grupFile,800);
+    const path=`groups/${grupAktif}/${userLogin.id}-${Date.now()}.jpg`;
+    await supabase.storage.from('postingan').upload(path,comp);
+    const { data }=await supabase.storage.from('postingan').getPublicUrl(path);
+    gambarUrl=data.publicUrl; tipe='image';
+  }
+  if(yt){
+    tipe='youtube';
+    gambarUrl=null;
+  }
+  const pollQ=document.getElementById('pollPertanyaan')?.value.trim();
+  if(pollQ) tipe='poll';
+
+  const { data: post, error }=await supabase.from('group_posts').insert({
+    group_id:grupAktif, user_id:userLogin.id, isi, gambar_url:gambarUrl, youtube_url: yt||null, tipe
+  }).select().single();
+  if(error) return alert(error.message);
+
+  if(tipe==='poll'){
+    const { data: poll }=await supabase.from('group_polls').insert({post_id:post.id, pertanyaan:pollQ}).select().single();
+    const opsi1 = document.getElementById('pollOpsi1')?.value;
+    const opsi2 = document.getElementById('pollOpsi2')?.value;
+    const opsi3 = document.getElementById('pollOpsi3')?.value;
+    const opsis=[opsi1, opsi2, opsi3].filter(Boolean);
+    for(let o of opsis){
+      await supabase.from('group_poll_options').insert({poll_id:poll.id, opsi:o});
+    }
+  }
+  document.getElementById('grupIsi').value='';
+  const ytEl = document.getElementById('grupYoutube');
+  if(ytEl) ytEl.value='';
+  const prev = document.getElementById('previewGrupImg');
+  if(prev) prev.style.display='none';
+  grupFile=null;
+  loadPostGrup(grupAktif);
+}
+
+async function loadPostGrup(groupId){
+  const { data }=await supabase.from('group_posts').select('*, users!group_posts_user_id_fkey(id,nama,foto)').eq('group_id',groupId).order('created_at',{ascending:false}).limit(30);
+  const c=document.getElementById('daftarPostGrup');
+  if(!c) return;
+  c.innerHTML='';
+  if(!data || data.length===0) return c.innerHTML='<p class="card">Belum ada postingan di grup ini</p>';
+  for(let p of data){
+    let konten='';
+    if(p.tipe==='image') konten=`<img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')">`;
+    if(p.tipe==='youtube'){
+      let embed=getYoutubeEmbed(p.youtube_url);
+      if(embed) konten=`<iframe src="${embed}" style="width:100%; height:250px; border-radius:10px" frameborder="0" allowfullscreen></iframe>`;
+    }
+    if(p.tipe==='poll'){
+      const { data: poll }=await supabase.from('group_polls').select('*, group_poll_options(*)').eq('post_id',p.id).single();
+      if(poll){
+        const { data: votes }=await supabase.from('group_poll_votes').select('*').eq('poll_id',poll.id);
+        konten=`<div style="border:1px solid var(--border); padding:10px; border-radius:10px"><b>📊 ${poll.pertanyaan}</b>`;
+        poll.group_poll_options.forEach(o=>{
+          let jml=votes?.filter(v=>v.option_id===o.id).length||0;
+          let total=votes?.length||1;
+          konten+=`<div style="margin-top:8px"><button class="btn btn-sm" style="width:100%; text-align:left" onclick="votePoll('${poll.id}','${o.id}')">${o.opsi} - ${jml} suara (${Math.round(jml/total*100)}%)</button></div>`;
+        });
+        konten+=`</div>`;
+      }
+    }
+    c.innerHTML+=`<div class="card">
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px">
+        <img src="${p.users?.foto||''}" style="width:35px;height:35px;border-radius:50%" onclick="lihatProfilOrang('${p.users?.id}')">
+        <b style="color:var(--accent)">${p.users?.nama}</b> <small style="color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+      </div>
+      <p style="white-space:pre-wrap">${escapeHtml(p.isi||'')}</p>
+      ${konten}
+      <div style="display:flex; gap:8px; margin-top:10px; border-top:1px solid #eee; padding-top:8px">
+        <input id="komenGrup-${p.id}" class="input" style="margin:0" placeholder="Komen..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')">
+        <button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">💬</button>
+      </div>
+      <div id="listKomenGrup-${p.id}" style="margin-top:8px"></div>
+    </div>`;
+    loadKomenGrup(p.id);
+  }
+}
+
+async function loadKomenGrup(postId){
+  const { data }=await supabase.from('group_comments').select('*, users!group_comments_user_id_fkey(nama,foto)').eq('post_id',postId).order('created_at');
+  const c=document.getElementById(`listKomenGrup-${postId}`);
+  if(!c) return;
+  c.innerHTML='';
+  if(data) data.forEach(k=>{
+    c.innerHTML+=`<div style="display:flex; gap:6px; font-size:13px; margin-bottom:6px"><img src="${k.users?.foto||''}" style="width:22px;height:22px;border-radius:50%"><div><b>${escapeHtml(k.users?.nama)}</b> ${escapeHtml(k.isi)}</div></div>`;
+  });
+}
+
+async function kirimKomenGrup(postId){
+  const input=document.getElementById(`komenGrup-${postId}`);
+  const isi=input.value.trim();
+  if(!isi) return;
+  await supabase.from('group_comments').insert({post_id:postId, user_id:userLogin.id, isi});
+  input.value='';
+  loadKomenGrup(postId);
+}
+
+async function votePoll(pollId, optionId){
+  const { error }=await supabase.from('group_poll_votes').insert({poll_id:pollId, option_id:optionId, user_id:userLogin.id});
+  if(error) return alert('Kamu udah vote');
+  loadPostGrup(grupAktif);
+}
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
   if(!input.value.trim() ||!convAktif ||!lawanChatAktif) return;
