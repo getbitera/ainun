@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEVEL 4 - 148 SOAL - BIRU MUDA</title>
+<style>
+body{font-family:Arial;background:linear-gradient(135deg,#BBDEFB,#90CAF9,#42A5F5);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
+.container{max-width:700px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #0D47A1;text-align:center}
+.timer{height:12px;background:#BBDEFB;border-radius:6px;overflow:hidden;margin:10px 0}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%;transition:width 0.1s linear}
+.soal{font-size:17px;font-weight:900;margin:15px 0;min-height:60px;color:#0D47A1;text-align:left}
+.pil{padding:11px;background:#E3F2FD;border:2px solid #64B5F6;border-radius:10px;cursor:pointer;font-weight:700;margin-bottom:6px;color:#0D47A1;text-align:left;font-size:13px}
+.pil.bener{background:#00C853!important;color:#fff;border-color:#00C853}
+.pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#1565C0;font-size:13px}
+.btn-next{display:none;margin:15px auto;padding:14px 25px;background:#0D47A1;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
+.btn-ulang{margin:8px auto;padding:12px 20px;background:#E3F2FD;color:#0D47A1;border:2px solid #0D47A1;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+</style></head><body><div class="container">
+<h2 style="color:#0D47A1">LEVEL 4 - 148 SOAL - BIRU MUDA</h2>
+<div class="info"><span id="noSoal">Soal 1/148</span><span id="benar">BENAR: 0/148</span><span id="totalTimer">444.0s</span></div>
+<div class="timer"><div id="timerBar"></div></div>
+<div class="soal" id="soalText"></div><div id="pilihan"></div>
+<div id="hasil" style="font-weight:900;color:#0D47A1;margin-top:15px"></div>
+<button id="btnNext" class="btn-next" onclick="location.href='level5.html'">LANJUT KE LEVEL 5</button>
+<button id="btnUlang" class="btn-ulang" onclick="location.reload()">ULANGI LEVEL 4</button>
+<div style="margin-top:12px;display:flex;justify-content:space-between"><a href="level3.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 3</a><a href="level5.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 5</a></div></div>
+<script>
+const SOAL_ORIG=[
+{q:"Turunan sin(x)?",a:["cos(x)","-cos(x)","-sin(x)","tan(x)"],k:0},
+{q:"Integral x dx?",a:["x^2","x^2/2+C","1","ln x"],k:1},
+{q:"Kecepatan cahaya vakum?",a:["3x10^6","3x10^8","3x10^10","3x10^5"],k:1},
+{q:"Hukum II Newton?",a:["m/v","m*a","m/v^2","p*t"],k:1},
+{q:"Energi potensial?",a:["1/2mv^2","m*g*h","m*c^2","F*s"],k:1},
+{q:"[H+]=10^-3 pH?",a:["1","3","11","14"],k:1},
+{q:"Konfigurasi 1s2 2s2 2p6?",a:["Ne","O","F","Na"],k:0},
+{q:"Gaya Lorentz?",a:["qVB sinT","qV/B","m*a","kq1q2/r^2"],k:0},
+{q:"Gas ideal?",a:["PV=nRT","PV=nT","P=V/nRT","V=nR/P"],k:0},
+{q:"lim sinx/x x->0?",a:["0","1","inf","Tidak ada"],k:1},
+{q:"log10 1000?",a:["2","3","4","10"],k:1},
+{q:"i x j?",a:["k","-k","0","i"],k:0},
+{q:"Seri 2ohm+3ohm?",a:["1.2ohm","5ohm","6ohm","2.5ohm"],k:1},
+{q:"Resonansi LC f?",a:["1/2pi sqrtLC","2pi sqrtLC","LC/2pi","sqrtLC"],k:0},
+{q:"Eksoterm?",a:["Lepas panas","Serap panas","Lepas dingin","Netral"],k:0},
+{q:"C-14 neutron?",a:["6","8","14","12"],k:1},
+{q:"dH pembakaran?",a:["Negatif","Positif","Nol","inf"],k:0},
+{q:"x2-5x+6=0?",a:["2 dan 3","1 dan 6","-2 -3","2 -3"],k:0},
+{q:"Matriks identitas 2x2?",a:["[1 0;0 1]","[0 1;1 0]","[1 1;1 1]","[0 0;0 0]"],k:0},
+{q:"Momentum p?",a:["m*v","m/a","F*t","m*g"],k:0},
+{q:"Satuan daya?",a:["Joule","Watt","Newton","Pascal"],k:1},
+{q:"Avogadro?",a:["6.02e23","3e8","1.6e-19","9.11e-31"],k:0},
+{q:"Luas lingkaran?",a:["pi r2","2pi r","pi d","4/3 pi r3"],k:0},
+{q:"PLTA?",a:["Potensial->Listrik","Kinetik->Potensial","Kimia->Panas","Listrik->Gerak"],k:0},
+{q:"lambda terpendek EM?",a:["Radio","Gamma","Inframerah","Tampak"],k:1},
+{q:"Benda hitam e?",a:["0","1","0.5","inf"],k:1},
+{q:"f=x3 f'(2)?",a:["6","8","12","4"],k:2},
+{q:"K>1?",a:["Produk dominan","Reaktan dominan","Setimbang","Tidak reaksi"],k:0},
+{q:"Fc sentripetal?",a:["mv2/r","mvr","mv/r","mr2/v"],k:0},
+{q:"Buffer?",a:["Asam lemah+garamnya","Asam kuat+basa kuat","Air","Garam"],k:0},
+{q:"1 eV ke Joule?",a:["1.6e-19","1.6e-16","9.11e-31","3e8"],k:0},
+{q:"Det [2 3;1 4]?",a:["5","8","11","6"],k:0},
+{q:"Ohm V?",a:["I*R","I/R","R/I","P*I"],k:0},
+{q:"g bumi?",a:["9.8 m/s2","10 N","9.8 m/s","10 m/s2 ke atas"],k:0},
+{q:"Redoks?",a:["Transfer elektron","Transfer proton","Transfer neutron","Transfer foton"],k:0},
+{q:"Volume bola?",a:["4/3 pi r3","4 pi r2","pi r2 h","2 pi r"],k:0},
+{q:"Entropi semesta?",a:["Meningkat","Menurun","Tetap","Nol"],k:0},
+{q:"sin2+cos2?",a:["1","0","2","-1"],k:0},
+{q:"Coulomb F prop?",a:["1/r2","r2","r","1/r"],k:0},
+{q:"Ikatan terkuat?",a:["Kovalen","Ion","Van der Waals","Hidrogen"],k:0},
+{q:"omega?",a:["2pi f","f/2pi","v*r","v/r2"],k:0},
+{q:"Inersia bola pejal?",a:["2/5MR2","1/2MR2","MR2","2/3MR2"],k:0},
+{q:"pH 9?",a:["Asam kuat","Basa","Netral","Asam lemah"],k:1},
+{q:"Usaha W?",a:["F*s cosT","F*s sinT","F/v","m*a"],k:0},
+{q:"e^ln2?",a:["2","e","1","0"],k:0},
+{q:"lambda de Broglie?",a:["h/p","p/h","h*mv","c/f"],k:0},
+{q:"Orde nol?",a:["Konsentrasi","Suhu","Katalis","Tekanan"],k:0},
+{q:"P hidrostatis?",a:["rho g h","rho g/h","m g h","F/A"],k:0},
+{q:"log2+log5?",a:["log7","log10=1","log2.5","7"],k:1},
+{q:"Vrms=Vmax/?",a:["sqrt2","2","1/2","sqrt3"],k:0},
+{q:"Massa elektron?",a:["9.11e-31 kg","1.67e-27 kg","9.11e-28 kg","1.6e-19 kg"],k:0},
+{q:"Schrodinger untuk?",a:["Kuantum","Klasik","Relativitas","Termo"],k:0},
+{q:"2^x=8?",a:["2","3","4","8"],k:1},
+{q:"Kapasitor seri?",a:["1/C1+1/C2","C1+C2","C1*C2","C1/C2"],k:0},
+{q:"Grafik y=x2?",a:["Parabola","Hiperbola","Garis","Lingkaran"],k:0},
+{q:"Termo I dU?",a:["Q-W","Q+W","W-Q","Q/W"],k:0},
+{q:"Isomer butana?",a:["1","2","3","4"],k:1},
+{q:"Escape velocity?",a:["11.2 km/s","7.9 km/s","3 km/s","15 km/s"],k:0},
+{q:"akar 64?",a:["6","7","8","9"],k:2},
+{q:"Energi relativistik?",a:["gamma mc2-mc2","1/2 mv2","mc2","mv"],k:0},
+{q:"22.4 L STP?",a:["1 mol","2 mol","0.5 mol","22.4 mol"],k:0},
+{q:"f=|x| tidak diff di?",a:["x=0","x=1","Semua","x=-1"],k:0},
+{q:"B solenoid?",a:["mu0 n I","mu0 I/n","n I/mu0","mu0/nI"],k:0},
+{q:"Kesetimbangan bergeser jika?",a:["Suhu diubah","Warna diubah","Wadah","Waktu"],k:0},
+{q:"pi approx?",a:["3.14","2.71","1.61","22.7"],k:0},
+{q:"Vektor sejajar cross?",a:["0","1","Maks","Undefined"],k:0},
+{q:"Kalor jenis air?",a:["4.18 J/gK","1 J/gK","0.5 J/gK","9.8 J/gK"],k:0},
+{q:"Garis lurus?",a:["y=mx+c","y=x2+c","y=m/x","y=sqrt x"],k:0},
+{q:"Efek Doppler?",a:["Frekuensi relatif","Amplitudo","Medium","Suhu"],k:0},
+{q:"Orbital d max?",a:["2","6","10","14"],k:2},
+{q:"Gaya pegas?",a:["-kx","kx2","k/x","k*v"],k:0},
+{q:"Akar x2=9?",a:["+-3","3 saja","-3 saja","9"],k:0},
+{q:"Lensa cembung?",a:["Konvergen","Divergen","Netral","Menyebar"],k:0},
+{q:"Spin elektron?",a:["+-1/2","+-1","0","+-2"],k:0},
+{q:"Turunan cos?",a:["-sin","sin","cos","-cos"],k:0},
+{q:"Integral 1/x?",a:["ln|x|+C","x+C","1/x2+C","e^x+C"],k:0},
+{q:"Boyle P1V1?",a:["P2V2","P2/V2","V2/P2","Konstan"],k:0},
+{q:"Muatan proton?",a:["+1.6e-19 C","-1.6e-19 C","0","9.11e-31 C"],k:0},
+{q:"Dimensi energi?",a:["ML2T-2","MLT-2","ML2T-3","MLT-1"],k:0},
+{q:"Fotosintesis butuh?",a:["CO2+H2O+cahaya","O2 saja","Glukosa","N2"],k:0},
+{q:"Lingkaran pusat 0?",a:["x2+y2=r2","x2-y2=r2","x+y=r","x2+y=r"],k:0},
+{q:"Invers sin?",a:["arcsin","cos","tan","sec"],k:0},
+{q:"Satuan kapasitansi?",a:["Farad","Henry","Ohm","Watt"],k:0},
+{q:"Snellius?",a:["Pembiasan","Pemantulan","Difraksi","Interferensi"],k:0},
+{q:"Prima terkecil?",a:["1","2","3","0"],k:1},
+{q:"ln e?",a:["1","0","e","2"],k:0},
+{q:"Gaya normal datar?",a:["mg","mg sinT","mg cosT","0"],k:0},
+{q:"Kalor lebur es?",a:["80 kal/g","540 kal/g","1 kal/g","100 kal/g"],k:0},
+{q:"Singular det?",a:["0","1","-1","inf"],k:0},
+{q:"Kepler III T2 prop?",a:["r3","r2","r","1/r"],k:0},
+{q:"Ikatan H terkuat?",a:["HF","H2O","NH3","HCl"],k:0},
+{q:"pi rad?",a:["180 deg","90 deg","360 deg","57 deg"],k:0},
+{q:"Daya P?",a:["VI","V/I","I/V","V2/I2"],k:0},
+{q:"Gas mulia inert?",a:["He","H","N","O"],k:0},
+{q:"10^0?",a:["0","1","10","Undefined"],k:1},
+{q:"Koligatif?",a:["Jumlah partikel","Jenis zat","Warna","Bau"],k:0},
+{q:"Medan listrik E?",a:["F/q","q/F","V/I","I/R"],k:0},
+{q:"Lenz?",a:["Arah arus induksi","Gravitasi","Tekanan","Suhu"],k:0},
+{q:"Turunan e^x?",a:["e^x","x*e^x","ln x","0"],k:0},
+{q:"Foton E?",a:["h f","1/2 m v2","m c2","q V"],k:0},
+{q:"Charles V prop?",a:["T","1/T","P","1/P"],k:0},
+{q:"Bilangan kuantum utama?",a:["Energi","Bentuk orbital","Orientasi","Spin"],k:0},
+{q:"Endoterm dH?",a:["Positif","Negatif","Nol","inf"],k:0},
+{q:"Bunyi di udara?",a:["340 m/s","3e8 m/s","1500 m/s","0 m/s"],k:0},
+{q:"Lensa cekung?",a:["Divergen","Konvergen","Netral","Reflektor"],k:0},
+{q:"Kekekalan massa oleh?",a:["Lavoisier","Proust","Dalton","Boyle"],k:0},
+{q:"Luas persegi panjang?",a:["p*l","2(p+l)","p+l","p2"],k:0},
+{q:"cos 60?",a:["0.5","sqrt3/2","1","0"],k:0},
+{q:"sin 90?",a:["0","0.5","1","-1"],k:2},
+{q:"Det identitas?",a:["1","0","-1","2"],k:0},
+{q:"a.b=0 vektor?",a:["Tegak lurus","Sejajar","Sama","Nol"],k:0},
+{q:"Satuan frekuensi?",a:["Hz","Joule","Watt","Newton"],k:0},
+{q:"Isobarik P?",a:["Konstan","Berubah","Nol","inf"],k:0},
+{q:"Isotermik T?",a:["Konstan","Naik","Turun","Nol"],k:0},
+{q:"Paling elektronegatif?",a:["F","O","Cl","N"],k:0},
+{q:"Bohr a0?",a:["0.529 A","1 A","1 nm","1 pm"],k:0},
+{q:"Avogadro V prop?",a:["n","P","T","m"],k:0},
+{q:"pOH+pH?",a:["14","7","0","1"],k:0},
+{q:"Asam kuat?",a:["HCl","CH3COOH","H2O","NH3"],k:0},
+{q:"Basa kuat?",a:["NaOH","NH3","H2O","CH3COOH"],k:0},
+{q:"1 putaran?",a:["2pi rad","pi rad","360 rad","1 rad"],k:0},
+{q:"a sentripetal?",a:["v2/r","v r","v/r","r2/v"],k:0},
+{q:"O-18 (Z=8) jadi O2- neutron+elektron?",a:["Neutron 10, Elektron 10","Neutron 10, Elektron 8","Neutron 10, Elektron 6","Neutron 18, Elektron 10"],k:0},
+{q:"Orde1 t1/2?",a:["0.693/k","1/k","k/0.693","k"],k:0},
+{q:"Transversal contoh?",a:["Cahaya","Bunyi","Pegas","Air"],k:0},
+{q:"Longitudinal contoh?",a:["Bunyi","Cahaya","Radio","Gamma"],k:0},
+{q:"Indeks bias n?",a:["c/v","v/c","f*lambda","lambda/f"],k:0},
+{q:"Hooke berlaku?",a:["Elastis","Plastis","Cair","Gas"],k:0},
+{q:"Young satuan?",a:["Pascal","Newton","Joule","Watt"],k:0},
+{q:"G?",a:["6.67e-11","9.8","3e8","1.6e-19"],k:0},
+{q:"Pascal tekanan?",a:["Sama segala arah","Berkurang","Bertambah","Hilang"],k:0},
+{q:"Ukur arus?",a:["Amperemeter","Voltmeter","Ohmmeter","Barometer"],k:0},
+{q:"Ukur tegangan?",a:["Voltmeter","Amperemeter","Ohmmeter","Termometer"],k:0},
+{q:"Trafo ideal P1?",a:["P2","2P2","P2/2","0"],k:0},
+{q:"Carnot efisiensi?",a:["1-Tc/Th","Tc/Th","Th/Tc","1+Tc/Th"],k:0},
+{q:"Kontinuitas A1v1?",a:["A2v2","A2/v2","v2/A2","0"],k:0},
+{q:"Biloks O umum?",a:["-2","-1","+2","0"],k:0},
+{q:"Biloks H umum?",a:["+1","-1","0","+2"],k:0},
+{q:"Netralisasi hasil?",a:["Garam+air","Asam","Basa","Gas"],k:0},
+{q:"Mol n?",a:["m/Mr","Mr/m","M*m","V/M"],k:0},
+{q:"rms gas prop?",a:["sqrt T","T","1/sqrt T","1/T"],k:0},
+{q:"Dalton Ptotal?",a:["Sum Pi","Prod Pi","P1-P2","P1/P2"],k:0},
+{q:"Isomer geometri syarat?",a:["C=C+2 substituen beda","C-C","C tripel","Cincin"],k:0},
+{q:"Hibridisasi CH4?",a:["sp3","sp2","sp","dsp2"],k:0},
+{q:"Sudut H2O?",a:["104.5 deg","180 deg","120 deg","109.5 deg"],k:0},
+{q:"Bentuk BF3?",a:["Trigonal planar","Tetrahedral","Linear","Bengkok"],k:0},
+{q:"London termasuk?",a:["Van der Waals","Kovalen","Ion","Logam"],k:0},
+{q:"Larutan jenuh?",a:["Max zat terlarut","Min","Encer","Pekat"],k:0}
+];
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function acakJawaban(s){let l=s.a.map((t,i)=>({t,isBenar:i===s.k}));l=shuffle(l);return{q:s.q,a:l.map(x=>x.t),k:l.findIndex(x=>x.isBenar)}}
+const SOAL=shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
+let idx=0,benar=0,totalTime=444,sisaTotal=444,timer,salahList=[];
+function render(){if(idx>=SOAL.length){end();return}document.getElementById('noSoal').innerText='Soal '+(idx+1)+'/148';document.getElementById('soalText').innerText=(idx+1)+'. '+SOAL[idx].q;let d=document.getElementById('pilihan');d.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=String.fromCharCode(65+i)+'. '+t;b.onclick=()=>jawab(i);d.appendChild(b)})}
+function jawab(p){let k=SOAL[idx].k;document.querySelectorAll('.pil').forEach((e,i)=>{e.style.pointerEvents='none';if(i===k)e.classList.add('bener');if(i===p&&i!==k)e.classList.add('salah')});if(p===k)benar++;else salahList.push((idx+1)+'. '+SOAL[idx].q);document.getElementById('benar').innerText='BENAR: '+benar+'/148';setTimeout(()=>{idx++;render()},350)}
+function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end()},100)}
+function end(){clearInterval(timer);document.getElementById('soalText').innerText='LEVEL 4 SELESAI!';document.getElementById('pilihan').innerHTML='';document.getElementById('hasil').innerHTML='BENAR: '+benar+' dari 148<br>Waktu sisa: '+sisaTotal.toFixed(1)+'s';document.getElementById('btnUlang').style.display='block';if(benar===148)document.getElementById('btnNext').style.display='block'}
+render();start();
+</script></body></html>
