@@ -2374,8 +2374,8 @@ window.hapusKomen = async function(komenId, postId){
 
 
 // ===== GRUP FIX FINAL - GLOBAL =====
-// ===== GRUP FIX FINAL - 5 GRUP + POST WORK =====
-window.grupAktif = null;
+// ===== GRUP FIX FINAL - 5 GRUP + POST WORK =====// ===== GRUP FIX FINAL - EDITAN LUI =====
+window.grupAktif = window.grupAktif || null;
 window.grupFile = null;
 window.GRUP_HARDCODE = [
   {id:'entertain', nama:'GRUP ENTERTAIN', slug:'entertain', deskripsi:'Grup publik semua orang bisa join', tipe:'public', icon:'🎭'},
@@ -2389,15 +2389,28 @@ window.loadGroups = async function(){
   const c = document.getElementById('listGroups');
   if(!c) return;
   c.innerHTML = '';
-  let data = window.GRUP_HARDCODE;
   let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
   let myReqs = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
+  let allPosts = JSON.parse(localStorage.getItem('local_group_posts')||'[]');
+  let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
 
-  data.forEach(g=>{
+  // coba hitung real dari supabase
+  let counts = {};
+  try{
+    const { data: m } = await supabase.from('group_members').select('group_id');
+    const { data: p } = await supabase.from('group_posts').select('group_id');
+    m?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], members:(counts[x.group_id]?.members||0)+1});
+    p?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], posts:(counts[x.group_id]?.posts||0)+1});
+  }catch(e){}
+
+  window.GRUP_HARDCODE.forEach(g=>{
     let isMember = myGroups.includes(g.id);
     let hasReq = myReqs.includes(g.id);
+    let jmlAnggota = counts[g.id]?.members || (allMembers[g.id]?.length || 0);
+    let jmlPost = counts[g.id]?.posts || allPosts.filter(x=>x.group_id===g.id).length;
+
     let active = window.grupAktif===g.id? 'border:3px solid var(--accent); background:#E8F4F8' : '';
-    let lock = g.tipe==='private'? '🔒 PRIVATE' : '🌍 PUBLIK';
+    let lock = g.tipe==='private'? '🔒 PRIVATE' : '🟢 PUBLIK';
     let btn = '';
     if(!userLogin){
       btn = `<button class="btn-sm" style="width:100%; margin-top:8px" onclick="openModal('login')">LOGIN DULU</button>`;
@@ -2408,9 +2421,17 @@ window.loadGroups = async function(){
         (hasReq? `<button class="btn-sm" style="width:100%; margin-top:8px" disabled>⏳ Menunggu</button>` : `<button class="btn-sm" style="width:100%; margin-top:8px; background:#FF9800; color:#fff" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST</button>`) :
         `<button class="btn-sm" style="width:100%; margin-top:8px" onclick="joinGrupPublik('${g.id}')">➕ GABUNG GRUP</button>`;
     }
-    c.innerHTML += `<div class="card" style="padding:12px; margin-bottom:10px; ${active}"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small>${btn}</div>`;
+    c.innerHTML += `<div class="card" style="padding:12px; margin-bottom:10px; ${active}">
+      <b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br>
+      <small style="color:var(--accent); font-weight:bold">👥 ${jmlAnggota} anggota • 📝 ${jmlPost} postingan</small>
+      ${btn}
+    </div>`;
   });
-  if(!window.grupAktif && data.length>0) window.bukaGrup(data[0].id);
+  // jangan auto-buka di dalam loadGroups biar gak loop blank, cek di luar
+  if(!window.grupAktif && window.GRUP_HARDCODE.length>0){
+    window.grupAktif = window.GRUP_HARDCODE[0].id;
+    bukaGrup(window.grupAktif);
+  }
 }
 
 window.bukaGrup = async function(id){
@@ -2418,232 +2439,116 @@ window.bukaGrup = async function(id){
   let g = window.GRUP_HARDCODE.find(x=>x.id===id);
   if(!g) return;
 
-  // CEK ANGGOTA - LOCAL + SUPABASE
   let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
   let isMember = myGroups.includes(id);
-  
-  if(userLogin && !isMember){
+  if(userLogin &&!isMember){
     try{
       const { data: mem } = await supabase.from('group_members').select('id').eq('group_id',id).eq('user_id',userLogin.id).maybeSingle();
-      if(mem) {
-        isMember = true;
-        if(!myGroups.includes(id)){ myGroups.push(id); localStorage.setItem('my_groups', JSON.stringify(myGroups)); }
-      }
+      if(mem){ isMember=true; myGroups.push(id); localStorage.setItem('my_groups', JSON.stringify(myGroups)); }
     }catch(e){}
   }
 
   const header = document.getElementById('groupHeader');
   const form = document.getElementById('groupPostForm');
   const list = document.getElementById('daftarPostGrup');
+  if(!header ||!list) return;
 
   header.style.display='block';
-  loadGroups(); // refresh tombol kiri
 
   if(!userLogin){
-    form.style.display='none';
+    if(form) form.style.display='none';
     header.innerHTML=`<h3>${g.icon} ${g.nama} ${g.tipe==='private'?'🔒':''}</h3><p>${g.deskripsi}</p><p style="color:red; font-weight:bold; margin-top:10px">🔒 LOGIN DULU untuk gabung & liat postingan grup ini</p>`;
-    list.innerHTML=`<div class="card" style="text-align:center; padding:40px; border:2px dashed gray">
-      <h2>🔒 POSTINGAN TERKUNCI</h2><p>Gabung grup dulu baru bisa liat isinya</p>
-      <button class="btn" onclick="openModal('login')">LOGIN DULU</button>
-    </div>`;
+    list.innerHTML=`<div class="card" style="text-align:center; padding:40px; border:2px dashed gray"><h2>🔒 POSTINGAN TERKUNCI</h2><p>Login dulu baru bisa liat</p><button class="btn" onclick="openModal('login')">LOGIN DULU</button></div>`;
+    // panggil loadGroups di akhir, bukan di awal
+    setTimeout(()=>loadGroups(),100);
     return;
   }
 
   if(!isMember){
-    form.style.display='none';
-    header.innerHTML=`<h3>${g.icon} ${g.nama} ${g.tipe==='private'?'🔒':''}</h3><p>${g.deskripsi}</p>
-      <p style="color:orange; font-weight:bold; margin-top:10px">⛔ Kamu belum anggota ${g.nama}. Gabung dulu untuk melihat ${g.nama} memposting apa.</p>`;
-    list.innerHTML=`<div class="card" style="text-align:center; padding:40px; border:2px dashed orange">
-      <h2>👀 POSTINGAN DISEMBUNYIKAN</h2>
-      <p>Hanya anggota <b>${g.nama}</b> yang bisa melihat postingan.</p>
-      ${g.tipe==='private'? `<button class="btn" style="background:#FF9800" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST JOIN</button>` : `<button class="btn" onclick="joinGrupPublik('${g.id}')">➕ GABUNG SEKARANG - GRATIS</button>`}
-    </div>`;
+    if(form) form.style.display='none';
+    header.innerHTML=`<h3>${g.icon} ${g.nama}</h3><p>${g.deskripsi}</p><p style="color:orange; font-weight:bold">⛔ Belum anggota ${g.nama}</p><div id="boxAnggotaGrup">Loading...</div>`;
+    list.innerHTML=`<div class="card" style="text-align:center; padding:40px; border:2px dashed orange"><h2>👀 POSTINGAN DISEMBUNYIKAN</h2><p>Hanya anggota bisa liat</p>${g.tipe==='private'? `<button class="btn" style="background:#FF9800" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST JOIN</button>` : `<button class="btn" onclick="joinGrupPublik('${g.id}')">➕ GABUNG SEKARANG</button>`}</div>`;
+    // load anggota
+    try{
+      const { data: members } = await supabase.from('group_members').select('*, users!group_members_user_id_fkey(id,nama,foto)').eq('group_id',id).limit(12);
+      let box = document.getElementById('boxAnggotaGrup');
+      if(box) box.innerHTML = members?.length? `<b>👥 ${members.length} anggota:</b><div class="teman-grid">${members.map(m=>`<div class="teman-item" onclick="lihatProfilOrang('${m.users?.id}')"><img src="${m.users?.foto||''}" style="width:40px;height:40px;border-radius:10px"><p style="font-size:10px">${m.users?.nama?.split(' ')[0]}</p></div>`).join('')}</div>` : 'Belum ada anggota';
+    }catch(e){}
+    setTimeout(()=>loadGroups(),100);
     return;
   }
 
-  // UDAH MEMBER - BOLEH LIAT
-  header.innerHTML=`
-    <h3>${g.icon} ${g.nama} - ✅ Kamu Anggota</h3>
-    <p>${g.deskripsi}</p>
-    <small style="color:green">✅ Kamu bisa lihat & posting di grup ini</small><br>
-    <button class="btn btn-batal btn-sm" style="margin-top:8px" onclick="keluarGrup('${id}')">Keluar Grup</button>
-  `;
-  form.style.display='block';
-  document.getElementById('namaGrupAktif').innerText = g.nama;
-  loadPostGrup(id);
-}
+  // UDAH MEMBER
+  header.innerHTML=`<h3>${g.icon} ${g.nama} - ✅ Kamu Anggota</h3><p>${g.deskripsi}</p><div id="boxAnggotaGrup">Loading anggota...</div><button class="btn btn-batal btn-sm" style="margin-top:8px" onclick="keluarGrup('${id}')">Keluar Grup</button>`;
+  if(form){ form.style.display='block'; let ne=document.getElementById('namaGrupAktif'); if(ne) ne.innerText=g.nama; }
 
-window.joinGrupPublik = async function(id){
-  if(!userLogin) return alert('Login dulu');
-  try{ await supabase.from('group_members').insert({group_id:id, user_id:userLogin.id}); }catch(e){}
-  let arr = JSON.parse(localStorage.getItem('my_groups')||'[]');
-  if(!arr.includes(id)){ arr.push(id); localStorage.setItem('my_groups', JSON.stringify(arr)); }
-  window.grupAktif=id; bukaGrup(id); loadGroups();
-}
-window.requestJoinGifted = async function(id){
-  let arr = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
-  if(!arr.includes(id)){ arr.push(id); localStorage.setItem('my_group_requests', JSON.stringify(arr)); }
-  alert('Request terkirim (demo)'); loadGroups(); bukaGrup(id);
-}
-window.keluarGrup = async function(id){
-  let arr = JSON.parse(localStorage.getItem('my_groups')||'[]').filter(x=>x!==id);
-  localStorage.setItem('my_groups', JSON.stringify(arr));
-  try{ await supabase.from('group_members').delete().eq('group_id',id).eq('user_id',userLogin.id); }catch(e){}
-  bukaGrup(id); loadGroups();
-}
-window.previewGrupGambar = function(e){
-  window.grupFile = e.target.files[0];
-  const el = document.getElementById('previewGrupImg');
-  if(!el) return;
-  const r = new FileReader();
-  r.onload = ev=>{ el.src=ev.target.result; el.style.display='block'; };
-  if(window.grupFile) r.readAsDataURL(window.grupFile);
-}
-window.kirimPostGrup = async function(){
-  if(!userLogin) return alert('Login dulu');
-  const isi = document.getElementById('grupIsi').value.trim();
-  const yt = document.getElementById('grupYoutube').value.trim();
-  if(!isi &&!window.grupFile &&!yt) return alert('Isi teks / foto / youtube dulu');
-  let gambarUrl = document.getElementById('previewGrupImg')?.src || null;
-  if(gambarUrl && gambarUrl.startsWith('data:') && gambarUrl.length>500000){
-    alert('Foto kegedean, kompres lagi'); return;
-  }
-  let posts = JSON.parse(localStorage.getItem('local_group_posts')||'[]');
-  posts.unshift({
-    id: Date.now().toString(),
-    group_id: window.grupAktif,
-    isi: isi,
-    gambar_url: window.grupFile? gambarUrl : null,
-    youtube_url: yt||null,
-    tipe: yt? 'youtube' : (window.grupFile? 'image' : 'text'),
-    created_at: new Date().toISOString(),
-    users: { nama: userLogin.nama, foto: userLogin.foto }
-  });
-  localStorage.setItem('local_group_posts', JSON.stringify(posts));
-  // coba supabase juga
   try{
-    let upUrl = null;
-    if(window.grupFile){
-      const comp = await compressImage(window.grupFile, 800);
-      const path = `groups/${window.grupAktif}/${userLogin.id}-${Date.now()}.jpg`;
-      await supabase.storage.from('postingan').upload(path, comp);
-      const {data} = await supabase.storage.from('postingan').getPublicUrl(path);
-      upUrl = data.publicUrl;
-    }
-    await supabase.from('group_posts').insert({group_id: window.grupAktif, user_id: userLogin.id, isi: isi, gambar_url: upUrl, youtube_url: yt||null, tipe: yt?'youtube':(upUrl?'image':'text')});
-  }catch(e){ console.log('Supabase skip', e.message); }
+    const { data: members } = await supabase.from('group_members').select('*, users!group_members_user_id_fkey(id,nama,foto)').eq('group_id',id).limit(12);
+    let box = document.getElementById('boxAnggotaGrup');
+    if(box) box.innerHTML = members?.length? `<b>👥 Anggota (${members.length}):</b><div class="teman-grid">${members.map(m=>`<div class="teman-item" onclick="lihatProfilOrang('${m.users?.id}')"><img src="${m.users?.foto||''}" style="width:45px;height:45px"><p style="font-size:10px">${m.users?.nama?.split(' ')[0]}</p></div>`).join('')}</div>` : 'Baru kamu di grup ini';
+  }catch(e){}
 
-  document.getElementById('grupIsi').value=''; document.getElementById('grupYoutube').value=''; document.getElementById('previewGrupImg').style.display='none'; window.grupFile=null; document.getElementById('grupGambar').value='';
-  loadPostGrup(window.grupAktif);
+  loadPostGrup(id);
+  setTimeout(()=>loadGroups(),100);
 }
-
 
 window.loadPostGrup = function(groupId){
   const c = document.getElementById('daftarPostGrup');
   if(!c) return;
-
-  // SECURITY DOUBLE CHECK - jangan kasih liat kalau bukan member
   let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
-  if(!myGroups.includes(groupId) && !myGroups.includes(window.grupAktif)){
-    c.innerHTML=`<div class="card" style="text-align:center; padding:30px"><h3>🔒 Terkunci</h3><p>Gabung dulu untuk melihat postingan</p></div>`;
-    return;
-  }
-
+  if(!myGroups.includes(groupId)){ c.innerHTML=`<div class="card" style="text-align:center"><h3>🔒 Terkunci</h3></div>`; return; }
   let all = JSON.parse(localStorage.getItem('local_group_posts')||'[]').filter(p=>p.group_id===groupId);
   let likes = JSON.parse(localStorage.getItem('local_group_likes')||'[]');
   let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]');
-
-  if(all.length===0){ 
-    c.innerHTML='<p class="card">Belum ada postingan di grup ini. Jadi yang pertama posting!</p>'; 
-    return; 
-  }
-  
+  if(all.length===0){ c.innerHTML='<p class="card">Belum ada postingan. Jadi yang pertama!</p>'; return; }
   c.innerHTML='';
   all.forEach(p=>{
-    let media = '';
-    if(p.tipe==='image' && p.gambar_url) media=`<img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')">`;
-    if(p.tipe==='youtube' && p.youtube_url){
-      let emb = getYoutubeEmbed(p.youtube_url);
-      if(emb) media=`<iframe src="${emb}" style="width:100%; height:250px; border-radius:10px; margin-top:10px" frameborder="0" allowfullscreen></iframe>`;
-    }
-    let likePost = likes.filter(l=>l.post_id===p.id);
-    let komenPost = komens.filter(k=>k.post_id===p.id);
-    let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
-
-    c.innerHTML+=`<div class="card">
-      <div style="display:flex; gap:8px; align-items:center">
-        <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+p.users?.nama}" style="width:32px;height:32px;border-radius:50%">
-        <b>${escapeHtml(p.users?.nama||'User')}</b>
-        <small style="margin-left:auto; color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
-      </div>
-      <p style="white-space:pre-wrap; margin-top:8px">${escapeHtml(p.isi||'')}</p>${media}
-      <div class="feed-action">
-        <button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')">❤️ ${likePost.length} Like</button>
-        <button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'">💬 ${komenPost.length} Komen</button>
-      </div>
-      <div id="komenWrapGrup-${p.id}" class="komen-box" style="${komenPost.length>0?'':'display:none'}">
-        <div id="listKomenGrup-${p.id}">${komenPost.map(k=>`<div class="komen-item"><img src="${k.foto}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(k.nama)}</b> ${escapeHtml(k.isi)}</div></div>`).join('')}</div>
-        <div class="komen-input-wrap">
-          <input id="inputKomenGrup-${p.id}" class="input" style="margin:0" placeholder="Komentar sebagai anggota..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')">
-          <button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">Kirim</button>
-        </div>
-      </div>
-    </div>`;
+    let media=''; if(p.tipe==='image'&&p.gambar_url) media=`<img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')">`; if(p.tipe==='youtube'&&p.youtube_url){ let emb=getYoutubeEmbed(p.youtube_url); if(emb) media=`<iframe src="${emb}" style="width:100%; height:220px; border-radius:10px; margin-top:10px" frameborder="0" allowfullscreen></iframe>`; }
+    let likePost=likes.filter(l=>l.post_id===p.id); let komenPost=komens.filter(k=>k.post_id===p.id); let sudahLike=userLogin? likePost.some(l=>l.user_id===userLogin.id):false;
+    c.innerHTML+=`<div class="card"><div style="display:flex; gap:8px; align-items:center"><img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+p.users?.nama}" style="width:32px;height:32px;border-radius:50%"><b>${escapeHtml(p.users?.nama||'User')}</b><small style="margin-left:auto; color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small></div><p style="white-space:pre-wrap; margin-top:8px">${escapeHtml(p.isi||'')}</p>${media}<div class="feed-action"><button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')">❤️ ${likePost.length} Like</button><button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'; document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button></div><div id="komenWrapGrup-${p.id}" class="komen-box" style="${komenPost.length>0?'':'display:none'}"><div id="listKomenGrup-${p.id}">${komenPost.map(k=>`<div class="komen-item"><img src="${k.foto||''}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(k.nama)}</b> ${escapeHtml(k.isi)}</div><a style="margin-left:auto; cursor:pointer" onclick="hapusKomenGrup('${k.id}','${p.id}')">✕</a></div>`).join('')}</div><div class="komen-input-wrap"><input id="inputKomenGrup-${p.id}" class="input" style="margin:0" placeholder="Komentar..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')"><button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">Kirim</button></div></div></div>`;
   });
 }
+
+window.joinGrupPublik = async function(id){
+  if(!userLogin) return alert('Login dulu'); try{ await supabase.from('group_members').insert({group_id:id, user_id:userLogin.id}); }catch(e){}
+  let arr=JSON.parse(localStorage.getItem('my_groups')||'[]'); if(!arr.includes(id)){ arr.push(id); localStorage.setItem('my_groups', JSON.stringify(arr)); }
+  let all=JSON.parse(localStorage.getItem('all_group_members')||'{}'); if(!all[id]) all[id]=[]; if(!all[id].includes(userLogin.id)) all[id].push(userLogin.id); localStorage.setItem('all_group_members', JSON.stringify(all));
+  window.grupAktif=id; bukaGrup(id);
+}
+window.requestJoinGifted = async function(id){
+  let arr=JSON.parse(localStorage.getItem('my_group_requests')||'[]'); if(!arr.includes(id)){ arr.push(id); localStorage.setItem('my_group_requests', JSON.stringify(arr)); } alert('Request terkirim'); loadGroups(); bukaGrup(id);
+}
+window.keluarGrup = async function(id){
+  let arr=JSON.parse(localStorage.getItem('my_groups')||'[]').filter(x=>x!==id); localStorage.setItem('my_groups', JSON.stringify(arr));
+  try{ await supabase.from('group_members').delete().eq('group_id',id).eq('user_id',userLogin.id); }catch(e){}
+  window.grupAktif=null; let h=document.getElementById('groupHeader'); if(h) h.style.display='none'; let f=document.getElementById('groupPostForm'); if(f) f.style.display='none'; let l=document.getElementById('daftarPostGrup'); if(l) l.innerHTML=''; loadGroups();
+}
+window.previewGrupGambar = function(e){
+  window.grupFile = e.target.files[0]; let el=document.getElementById('previewGrupImg'); if(!el) return; let r=new FileReader(); r.onload=ev=>{ el.src=ev.target.result; el.style.display='block'; }; if(window.grupFile) r.readAsDataURL(window.grupFile);
+}
+window.kirimPostGrup = async function(){
+  if(!userLogin) return alert('Login dulu'); let isi=document.getElementById('grupIsi').value.trim(); let yt=document.getElementById('grupYoutube').value.trim(); if(!isi&&!window.grupFile&&!yt) return alert('Isi teks / foto / youtube dulu');
+  let gambarUrl=document.getElementById('previewGrupImg')?.src||null;
+  let posts=JSON.parse(localStorage.getItem('local_group_posts')||'[]');
+  posts.unshift({ id:Date.now().toString(), group_id:window.grupAktif, isi:isi, gambar_url:window.grupFile?gambarUrl:null, youtube_url:yt||null, tipe:yt?'youtube':(window.grupFile?'image':'text'), created_at:new Date().toISOString(), users:{ nama:userLogin.nama, foto:userLogin.foto } });
+  localStorage.setItem('local_group_posts', JSON.stringify(posts));
+  try{
+    let upUrl=null; if(window.grupFile){ let comp=await compressImage(window.grupFile, 800); let path=`groups/${window.grupAktif}/${userLogin.id}-${Date.now()}.jpg`; await supabase.storage.from('postingan').upload(path, comp); let {data}=await supabase.storage.from('postingan').getPublicUrl(path); upUrl=data.publicUrl; }
+    await supabase.from('group_posts').insert({group_id:window.grupAktif, user_id:userLogin.id, isi:isi, gambar_url:upUrl, youtube_url:yt||null, tipe:yt?'youtube':(upUrl?'image':'text')});
+  }catch(e){ console.log(e.message); }
+  document.getElementById('grupIsi').value=''; document.getElementById('grupYoutube').value=''; let pv=document.getElementById('previewGrupImg'); if(pv) pv.style.display='none'; window.grupFile=null; let gi=document.getElementById('grupGambar'); if(gi) gi.value=''; loadPostGrup(window.grupAktif); loadGroups();
+}
 window.toggleLikeGrup = async function(postId){
-  if(!userLogin) return alert('Login dulu');
-  let likes = JSON.parse(localStorage.getItem('local_group_likes')||'[]');
-  let idx = likes.findIndex(l=>l.post_id===postId && l.user_id===userLogin.id);
-  const btn = document.getElementById(`likeGrupBtn-${postId}`);
-  
-  if(idx>=0){
-    likes.splice(idx,1);
-    btn.classList.remove('active');
-  } else {
-    likes.push({post_id:postId, user_id:userLogin.id, created_at: new Date().toISOString()});
-    btn.classList.add('active');
-    // coba supabase juga kalau ada tabel
-    try{ await supabase.from('group_post_likes').insert({post_id:postId, user_id:userLogin.id}); }catch(e){}
-  }
-  localStorage.setItem('local_group_likes', JSON.stringify(likes));
-  let jml = likes.filter(l=>l.post_id===postId).length;
-  btn.innerText = `❤️ ${jml} Like`;
+  if(!userLogin) return alert('Login dulu'); let likes=JSON.parse(localStorage.getItem('local_group_likes')||'[]'); let idx=likes.findIndex(l=>l.post_id===postId&&l.user_id===userLogin.id); let btn=document.getElementById(`likeGrupBtn-${postId}`);
+  if(idx>=0){ likes.splice(idx,1); btn.classList.remove('active'); try{ await supabase.from('group_post_likes').delete().eq('post_id',postId).eq('user_id',userLogin.id); }catch(e){} } else { likes.push({post_id:postId, user_id:userLogin.id}); btn.classList.add('active'); try{ await supabase.from('group_post_likes').insert({post_id:postId, user_id:userLogin.id}); }catch(e){} }
+  localStorage.setItem('local_group_likes', JSON.stringify(likes)); btn.innerText=`❤️ ${likes.filter(l=>l.post_id===postId).length} Like`;
 }
-
 window.kirimKomenGrup = async function(postId){
-  if(!userLogin) return alert('Login dulu');
-  const input = document.getElementById(`inputKomenGrup-${postId}`);
-  const isi = input.value.trim();
-  if(!isi) return;
-  
-  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]');
-  let baru = {
-    id: 'gk_'+Date.now(),
-    post_id: postId,
-    user_id: userLogin.id,
-    nama: userLogin.nama,
-    foto: userLogin.foto,
-    isi: isi,
-    created_at: new Date().toISOString()
-  };
-  komens.push(baru);
-  localStorage.setItem('local_group_komens', JSON.stringify(komens));
-  try{ await supabase.from('group_post_comments').insert({post_id:postId, user_id:userLogin.id, isi:isi}); }catch(e){}
-  
-  input.value='';
-  document.getElementById(`komenWrapGrup-${postId}`).style.display='block';
-  const list = document.getElementById(`listKomenGrup-${postId}`);
-  list.innerHTML += `<div class="komen-item"><img src="${baru.foto}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(baru.nama)}</b> ${escapeHtml(baru.isi)}</div></div>`;
-  loadPostGrup(window.grupAktif); // refresh angka komen
+  if(!userLogin) return alert('Login dulu'); let input=document.getElementById(`inputKomenGrup-${postId}`); let isi=input.value.trim(); if(!isi) return;
+  let komens=JSON.parse(localStorage.getItem('local_group_komens')||'[]'); komens.push({id:'gk_'+Date.now(), post_id:postId, user_id:userLogin.id, nama:userLogin.nama, foto:userLogin.foto, isi:isi, created_at:new Date().toISOString()}); localStorage.setItem('local_group_komens', JSON.stringify(komens));
+  try{ await supabase.from('group_post_comments').insert({post_id:postId, user_id:userLogin.id, isi:isi}); }catch(e){} input.value=''; loadPostGrup(window.grupAktif);
 }
-
-window.hapusKomenGrup = function(komenId, postId){
-  if(!confirm('Hapus komen?')) return;
-  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]').filter(k=>k.id!==komenId);
-  localStorage.setItem('local_group_komens', JSON.stringify(komens));
-  loadPostGrup(postId);
-}
+window.hapusKomenGrup = function(kId,pId){ if(!confirm('Hapus?')) return; let k=JSON.parse(localStorage.getItem('local_group_komens')||'[]').filter(x=>x.id!==kId); localStorage.setItem('local_group_komens', JSON.stringify(k)); loadPostGrup(pId); }
 
 window.kirimPesan = async function() {
   const input = document.getElementById('inputPesan');
