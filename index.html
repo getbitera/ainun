@@ -2389,12 +2389,21 @@ window.loadGroups = async function(){
   const c = document.getElementById('listGroups');
   if(!c) return;
   c.innerHTML = '';
+
+  // SYNC - perbaiki data lama yang 0 anggota
   let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
+  let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
+  myGroups.forEach(gid=>{
+    if(!allMembers[gid]) allMembers[gid]=[];
+    if(userLogin &&!allMembers[gid].includes(userLogin.id)){
+      allMembers[gid].push(userLogin.id);
+    }
+  });
+  localStorage.setItem('all_group_members', JSON.stringify(allMembers));
+
   let myReqs = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
   let allPosts = JSON.parse(localStorage.getItem('local_group_posts')||'[]');
-  let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
 
-  // coba hitung real dari supabase
   let counts = {};
   try{
     const { data: m } = await supabase.from('group_members').select('group_id');
@@ -2406,7 +2415,9 @@ window.loadGroups = async function(){
   window.GRUP_HARDCODE.forEach(g=>{
     let isMember = myGroups.includes(g.id);
     let hasReq = myReqs.includes(g.id);
+    // FIX UTAMA: kalau udah member, minimal 1
     let jmlAnggota = counts[g.id]?.members || (allMembers[g.id]?.length || 0);
+    if(isMember && jmlAnggota===0) jmlAnggota = 1;
     let jmlPost = counts[g.id]?.posts || allPosts.filter(x=>x.group_id===g.id).length;
 
     let active = window.grupAktif===g.id? 'border:3px solid var(--accent); background:#E8F4F8' : '';
@@ -2421,19 +2432,13 @@ window.loadGroups = async function(){
         (hasReq? `<button class="btn-sm" style="width:100%; margin-top:8px" disabled>⏳ Menunggu</button>` : `<button class="btn-sm" style="width:100%; margin-top:8px; background:#FF9800; color:#fff" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST</button>`) :
         `<button class="btn-sm" style="width:100%; margin-top:8px" onclick="joinGrupPublik('${g.id}')">➕ GABUNG GRUP</button>`;
     }
-    c.innerHTML += `<div class="card" style="padding:12px; margin-bottom:10px; ${active}">
-      <b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br>
-      <small style="color:var(--accent); font-weight:bold">👥 ${jmlAnggota} anggota • 📝 ${jmlPost} postingan</small>
-      ${btn}
-    </div>`;
+    c.innerHTML += `<div class="card" style="padding:12px; margin-bottom:10px; ${active}"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br><small style="color:var(--accent); font-weight:bold">👥 ${jmlAnggota} anggota • 📝 ${jmlPost} postingan</small>${btn}</div>`;
   });
-  // jangan auto-buka di dalam loadGroups biar gak loop blank, cek di luar
   if(!window.grupAktif && window.GRUP_HARDCODE.length>0){
     window.grupAktif = window.GRUP_HARDCODE[0].id;
     bukaGrup(window.grupAktif);
   }
 }
-
 window.bukaGrup = async function(id){
   window.grupAktif = id;
   let g = window.GRUP_HARDCODE.find(x=>x.id===id);
