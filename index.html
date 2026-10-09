@@ -289,7 +289,35 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 <!-- FIX GRUP - HARUS TERPISAH, JANGAN DI DALAM friendsPage -->
 <div id="groupsPage" class="container" style="display:none">
   <h2>👥 GRUP AINUN - 5 GRUP</h2>
-  <div class="grid" style="grid-template-columns: 300px 1fr; gap:20px">
+
+  <style>
+   .grup-tabs-mendatar{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+   .grup-tabs-mendatar::-webkit-scrollbar{display:none}
+   .grup-tab-hp{min-width:145px;flex-shrink:0;padding:12px;border-radius:14px;border:2px solid var(--border);background:var(--card);cursor:pointer}
+   .grup-tab-hp.aktif{border-color:var(--accent);background:#E8F4F8;transform:scale(1.02)}
+   .grup-konten-bawah{margin-top:10px}
+    @media(max-width:800px){
+      #groupsPage.grid{grid-template-columns:1fr!important}
+    }
+  </style>
+
+  <!-- 5 KOTAK MENDATAR - BISA DIGESER -->
+  <div class="grup-tabs-mendatar" id="listGroups"></div>
+
+  <!-- KONTEN DIBAWAH - FULL LEBAR VERTIKAL -->
+  <div class="grup-konten-bawah">
+    <div id="groupHeader" class="card" style="display:none"></div>
+    <div id="groupPostForm" class="card" style="display:none; border:2px solid var(--accent)">
+      <h4>📝 Posting di <span id="namaGrupAktif">Grup</span></h4>
+      <textarea id="grupIsi" class="input" rows="3" placeholder="Tulis sesuatu di grup..."></textarea>
+      <input type="file" id="grupGambar" accept="image/*" class="input" onchange="previewGrupGambar(event)">
+      <img id="previewGrupImg" style="width:100%; max-height:200px; border-radius:10px; display:none; margin-top:10px">
+      <input id="grupYoutube" class="input" placeholder="Link YouTube (opsional)">
+      <button class="btn" style="width:100%" onclick="kirimPostGrup()">🚀 POST KE GRUP</button>
+    </div>
+    <div id="daftarPostGrup"></div>
+  </div>
+</div>
     <div class="card" style="height:fit-content">
       <h3>Daftar Grup</h3>
       <div id="listGroups"></div>
@@ -2389,21 +2417,12 @@ window.loadGroups = async function(){
   const c = document.getElementById('listGroups');
   if(!c) return;
   c.innerHTML = '';
-
-  // SYNC - perbaiki data lama yang 0 anggota
   let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
   let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
-  myGroups.forEach(gid=>{
-    if(!allMembers[gid]) allMembers[gid]=[];
-    if(userLogin &&!allMembers[gid].includes(userLogin.id)){
-      allMembers[gid].push(userLogin.id);
-    }
-  });
+  myGroups.forEach(gid=>{ if(!allMembers[gid]) allMembers[gid]=[]; if(userLogin &&!allMembers[gid].includes(userLogin.id)){ allMembers[gid].push(userLogin.id); } });
   localStorage.setItem('all_group_members', JSON.stringify(allMembers));
-
   let myReqs = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
   let allPosts = JSON.parse(localStorage.getItem('local_group_posts')||'[]');
-
   let counts = {};
   try{
     const { data: m } = await supabase.from('group_members').select('group_id');
@@ -2411,34 +2430,23 @@ window.loadGroups = async function(){
     m?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], members:(counts[x.group_id]?.members||0)+1});
     p?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], posts:(counts[x.group_id]?.posts||0)+1});
   }catch(e){}
-
   window.GRUP_HARDCODE.forEach(g=>{
     let isMember = myGroups.includes(g.id);
     let hasReq = myReqs.includes(g.id);
-    // FIX UTAMA: kalau udah member, minimal 1
     let jmlAnggota = counts[g.id]?.members || (allMembers[g.id]?.length || 0);
     if(isMember && jmlAnggota===0) jmlAnggota = 1;
     let jmlPost = counts[g.id]?.posts || allPosts.filter(x=>x.group_id===g.id).length;
-
-    let active = window.grupAktif===g.id? 'border:3px solid var(--accent); background:#E8F4F8' : '';
+    let active = window.grupAktif===g.id;
     let lock = g.tipe==='private'? '🔒 PRIVATE' : '🟢 PUBLIK';
     let btn = '';
-    if(!userLogin){
-      btn = `<button class="btn-sm" style="width:100%; margin-top:8px" onclick="openModal('login')">LOGIN DULU</button>`;
-    } else if(isMember){
-      btn = `<button class="btn-sm" style="width:100%; margin-top:8px; background:#27AE60; color:#fff" onclick="bukaGrup('${g.id}')">✅ ANGGOTA - BUKA</button>`;
-    } else {
-      btn = g.tipe==='private'?
-        (hasReq? `<button class="btn-sm" style="width:100%; margin-top:8px" disabled>⏳ Menunggu</button>` : `<button class="btn-sm" style="width:100%; margin-top:8px; background:#FF9800; color:#fff" onclick="requestJoinGifted('${g.id}')">🔒 REQUEST</button>`) :
-        `<button class="btn-sm" style="width:100%; margin-top:8px" onclick="joinGrupPublik('${g.id}')">➕ GABUNG GRUP</button>`;
-    }
-    c.innerHTML += `<div class="card" style="padding:12px; margin-bottom:10px; ${active}"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br><small style="color:var(--accent); font-weight:bold">👥 ${jmlAnggota} anggota • 📝 ${jmlPost} postingan</small>${btn}</div>`;
+    if(!userLogin){ btn = `<button class="btn-sm" style="width:100%" onclick="openModal('login')">LOGIN</button>`; }
+    else if(isMember){ btn = `<button class="btn-sm" style="width:100%; background:#27AE60; color:#fff">✅ BUKA</button>`; }
+    else { btn = g.tipe==='private'? (hasReq? `<button class="btn-sm" disabled>⏳ Menunggu</button>` : `<button class="btn-sm" style="background:#FF9800;color:#fff;width:100%">🔒 REQUEST</button>`) : `<button class="btn-sm" style="width:100%">➕ GABUNG</button>`; }
+    c.innerHTML += `<div class="grup-tab-hp ${active?'aktif':''}" onclick="bukaGrup('${g.id}')"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br><small style="color:var(--accent);font-weight:900">👥 ${jmlAnggota} • 📝 ${jmlPost}</small><div style="margin-top:8px">${btn}</div></div>`;
   });
-  if(!window.grupAktif && window.GRUP_HARDCODE.length>0){
-    window.grupAktif = window.GRUP_HARDCODE[0].id;
-    bukaGrup(window.grupAktif);
-  }
+  if(!window.grupAktif && window.GRUP_HARDCODE.length>0){ window.grupAktif = window.GRUP_HARDCODE[0].id; bukaGrup(window.grupAktif); }
 }
+
 window.bukaGrup = async function(id){
   window.grupAktif = id;
   let g = window.GRUP_HARDCODE.find(x=>x.id===id);
