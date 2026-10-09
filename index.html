@@ -2477,6 +2477,7 @@ window.bukaGrup = async function(id){
   loadPostGrup(id);
   setTimeout(()=>loadGroups(),100);
 }
+
 window.loadPostGrup = async function(groupId){
   const c = document.getElementById('daftarPostGrup');
   if(!c) return;
@@ -2484,18 +2485,17 @@ window.loadPostGrup = async function(groupId){
 
   try{
     const { data: posts, error } = await supabase
-      .from('group_posts')
-      .select('*, users!group_posts_user_id_fkey(id,nama,foto)')
-      .eq('group_id', groupId)
-      .order('created_at', {ascending:false})
-      .limit(30);
+     .from('group_posts')
+     .select('*, users!group_posts_user_id_fkey(id,nama,foto)')
+     .eq('group_id', groupId)
+     .order('created_at', {ascending:false})
+     .limit(30);
     if(error) throw error;
     if(!posts || posts.length===0){
       c.innerHTML = '<div class="card" style="text-align:center;padding:30px">Belum ada postingan</div>';
       return;
     }
 
-    // ambil like & komen sekaligus biar ngebut
     const ids = posts.map(p=>p.id);
     const { data: allLikes } = await supabase.from('group_post_likes').select('post_id,user_id').in('post_id', ids);
     const { data: allKomens } = await supabase.from('group_post_comments').select('*, users!group_post_comments_user_id_fkey(nama,foto)').in('post_id', ids).order('created_at',{ascending:true});
@@ -2508,35 +2508,32 @@ window.loadPostGrup = async function(groupId){
       }
       if(p.youtube_url){
         let emb = getYoutubeEmbed(p.youtube_url);
-        // fix Error 153 - tambah origin
         if(emb) media = `<iframe src="${emb}?origin=https://myainun.vercel.app" style="width:100%;height:220px;border-radius:12px;margin-top:10px" frameborder="0" allowfullscreen></iframe>`;
       }
 
       let likePost = allLikes?.filter(l=>l.post_id===p.id) || [];
       let komenPost = allKomens?.filter(k=>k.post_id===p.id) || [];
-      let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
+      let sudahLike = userLogin? likePost.some(l=>l.user_id===userLogin.id) : false;
+      let canDeleteGrup = userLogin && (p.user_id === userLogin.id);
 
-let canDeleteGrup = userLogin && (p.user_id === userLogin.id);
-c.innerHTML += `
-  <div class="card">
-    <div style="display:flex;gap:8px;align-items:center">
-      <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:32px;height:32px;border-radius:50%">
-      <b>${p.users?.nama||'User'}</b>
-      <small style="margin-left:auto;color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
-      ${canDeleteGrup? `<button class="btn btn-batal btn-sm" style="padding:4px 8px;font-size:11px;margin-left:8px" onclick="hapusPostGrup('${p.id}','${p.gambar_url||''}')">🗑️ HAPUS</button>` : ''}
-    </div>
-            <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:32px;height:32px;border-radius:50%">
-            <b>${p.users?.nama||'User'}</b>
-            <small style="margin-left:auto;color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+      c.innerHTML += `
+        <div class="card">
+          <div style="display:flex;gap:10px;align-items:center">
+            <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:36px;height:36px;border-radius:50%">
+            <div>
+              <b>${escapeHtml(p.users?.nama||'User')}</b><br>
+              <small style="color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+            </div>
+            <div style="margin-left:auto">
+              ${canDeleteGrup? `<button class="btn btn-batal btn-sm" style="padding:5px 10px;font-size:11px" onclick="hapusPostGrup('${p.id}','${p.gambar_url||''}')">🗑️ HAPUS</button>` : ''}
+            </div>
           </div>
-          <p style="margin-top:10px;white-space:pre-wrap">${escapeHtml(p.isi||'')}</p>
+          <p style="margin-top:12px;white-space:pre-wrap">${escapeHtml(p.isi||'')}</p>
           ${media}
-          
           <div class="feed-action" style="display:flex;gap:10px;margin-top:12px;border-top:1px solid #eee;padding-top:10px">
             <button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')" style="${sudahLike?'background:#ff4757;color:white':''}">❤️ ${likePost.length} Like</button>
-            <button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'; document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button>
+            <button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block';document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button>
           </div>
-
           <div id="komenWrapGrup-${p.id}" class="komen-box" style="margin-top:10px;background:#f8f8f8;border-radius:10px;padding:10px;${komenPost.length>0?'':'display:none'}">
             <div id="listKomenGrup-${p.id}">
               ${komenPost.map(k=>`
@@ -2554,10 +2551,9 @@ c.innerHTML += `
     });
   }catch(err){
     console.log(err.message);
-    c.innerHTML = '<div class="card">Gagal load: '+err.message+'<br> Cek tabel group_post_likes & group_post_comments udah ada belum di Supabase</div>';
+    c.innerHTML = '<div class="card">Gagal load: '+err.message+'</div>';
   }
 }
-
 window.joinGrupPublik = async function(id){
   if(!userLogin) return alert('Login dulu'); try{ await supabase.from('group_members').insert({group_id:id, user_id:userLogin.id}); }catch(e){}
   let arr=JSON.parse(localStorage.getItem('my_groups')||'[]'); if(!arr.includes(id)){ arr.push(id); localStorage.setItem('my_groups', JSON.stringify(arr)); }
