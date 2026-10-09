@@ -13,6 +13,7 @@ body{font-family:Arial;background:linear-gradient(135deg,#BBDEFB,#90CAF9,#42A5F5
 .info{display:flex;justify-content:space-between;font-weight:900;color:#1565C0;font-size:13px}
 .btn-next{display:none;margin:15px auto;padding:14px 25px;background:#0D47A1;color:#fff;border:none;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
 .btn-ulang{margin:8px auto;padding:12px 20px;background:#E3F2FD;color:#0D47A1;border:2px solid #0D47A1;border-radius:12px;font-weight:900;cursor:pointer;display:none;width:100%}
+.link-disabled{pointer-events:none;opacity:0.3;color:#999!important}
 </style></head><body><div class="container">
 <h2 style="color:#0D47A1">LEVEL 4 - 148 SOAL - BIRU MUDA</h2>
 <div class="info"><span id="noSoal">Soal 1/148</span><span id="benar">BENAR: 0/148</span><span id="totalTimer">444.0s</span></div>
@@ -21,7 +22,7 @@ body{font-family:Arial;background:linear-gradient(135deg,#BBDEFB,#90CAF9,#42A5F5
 <div id="hasil" style="font-weight:900;color:#0D47A1;margin-top:15px"></div>
 <button id="btnNext" class="btn-next" onclick="location.href='level5.html'">LANJUT KE LEVEL 5</button>
 <button id="btnUlang" class="btn-ulang" onclick="location.reload()">ULANGI LEVEL 4</button>
-<div style="margin-top:12px;display:flex;justify-content:space-between"><a href="level3.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 3</a><a href="level5.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 5</a></div></div>
+<div style="margin-top:12px;display:flex;justify-content:space-between"><a href="level3.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 3</a><a id="linkLevel5" href="level5.html" style="color:#1565C0;font-weight:900;text-decoration:none">Level 5</a></div></div>
 <script>
 const SOAL_ORIG=[
 {q:"Turunan sin(x)?",a:["cos(x)","-cos(x)","-sin(x)","tan(x)"],k:0},
@@ -180,6 +181,26 @@ let idx=0,benar=0,totalTime=444,sisaTotal=444,timer,salahList=[];
 function render(){if(idx>=SOAL.length){end();return}document.getElementById('noSoal').innerText='Soal '+(idx+1)+'/148';document.getElementById('soalText').innerText=(idx+1)+'. '+SOAL[idx].q;let d=document.getElementById('pilihan');d.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=String.fromCharCode(65+i)+'. '+t;b.onclick=()=>jawab(i);d.appendChild(b)})}
 function jawab(p){let k=SOAL[idx].k;document.querySelectorAll('.pil').forEach((e,i)=>{e.style.pointerEvents='none';if(i===k)e.classList.add('bener');if(i===p&&i!==k)e.classList.add('salah')});if(p===k)benar++;else salahList.push((idx+1)+'. '+SOAL[idx].q);document.getElementById('benar').innerText='BENAR: '+benar+'/148';setTimeout(()=>{idx++;render()},350)}
 function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end()},100)}
-function end(){clearInterval(timer);document.getElementById('soalText').innerText='LEVEL 4 SELESAI!';document.getElementById('pilihan').innerHTML='';document.getElementById('hasil').innerHTML='BENAR: '+benar+' dari 148<br>Waktu sisa: '+sisaTotal.toFixed(1)+'s';document.getElementById('btnUlang').style.display='block';if(benar===148)document.getElementById('btnNext').style.display='block'}
+function end(){
+  clearInterval(timer);
+  document.getElementById('soalText').innerText='LEVEL 4 SELESAI!';
+  document.getElementById('pilihan').innerHTML='';
+  let pesan = 'BENAR: '+benar+' dari 148<br>Waktu sisa: '+sisaTotal.toFixed(1)+'s';
+  if(benar < 148){
+    pesan += '<br><br><span style="color:#FF3D00">HARUS SEMPURNA 148/148 UNTUK LANJUT! Ada '+(148-benar)+' salah.</span>';
+  }
+  document.getElementById('hasil').innerHTML=pesan;
+  document.getElementById('btnUlang').style.display='block';
+
+  const link5 = document.getElementById('linkLevel5');
+  if(benar===148){
+    document.getElementById('btnNext').style.display='block';
+    link5.classList.remove('link-disabled');
+  } else {
+    document.getElementById('btnNext').style.display='none';
+    link5.classList.add('link-disabled');
+    link5.onclick = function(e){ e.preventDefault(); alert('Belum bisa ke Level 5! Harus benar 148/148 dulu. Kamu benar '+benar+'. Ulangi Level 4!'); return false; };
+  }
+}
 render();start();
 </script></body></html>
