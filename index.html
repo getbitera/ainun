@@ -2516,8 +2516,7 @@ window.loadPostGrup = async function(groupId){
       let komenPost = allKomens?.filter(k=>k.post_id===p.id) || [];
       let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
 
-     let isAdmin = userLogin?.role === 'admin' || userLogin?.email === 'admin@myainun.com';
-let canDeleteGrup = userLogin && (p.user_id === userLogin.id || isAdmin);
+let canDeleteGrup = userLogin && (p.user_id === userLogin.id);
 c.innerHTML += `
   <div class="card">
     <div style="display:flex;gap:8px;align-items:center">
