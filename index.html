@@ -286,54 +286,27 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 
 
 
-<!-- FIX GRUP - HARUS TERPISAH, JANGAN DI DALAM friendsPage -->
 <div id="groupsPage" class="container" style="display:none">
   <h2>👥 GRUP AINUN - 5 GRUP</h2>
-
   <style>
    .grup-tabs-mendatar{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
    .grup-tabs-mendatar::-webkit-scrollbar{display:none}
-   .grup-tab-hp{min-width:145px;flex-shrink:0;padding:12px;border-radius:14px;border:2px solid var(--border);background:var(--card);cursor:pointer}
-   .grup-tab-hp.aktif{border-color:var(--accent);background:#E8F4F8;transform:scale(1.02)}
-   .grup-konten-bawah{margin-top:10px}
-    @media(max-width:800px){
-      #groupsPage.grid{grid-template-columns:1fr!important}
-    }
+   .grup-tab-hp{min-width:155px;flex:0 0 155px;padding:14px;border-radius:16px;border:2px solid var(--border);background:var(--card);cursor:pointer}
+   .grup-tab-hp.aktif{border-color:var(--accent);background:#E8F4F8;transform:scale(1.03)}
+   .grup-konten-bawah{margin-top:15px}
   </style>
-
-  <!-- 5 KOTAK MENDATAR - BISA DIGESER -->
   <div class="grup-tabs-mendatar" id="listGroups"></div>
-
-  <!-- KONTEN DIBAWAH - FULL LEBAR VERTIKAL -->
   <div class="grup-konten-bawah">
     <div id="groupHeader" class="card" style="display:none"></div>
     <div id="groupPostForm" class="card" style="display:none; border:2px solid var(--accent)">
       <h4>📝 Posting di <span id="namaGrupAktif">Grup</span></h4>
-      <textarea id="grupIsi" class="input" rows="3" placeholder="Tulis sesuatu di grup..."></textarea>
+      <textarea id="grupIsi" class="input" rows="3" placeholder="Tulis sesuatu..."></textarea>
       <input type="file" id="grupGambar" accept="image/*" class="input" onchange="previewGrupGambar(event)">
-      <img id="previewGrupImg" style="width:100%; max-height:200px; border-radius:10px; display:none; margin-top:10px">
-      <input id="grupYoutube" class="input" placeholder="Link YouTube (opsional)">
+      <img id="previewGrupImg" style="width:100%;max-height:220px;border-radius:10px;display:none;margin-top:10px">
+      <input id="grupYoutube" class="input" placeholder="Link YouTube opsional">
       <button class="btn" style="width:100%" onclick="kirimPostGrup()">🚀 POST KE GRUP</button>
     </div>
     <div id="daftarPostGrup"></div>
-  </div>
-</div>
-    <div class="card" style="height:fit-content">
-      <h3>Daftar Grup</h3>
-      <div id="listGroups"></div>
-    </div>
-    <div>
-      <div id="groupHeader" class="card" style="display:none"></div>
-      <div id="groupPostForm" class="card" style="display:none; border:2px solid var(--accent)">
-  <h4>📝 Posting di <span id="namaGrupAktif">Grup</span></h4>
-  <textarea id="grupIsi" class="input" rows="3" placeholder="Tulis sesuatu di grup..."></textarea>
-  <input type="file" id="grupGambar" accept="image/*" class="input" onchange="previewGrupGambar(event)">
-  <img id="previewGrupImg" style="width:100%; max-height:200px; border-radius:10px; display:none; margin-top:10px">
-  <input id="grupYoutube" class="input" placeholder="Link YouTube (opsional) - https://youtube.com/watch?v=...">
-  <button class="btn" style="width:100%" onclick="kirimPostGrup()">🚀 POST KE GRUP</button>
-</div>
-      <div id="daftarPostGrup"></div>
-    </div>
   </div>
 </div>
 
@@ -2414,39 +2387,26 @@ window.GRUP_HARDCODE = [
 ];
 
 window.loadGroups = async function(){
-  const c = document.getElementById('listGroups');
-  if(!c) return;
-  c.innerHTML = '';
-  let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
-  let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
-  myGroups.forEach(gid=>{ if(!allMembers[gid]) allMembers[gid]=[]; if(userLogin &&!allMembers[gid].includes(userLogin.id)){ allMembers[gid].push(userLogin.id); } });
-  localStorage.setItem('all_group_members', JSON.stringify(allMembers));
-  let myReqs = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
-  let allPosts = JSON.parse(localStorage.getItem('local_group_posts')||'[]');
-  let counts = {};
   try{
-    const { data: m } = await supabase.from('group_members').select('group_id');
-    const { data: p } = await supabase.from('group_posts').select('group_id');
-    m?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], members:(counts[x.group_id]?.members||0)+1});
-    p?.forEach(x=> counts[x.group_id] = {...counts[x.group_id], posts:(counts[x.group_id]?.posts||0)+1});
-  }catch(e){}
-  window.GRUP_HARDCODE.forEach(g=>{
-    let isMember = myGroups.includes(g.id);
-    let hasReq = myReqs.includes(g.id);
-    let jmlAnggota = counts[g.id]?.members || (allMembers[g.id]?.length || 0);
-    if(isMember && jmlAnggota===0) jmlAnggota = 1;
-    let jmlPost = counts[g.id]?.posts || allPosts.filter(x=>x.group_id===g.id).length;
-    let active = window.grupAktif===g.id;
-    let lock = g.tipe==='private'? '🔒 PRIVATE' : '🟢 PUBLIK';
-    let btn = '';
-    if(!userLogin){ btn = `<button class="btn-sm" style="width:100%" onclick="openModal('login')">LOGIN</button>`; }
-    else if(isMember){ btn = `<button class="btn-sm" style="width:100%; background:#27AE60; color:#fff">✅ BUKA</button>`; }
-    else { btn = g.tipe==='private'? (hasReq? `<button class="btn-sm" disabled>⏳ Menunggu</button>` : `<button class="btn-sm" style="background:#FF9800;color:#fff;width:100%">🔒 REQUEST</button>`) : `<button class="btn-sm" style="width:100%">➕ GABUNG</button>`; }
-    c.innerHTML += `<div class="grup-tab-hp ${active?'aktif':''}" onclick="bukaGrup('${g.id}')"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br><small style="color:var(--accent);font-weight:900">👥 ${jmlAnggota} • 📝 ${jmlPost}</small><div style="margin-top:8px">${btn}</div></div>`;
-  });
-  if(!window.grupAktif && window.GRUP_HARDCODE.length>0){ window.grupAktif = window.GRUP_HARDCODE[0].id; bukaGrup(window.grupAktif); }
-}
-
+    const c = document.getElementById('listGroups');
+    if(!c) return;
+    c.innerHTML = '';
+    let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
+    let allMembers = JSON.parse(localStorage.getItem('all_group_members')||'{}');
+    let myReqs = JSON.parse(localStorage.getItem('my_group_requests')||'[]');
+    
+    window.GRUP_HARDCODE.forEach(g=>{
+      let isMember = myGroups.includes(g.id);
+      let jml = (allMembers[g.id]?.length||0);
+      if(isMember && jml===0) jml=1;
+      if(jml===0) jml = g.id==='entertain'?1:0;
+      let aktif = window.grupAktif===g.id ? 'aktif':'';
+      let lock = g.tipe==='private'?'🔒 PRIVATE':'🟢 PUBLIK';
+      c.innerHTML += `<div class="grup-tab-hp ${aktif}" onclick="bukaGrup('${g.id}')"><b>${g.icon} ${g.nama}</b><br><small>${lock}</small><br><small style="color:var(--accent);font-weight:900">👥 ${jml}</small><div style="margin-top:8px;padding:6px;background:${isMember?'#27AE60':'#E3F2FD'};color:${isMember?'#fff':'#000'};border-radius:8px;text-align:center;font-size:11px;font-weight:900">${isMember?'✅ ANGGOTA':'BUKA'}</div></div>`;
+    });
+    if(!window.grupAktif){ window.grupAktif='entertain'; bukaGrup('entertain'); }
+  }catch(e){ console.error(e); }
+};
 window.bukaGrup = async function(id){
   window.grupAktif = id;
   let g = window.GRUP_HARDCODE.find(x=>x.id===id);
@@ -2504,22 +2464,79 @@ window.bukaGrup = async function(id){
   loadPostGrup(id);
   setTimeout(()=>loadGroups(),100);
 }
-
-window.loadPostGrup = function(groupId){
+window.loadPostGrup = async function(groupId){
   const c = document.getElementById('daftarPostGrup');
   if(!c) return;
-  let myGroups = JSON.parse(localStorage.getItem('my_groups')||'[]');
-  if(!myGroups.includes(groupId)){ c.innerHTML=`<div class="card" style="text-align:center"><h3>🔒 Terkunci</h3></div>`; return; }
-  let all = JSON.parse(localStorage.getItem('local_group_posts')||'[]').filter(p=>p.group_id===groupId);
-  let likes = JSON.parse(localStorage.getItem('local_group_likes')||'[]');
-  let komens = JSON.parse(localStorage.getItem('local_group_komens')||'[]');
-  if(all.length===0){ c.innerHTML='<p class="card">Belum ada postingan. Jadi yang pertama!</p>'; return; }
-  c.innerHTML='';
-  all.forEach(p=>{
-    let media=''; if(p.tipe==='image'&&p.gambar_url) media=`<img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')">`; if(p.tipe==='youtube'&&p.youtube_url){ let emb=getYoutubeEmbed(p.youtube_url); if(emb) media=`<iframe src="${emb}" style="width:100%; height:220px; border-radius:10px; margin-top:10px" frameborder="0" allowfullscreen></iframe>`; }
-    let likePost=likes.filter(l=>l.post_id===p.id); let komenPost=komens.filter(k=>k.post_id===p.id); let sudahLike=userLogin? likePost.some(l=>l.user_id===userLogin.id):false;
-    c.innerHTML+=`<div class="card"><div style="display:flex; gap:8px; align-items:center"><img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+p.users?.nama}" style="width:32px;height:32px;border-radius:50%"><b>${escapeHtml(p.users?.nama||'User')}</b><small style="margin-left:auto; color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small></div><p style="white-space:pre-wrap; margin-top:8px">${escapeHtml(p.isi||'')}</p>${media}<div class="feed-action"><button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')">❤️ ${likePost.length} Like</button><button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'; document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button></div><div id="komenWrapGrup-${p.id}" class="komen-box" style="${komenPost.length>0?'':'display:none'}"><div id="listKomenGrup-${p.id}">${komenPost.map(k=>`<div class="komen-item"><img src="${k.foto||''}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(k.nama)}</b> ${escapeHtml(k.isi)}</div><a style="margin-left:auto; cursor:pointer" onclick="hapusKomenGrup('${k.id}','${p.id}')">✕</a></div>`).join('')}</div><div class="komen-input-wrap"><input id="inputKomenGrup-${p.id}" class="input" style="margin:0" placeholder="Komentar..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')"><button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">Kirim</button></div></div></div>`;
-  });
+  c.innerHTML = '<div class="card">⏳ Loading postingan...</div>';
+
+  try{
+    const { data: posts, error } = await supabase
+      .from('group_posts')
+      .select('*, users!group_posts_user_id_fkey(id,nama,foto)')
+      .eq('group_id', groupId)
+      .order('created_at', {ascending:false})
+      .limit(30);
+    if(error) throw error;
+    if(!posts || posts.length===0){
+      c.innerHTML = '<div class="card" style="text-align:center;padding:30px">Belum ada postingan</div>';
+      return;
+    }
+
+    // ambil like & komen sekaligus biar ngebut
+    const ids = posts.map(p=>p.id);
+    const { data: allLikes } = await supabase.from('group_post_likes').select('post_id,user_id').in('post_id', ids);
+    const { data: allKomens } = await supabase.from('group_post_comments').select('*, users!group_post_comments_user_id_fkey(nama,foto)').in('post_id', ids).order('created_at',{ascending:true});
+
+    c.innerHTML = '';
+    posts.forEach(p=>{
+      let media = '';
+      if(p.gambar_url){
+        media = `<img src="${p.gambar_url}" style="width:100%;border-radius:12px;margin-top:10px;max-height:400px;object-fit:contain;background:#f2f2f2;cursor:pointer" onclick="openGambarFull('${p.gambar_url}')">`;
+      }
+      if(p.youtube_url){
+        let emb = getYoutubeEmbed(p.youtube_url);
+        // fix Error 153 - tambah origin
+        if(emb) media = `<iframe src="${emb}?origin=https://myainun.vercel.app" style="width:100%;height:220px;border-radius:12px;margin-top:10px" frameborder="0" allowfullscreen></iframe>`;
+      }
+
+      let likePost = allLikes?.filter(l=>l.post_id===p.id) || [];
+      let komenPost = allKomens?.filter(k=>k.post_id===p.id) || [];
+      let sudahLike = userLogin ? likePost.some(l=>l.user_id===userLogin.id) : false;
+
+      c.innerHTML += `
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center">
+            <img src="${p.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:32px;height:32px;border-radius:50%">
+            <b>${p.users?.nama||'User'}</b>
+            <small style="margin-left:auto;color:gray">${new Date(p.created_at).toLocaleString('id-ID')}</small>
+          </div>
+          <p style="margin-top:10px;white-space:pre-wrap">${escapeHtml(p.isi||'')}</p>
+          ${media}
+          
+          <div class="feed-action" style="display:flex;gap:10px;margin-top:12px;border-top:1px solid #eee;padding-top:10px">
+            <button id="likeGrupBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLikeGrup('${p.id}')" style="${sudahLike?'background:#ff4757;color:white':''}">❤️ ${likePost.length} Like</button>
+            <button class="btn btn-sm" onclick="document.getElementById('komenWrapGrup-${p.id}').style.display='block'; document.getElementById('inputKomenGrup-${p.id}').focus()">💬 ${komenPost.length} Komen</button>
+          </div>
+
+          <div id="komenWrapGrup-${p.id}" class="komen-box" style="margin-top:10px;background:#f8f8f8;border-radius:10px;padding:10px;${komenPost.length>0?'':'display:none'}">
+            <div id="listKomenGrup-${p.id}">
+              ${komenPost.map(k=>`
+                <div class="komen-item" style="display:flex;gap:8px;margin-bottom:8px;font-size:13px">
+                  <img src="${k.users?.foto||'https://ui-avatars.com/api/?name='+encodeURIComponent(k.users?.nama||'User')}" style="width:28px;height:28px;border-radius:50%">
+                  <div><b>${escapeHtml(k.users?.nama||'User')}</b> ${escapeHtml(k.isi)} <br><small style="color:gray">${new Date(k.created_at).toLocaleTimeString('id-ID')}</small></div>
+                </div>`).join('')}
+            </div>
+            <div class="komen-input-wrap" style="display:flex;gap:6px;margin-top:8px">
+              <input id="inputKomenGrup-${p.id}" class="input" style="margin:0" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter') kirimKomenGrup('${p.id}')">
+              <button class="btn btn-sm" onclick="kirimKomenGrup('${p.id}')">Kirim</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  }catch(err){
+    console.log(err.message);
+    c.innerHTML = '<div class="card">Gagal load: '+err.message+'<br> Cek tabel group_post_likes & group_post_comments udah ada belum di Supabase</div>';
+  }
 }
 
 window.joinGrupPublik = async function(id){
