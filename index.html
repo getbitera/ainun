@@ -354,6 +354,8 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
   <div id="daftarPenyedia" class="grid"></div>
 </div>
+
+
 <div id="videosPage" class="container" style="display:none">
   <h2>📹 VIDEO</h2>
   <button class="btn" onclick="openModal('uploadVideo')">+ TAMBAH VIDEO</button>
@@ -365,6 +367,24 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
   </div>
   <div id="daftarVideo" class="grid"></div>
 </div>
+
+<!-- MODAL REEL VIDEO TIKTOK STYLE -->
+<div id="videoReelModal" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;padding:15px;background:rgba(0,0,0,0.6);position:absolute;top:0;left:0;right:0;z-index:2;color:#fff">
+    <button onclick="tutupReel()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:8px 15px;border-radius:20px;font-weight:bold">✕ TUTUP</button>
+    <div id="reelInfo" style="font-size:12px;text-align:right"></div>
+  </div>
+  <div id="reelContainer" style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <iframe id="reelIframe" style="width:100%;height:100%;max-width:500px;max-height:90vh;border:none" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <!-- area swipe -->
+    <div id="reelSwipeArea" style="position:absolute;inset:0"></div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:20px;padding:15px;background:rgba(0,0,0,0.6);position:absolute;bottom:0;left:0;right:0">
+    <button onclick="prevReel()" style="background:#fff;color:#000;border:none;padding:12px 20px;border-radius:25px;font-weight:bold">⬆️ PREV</button>
+    <button onclick="nextReel()" style="background:#fff;color:#000;border:none;padding:12px 20px;border-radius:25px;font-weight:bold">NEXT ⬇️</button>
+  </div>
+</div>
+
 
 <div id="friendsPage" class="container" style="display:none">
   <h2>👥 TEMAN & PERMINTAAN</h2>
@@ -1600,26 +1620,39 @@ window.cariVideo = async function(){
   tampilkanVideo(hasil);
 }
 
+let daftarVideoReel = [];
+let reelIndex = 0;
+
 function tampilkanVideo(data){
-  const container = document.getElementById('daftarVideo'); 
+  const container = document.getElementById('daftarVideo');
   container.innerHTML = '';
   if(!data || data.length === 0) return container.innerHTML = '<p>Video tidak ditemukan</p>';
-  data.forEach(v=>{
+
+  daftarVideoReel = data; // simpen buat reel
+
+  data.forEach((v,i)=>{
     const isOwner = userLogin && v.user_id === userLogin.id;
-    container.innerHTML += `<div class="card">
+    container.innerHTML += `<div class="card" style="cursor:pointer" onclick="bukaReel(${i})">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
-        <div style="display:flex; align-items:center; gap:10px; cursor:pointer" onclick="lihatProfilOrang('${v.users.id}')">
+        <div style="display:flex; align-items:center; gap:10px">
           <img src="${v.users.foto||'https://ui-avatars.com/api/?name='+v.users.nama}" style="width:32px;height:32px;border-radius:50%">
           <b style="font-size:14px; color:var(--accent)">${v.users.nama}</b>
         </div>
-        ${isOwner ? `<button class="btn btn-batal btn-sm" style="padding:6px 10px; font-size:12px" onclick="hapusVideo('${v.id}')">🗑️ HAPUS</button>` : ''}
+        ${isOwner? `<button class="btn btn-batal btn-sm" style="padding:6px 10px; font-size:12px" onclick="event.stopPropagation(); hapusVideo('${v.id}')">🗑️ HAPUS</button>` : ''}
       </div>
-      <h3>${v.judul}</h3>
-      <iframe src="${v.link}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%; height:180px; border-radius:10px"></iframe>
+      <h3 style="font-size:14px">${v.judul}</h3>
+      <div style="position:relative">
+        <img src="https://img.youtube.com/vi/${getYoutubeId(v.link)}/hqdefault.jpg" style="width:100%; height:180px; object-fit:cover; border-radius:10px">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:60px;height:60px;background:rgba(255,0,0,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px">▶</div></div>
+      </div>
     </div>`
   })
 }
 
+function getYoutubeId(embedUrl){
+  // embedUrl = https://www.youtube.com/embed/VIDEOID
+  try{ return embedUrl.split('/embed/')[1].split('?')[0]; }catch(e){ return ''; }
+}
 window.hapusVideo = async function(idVideo){
   if(!userLogin) return alert("Login dulu");
   if(!confirm("Yakin mau hapus video ini? Gak bisa dibalikin lagi loh.")) return;
@@ -1638,6 +1671,46 @@ async function loadVideos(){
   if(error){ console.log(error); return; }
   tampilkanVideo(data);
 }
+
+window.bukaReel = function(index){
+  reelIndex = index;
+  let v = daftarVideoReel[reelIndex];
+  if(!v) return;
+  document.getElementById('reelIframe').src = v.link + '?autoplay=1';
+  document.getElementById('reelInfo').innerHTML = `<b>${escapeHtml(v.judul)}</b><br>${escapeHtml(v.users.nama)} - ${reelIndex+1}/${daftarVideoReel.length}`;
+  document.getElementById('videoReelModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setupSwipe();
+}
+window.tutupReel = function(){
+  document.getElementById('videoReelModal').style.display = 'none';
+  document.getElementById('reelIframe').src = '';
+  document.body.style.overflow = '';
+}
+window.nextReel = function(){
+  if(reelIndex < daftarVideoReel.length-1){ reelIndex++; bukaReel(reelIndex); }
+}
+window.prevReel = function(){
+  if(reelIndex > 0){ reelIndex--; bukaReel(reelIndex); }
+}
+function setupSwipe(){
+  const area = document.getElementById('reelSwipeArea');
+  let startY = 0;
+  area.ontouchstart = e => startY = e.touches[0].clientY;
+  area.ontouchend = e => {
+    let endY = e.changedTouches[0].clientY;
+    let diff = startY - endY;
+    if(Math.abs(diff) > 50){
+      if(diff > 0) nextReel(); // swipe up = next
+      else prevReel(); // swipe down = prev
+    }
+  }
+  // buat laptop pakai scroll wheel
+  area.onwheel = e => {
+    if(e.deltaY > 0) nextReel(); else prevReel();
+  }
+}
+
 
 async function loadMyProfile() { 
   if (!userLogin?.id) return;
