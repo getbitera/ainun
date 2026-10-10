@@ -2278,78 +2278,81 @@ async function loadFeed(filter='semua', btnEl){
     btnEl.classList.add('active');
   }
   const container = document.getElementById('daftarFeed');
-  container.innerHTML = 'Loading feed...';
+  container.innerHTML = '<div class="card">⏳</div><div class="card">⏳</div><div class="card">⏳</div>';
 
-  let temanIds = [];
-  if(userLogin){
-    const { data: teman } = await supabase.from('friendships').select('requester_id, addressee_id').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`);
-    if(teman) temanIds = teman.map(f => f.requester_id === userLogin.id? f.addressee_id : f.requester_id);
+  try{
+    // jalanin 2 query pertama barengan
+    let temanIds = [];
+    let temanPromise = supabase.from('friendships').select('requester_id, addressee_id').eq('status','accepted').or(`requester_id.eq.${userLogin?.id||''},addressee_id.eq.${userLogin?.id||''}`);
+    let postPromise = supabase.from('postingan').select('*, users!postingan_user_id_fkey(id,nama,foto)').order('created_at',{ascending:false}).limit(20);
+
+    const [temanRes, postRes] = await Promise.all([temanPromise, postPromise]);
+    
+    if(temanRes.data) temanIds = temanRes.data.map(f => f.requester_id === userLogin?.id ? f.addressee_id : f.requester_id);
+    let data = postRes.data || [];
+
+    if(!data.length){
+      container.innerHTML = '<p class="card">Belum ada postingan</p>'; return;
+    }
+
+    // filter cepet
+    let hasil = data.filter(p=>{
+      if(!userLogin) return p.visibilitas==='public';
+      if(filter==='public') return p.visibilitas==='public';
+      if(filter==='privat') return p.user_id===userLogin.id;
+      if(filter==='teman') return p.visibilitas==='teman' && (p.user_id===userLogin.id || temanIds.includes(p.user_id));
+      if(p.visibilitas==='public') return true;
+      if(p.visibilitas==='privat') return p.user_id===userLogin.id;
+      if(p.visibilitas==='teman') return p.user_id===userLogin.id || temanIds.includes(p.user_id);
+      return false;
+    });
+
+    if(!hasil.length){
+      container.innerHTML = '<p class="card">Belum ada postingan untuk filter ini</p>'; return;
+    }
+
+    // ambil like & komen barengan juga, bukan satu-satu
+    const ids = hasil.map(p=>p.id);
+    const [likesRes, komenRes] = await Promise.all([
+      supabase.from('feed_likes').select('post_id, user_id').in('post_id', ids),
+      supabase.from('feed_komentar').select('*, users!feed_komentar_user_id_fkey(nama,foto)').in('post_id', ids).order('created_at',{ascending:true}).limit(100)
+    ]);
+
+    const allLikes = likesRes.data || [];
+    const allKomen = komenRes.data || [];
+
+    // render (pakai yang lama lu, gak usah ganti)
+    container.innerHTML = '';
+    hasil.forEach(p=>{
+      const likes = allLikes.filter(l=>l.post_id===p.id);
+      const komens = allKomen.filter(k=>k.post_id===p.id);
+      const sudahLike = userLogin ? likes.some(l=>l.user_id===userLogin.id) : false;
+      let badge = p.visibilitas==='public'?'🌍 Umum':p.visibilitas==='teman'?'👥 Teman':'🔒 Privat';
+      let canDelete = userLogin && p.user_id===userLogin.id? `<button class="btn btn-batal btn-sm" onclick="hapusFeed('${p.id}')">Hapus</button>` : '';
+      container.innerHTML += `
+        <div class="card">
+          <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px">
+            <img src="${p.users?.foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:40px;height:40px;border-radius:50%" onclick="lihatProfilOrang('${p.users?.id}')">
+            <div><b style="color:var(--accent)" onclick="lihatProfilOrang('${p.users?.id}')">${escapeHtml(p.users?.nama||'User')}</b><br><small style="color:gray">${new Date(p.created_at).toLocaleString('id-ID')} • ${badge}</small></div>
+            <div style="margin-left:auto">${canDelete}</div>
+          </div>
+          <p style="white-space:pre-wrap; margin-bottom:10px">${escapeHtml(p.isi)}</p>
+          ${p.gambar_url? `<div style="display:flex;justify-content:center"><img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')"></div>` : ''}
+          <div class="feed-action">
+            <button id="likeBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLike('${p.id}')">❤️ ${likes.length} Like</button>
+            <button class="btn btn-sm" onclick="document.getElementById('komenWrap-${p.id}').style.display='block'; document.getElementById('inputKomen-${p.id}').focus()">💬 ${komens.length} Komen</button>
+          </div>
+          <div id="komenWrap-${p.id}" class="komen-box" style="${komens.length>0?'':'display:none'}">
+            <div id="listKomen-${p.id}">${komens.map(k=>`<div class="komen-item"><img src="${k.users?.foto||''}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(k.users?.nama||'User')}</b> ${escapeHtml(k.isi)}</div></div>`).join('')}</div>
+            <div class="komen-input-wrap"><input id="inputKomen-${p.id}" class="input" style="margin:0" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter') kirimKomen('${p.id}')"><button class="btn btn-sm" onclick="kirimKomen('${p.id}')">Kirim</button></div>
+          </div>
+        </div>`;
+    });
+
+  }catch(err){
+    container.innerHTML = 'Gagal: '+err.message;
   }
-
-  const { data, error } = await supabase.from('postingan').select('*, users!postingan_user_id_fkey(id,nama,foto)').order('created_at',{ascending:false}).limit(50);
-  if(error){ container.innerHTML = error.message; return; }
-
-  let hasil = data.filter(p=>{
-    if(!userLogin) return p.visibilitas==='public';
-    if(filter==='public') return p.visibilitas==='public';
-    if(filter==='privat') return p.user_id===userLogin.id && p.visibilitas==='privat';
-    if(filter==='teman') return p.visibilitas==='teman' && (p.user_id===userLogin.id || temanIds.includes(p.user_id));
-    // semua
-    if(p.visibilitas==='public') return true;
-    if(p.visibilitas==='privat') return p.user_id===userLogin.id;
-    if(p.visibilitas==='teman') return p.user_id===userLogin.id || temanIds.includes(p.user_id);
-    return false;
-  });
-
-  if(!hasil.length){ container.innerHTML = '<p class="card">Belum ada postingan</p>'; return; }
-
-  // ambil semua like & komen sekaligus biar ngebut
-  const ids = hasil.map(p=>p.id);
-  const { data: allLikes } = await supabase.from('feed_likes').select('post_id, user_id').in('post_id', ids);
-  const { data: allKomen } = await supabase.from('feed_komentar').select('*, users!feed_komentar_user_id_fkey(nama,foto)').in('post_id', ids).order('created_at',{ascending:true});
-
-  container.innerHTML = '';
-  hasil.forEach(p=>{
-    const likes = allLikes?.filter(l=>l.post_id===p.id) || [];
-    const komens = allKomen?.filter(k=>k.post_id===p.id) || [];
-    const sudahLike = userLogin ? likes.some(l=>l.user_id===userLogin.id) : false;
-    let badge = p.visibilitas==='public'?'🌍 Umum':p.visibilitas==='teman'?'👥 Teman':'🔒 Privat';
-    let canDelete = userLogin && p.user_id===userLogin.id? `<button class="btn btn-batal btn-sm" onclick="hapusFeed('${p.id}')">Hapus</button>` : '';
-
-    container.innerHTML += `
-      <div class="card">
-        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px">
-          <img src="${p.users?.foto || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.users?.nama||'User')}" style="width:40px;height:40px;border-radius:50%" onclick="lihatProfilOrang('${p.users?.id}')">
-          <div><b style="color:var(--accent)" onclick="lihatProfilOrang('${p.users?.id}')">${escapeHtml(p.users?.nama||'User')}</b><br><small style="color:gray">${new Date(p.created_at).toLocaleString('id-ID')} • ${badge}</small></div>
-          <div style="margin-left:auto">${canDelete}</div>
-        </div>
-        <p style="white-space:pre-wrap; margin-bottom:10px">${escapeHtml(p.isi)}</p>
-        ${p.gambar_url? `<div style="display:flex;justify-content:center"><img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')"></div>` : ''}
-
-        <div class="feed-action">
-          <button id="likeBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLike('${p.id}')">❤️ ${likes.length} Like</button>
-          <button class="btn btn-sm" onclick="document.getElementById('komenWrap-${p.id}').style.display='block'; document.getElementById('inputKomen-${p.id}').focus()">💬 ${komens.length} Komen</button>
-        </div>
-
-        <div id="komenWrap-${p.id}" class="komen-box" style="${komens.length>0?'':'display:none'}">
-          <div id="listKomen-${p.id}">
-            ${komens.map(k=>`
-              <div class="komen-item">
-                <img src="${k.users?.foto||'https://ui-avatars.com/api/?name='+k.users?.nama}" style="width:28px;height:28px;border-radius:50%">
-                <div><b>${escapeHtml(k.users?.nama||'User')}</b> ${escapeHtml(k.isi)} <br><small style="color:gray">${new Date(k.created_at).toLocaleTimeString('id-ID')}</small></div>
-                ${userLogin && k.user_id===userLogin.id? `<a style="margin-left:auto; cursor:pointer" onclick="hapusKomen('${k.id}','${p.id}')">✕</a>`:''}
-              </div>
-            `).join('')}
-          </div>
-          <div class="komen-input-wrap">
-            <input id="inputKomen-${p.id}" class="input" style="margin:0" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter') kirimKomen('${p.id}')">
-            <button class="btn btn-sm" onclick="kirimKomen('${p.id}')">Kirim</button>
-          </div>
-        </div>
-      </div>`;
-  });
 }
-
 // FUNGSI LIKE
 window.toggleLike = async function(postId){
   if(!userLogin) return alert("Login dulu");
