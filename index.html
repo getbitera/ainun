@@ -2159,12 +2159,38 @@ async function loadDaftarChat() {
     list.appendChild(item);
   });
 }
+// === TAMBAHAN HELPER TANGGAL ===
+function formatTanggalChat(tgl){
+  const d = new Date(tgl);
+  const now = new Date();
+  const kemarin = new Date(); kemarin.setDate(now.getDate()-1);
+  if(d.toDateString() === now.toDateString()) return "Hari ini";
+  if(d.toDateString() === kemarin.toDateString()) return "Kemarin";
+  return d.toLocaleDateString('id-ID',{day:'numeric', month:'long', year:'numeric'});
+}
+function formatJam(tgl){
+  return new Date(tgl).toLocaleTimeString('id-ID',{hour:'2-digit', minute:'2-digit'});
+}
+
 async function loadPesan() {
   if(!convAktif) return;
   const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
   const isi = document.getElementById('isiChat');
   isi.innerHTML = '';
-  if(data) data.forEach(m => renderPesan(m));
+  if(!data || data.length===0) return;
+  
+  let tglTerakhir = '';
+  data.forEach(m=>{
+    const tglStr = new Date(m.created_at).toDateString();
+    if(tglStr !== tglTerakhir){
+      const badge = document.createElement('div');
+      badge.style.cssText = 'text-align:center;margin:15px 0';
+      badge.innerHTML = `<span style="background:#e2f0ff;color:#0a4a7a;font-size:11px;padding:6px 14px;border-radius:20px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,0.1)">${formatTanggalChat(m.created_at)}</span>`;
+      isi.appendChild(badge);
+      tglTerakhir = tglStr;
+    }
+    renderPesan(m);
+  });
   isi.scrollTop = isi.scrollHeight;
 }
 
@@ -2172,7 +2198,8 @@ function renderPesan(m){
   const isi = document.getElementById('isiChat');
   if(!isi) return;
   const isMe = m.sender_id === userLogin.id;
-  const waktu = new Date(m.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  const waktu = formatJam(m.created_at);
+  const tglLengkap = new Date(m.created_at).toLocaleString('id-ID',{day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'});
 
   let centang = '';
   if(isMe){
@@ -2181,7 +2208,8 @@ function renderPesan(m){
 
   const wrap = document.createElement('div');
   wrap.className = `chat-bubble ${isMe? 'chat-me' : 'chat-lawan'}`;
-  // content pakai textContent biar aman dari XSS <img onerror>
+  wrap.title = tglLengkap; // hover jam muncul tanggal lengkap
+
   const textSpan = document.createElement('div');
   textSpan.textContent = m.content;
 
@@ -2193,6 +2221,7 @@ function renderPesan(m){
   wrap.appendChild(timeDiv);
   isi.appendChild(wrap);
 }
+
 
 async function tandaiSudahDibaca(){
   if(!convAktif) return;
