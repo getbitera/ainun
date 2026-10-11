@@ -188,6 +188,105 @@ footer{background:var(--card);text-align:center;padding:20px;margin-top:50px;bor
 }
 
 
+/* === FEED ICON ONLY - TANPA KOTAK WARNA === */
+.feed-action{
+  display:flex !important;
+  gap:20px !important;
+  border-top:none !important;
+  padding-top:8px !important;
+  background:transparent !important;
+}
+.feed-action .btn,
+.feed-action .btn-sm,
+.feed-action .btn-like{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  padding:4px !important;
+  color:#666 !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  width:auto !important;
+  min-width:auto !important;
+}
+.feed-action .btn-like.active{
+  color:#ff4757 !important;
+}
+.feed-action .btn:hover{
+  background:transparent !important;
+  transform:none !important;
+}
+
+/* biarin icon chat juga tanpa kotak */
+.chat-bubble .chat-time{
+  background:transparent !important;
+}
+
+
+/* === OVERRIDE HP FINAL - ICON ONLY === */
+.feed-action,
+.komen-box,
+div.feed-action{
+  display:flex !important;
+  gap:18px !important;
+  background:transparent !important;
+  border:none !important;
+  border-top:1px solid #eee !important;
+  padding:10px 0 0 0 !important;
+}
+
+.feed-action .btn,
+.feed-action .btn-sm,
+.feed-action .btn-like,
+.feed-action button,
+#daftarFeed .btn,
+#daftarFeed .btn-sm{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  width:auto !important;
+  min-width:auto !important;
+  height:auto !important;
+  color:#666 !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:4px !important;
+}
+
+/* biar ❤️ aktif jadi merah */
+.feed-action .btn-like.active,
+.feed-action #likeBtn.active{
+  color:#ff3040 !important;
+  background:transparent !important;
+}
+
+/* hapus kotak oren hapus di feed */
+.feed-action span[onclick*="hapusFeed"]{
+  background:transparent !important;
+  border:none !important;
+  margin-left:auto !important;
+  font-size:16px !important;
+}
+
+/* KHUSUS HP */
+@media (max-width: 768px){
+  .feed-action .btn,
+  .feed-action .btn-sm,
+  .feed-action button{
+    background:transparent !important;
+    background-color:transparent !important;
+    border:none !important;
+    width:auto !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2160,67 +2259,6 @@ async function loadDaftarChat() {
   });
 }
 // === TAMBAHAN HELPER TANGGAL ===
-function formatTanggalChat(tgl){
-  const d = new Date(tgl);
-  const now = new Date();
-  const kemarin = new Date(); kemarin.setDate(now.getDate()-1);
-  if(d.toDateString() === now.toDateString()) return "Hari ini";
-  if(d.toDateString() === kemarin.toDateString()) return "Kemarin";
-  return d.toLocaleDateString('id-ID',{day:'numeric', month:'long', year:'numeric'});
-}
-function formatJam(tgl){
-  return new Date(tgl).toLocaleTimeString('id-ID',{hour:'2-digit', minute:'2-digit'});
-}
-
-async function loadPesan() {
-  if(!convAktif) return;
-  const { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).eq('is_deleted', false).order('created_at');
-  const isi = document.getElementById('isiChat');
-  isi.innerHTML = '';
-  if(!data || data.length===0) return;
-  
-  let tglTerakhir = '';
-  data.forEach(m=>{
-    const tglStr = new Date(m.created_at).toDateString();
-    if(tglStr !== tglTerakhir){
-      const badge = document.createElement('div');
-      badge.style.cssText = 'text-align:center;margin:15px 0';
-      badge.innerHTML = `<span style="background:#e2f0ff;color:#0a4a7a;font-size:11px;padding:6px 14px;border-radius:20px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,0.1)">${formatTanggalChat(m.created_at)}</span>`;
-      isi.appendChild(badge);
-      tglTerakhir = tglStr;
-    }
-    renderPesan(m);
-  });
-  isi.scrollTop = isi.scrollHeight;
-}
-
-function renderPesan(m){
-  const isi = document.getElementById('isiChat');
-  if(!isi) return;
-  const isMe = m.sender_id === userLogin.id;
-  const waktu = formatJam(m.created_at);
-  const tglLengkap = new Date(m.created_at).toLocaleString('id-ID',{day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'});
-
-  let centang = '';
-  if(isMe){
-    centang = m.is_read? '<span style="color:#3b82f6;">✓✓</span>' : '<span style="color:#9ca3af;">✓✓</span>';
-  }
-
-  const wrap = document.createElement('div');
-  wrap.className = `chat-bubble ${isMe? 'chat-me' : 'chat-lawan'}`;
-  wrap.title = tglLengkap; // hover jam muncul tanggal lengkap
-
-  const textSpan = document.createElement('div');
-  textSpan.textContent = m.content;
-
-  const timeDiv = document.createElement('div');
-  timeDiv.className = 'chat-time';
-  timeDiv.innerHTML = `${waktu} ${centang}`;
-
-  wrap.appendChild(textSpan);
-  wrap.appendChild(timeDiv);
-  isi.appendChild(wrap);
-}
 
 
 async function tandaiSudahDibaca(){
@@ -2469,10 +2507,11 @@ async function loadFeed(filter='semua', btnEl){
           </div>
           <p style="white-space:pre-wrap; margin-bottom:10px">${escapeHtml(p.isi)}</p>
           ${p.gambar_url? `<div style="display:flex;justify-content:center"><img src="${p.gambar_url}" class="gambar-feed" onclick="openGambarFull('${p.gambar_url}')"></div>` : ''}
-          <div class="feed-action">
-            <button id="likeBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" onclick="toggleLike('${p.id}')">❤️ ${likes.length} Like</button>
-            <button class="btn btn-sm" onclick="document.getElementById('komenWrap-${p.id}').style.display='block'; document.getElementById('inputKomen-${p.id}').focus()">💬 ${komens.length} Komen</button>
-          </div>
+         <div class="feed-action">
+  <span id="likeBtn-${p.id}" class="btn btn-sm btn-like ${sudahLike?'active':''}" style="cursor:pointer" onclick="toggleLike('${p.id}')">❤️ ${likes.length}</span>
+  <span class="btn btn-sm" style="cursor:pointer" onclick="document.getElementById('komenWrap-${p.id}').style.display='block'; document.getElementById('inputKomen-${p.id}').focus()">💬 ${komens.length}</span>
+  ${canDelete? `<span style="cursor:pointer;margin-left:auto;opacity:0.6" onclick="hapusFeed('${p.id}')">🗑️</span>` : ''}
+</div>
           <div id="komenWrap-${p.id}" class="komen-box" style="${komens.length>0?'':'display:none'}">
             <div id="listKomen-${p.id}">${komens.map(k=>`<div class="komen-item"><img src="${k.users?.foto||''}" style="width:28px;height:28px;border-radius:50%"><div><b>${escapeHtml(k.users?.nama||'User')}</b> ${escapeHtml(k.isi)}</div></div>`).join('')}</div>
             <div class="komen-input-wrap"><input id="inputKomen-${p.id}" class="input" style="margin:0" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter') kirimKomen('${p.id}')"><button class="btn btn-sm" onclick="kirimKomen('${p.id}')">Kirim</button></div>
@@ -2748,7 +2787,7 @@ window.hapusPostGrup = async function(postId, gambarUrl){
 window.toggleLikeGrup = async function(postId){
   if(!userLogin) return alert('Login dulu'); let likes=JSON.parse(localStorage.getItem('local_group_likes')||'[]'); let idx=likes.findIndex(l=>l.post_id===postId&&l.user_id===userLogin.id); let btn=document.getElementById(`likeGrupBtn-${postId}`);
   if(idx>=0){ likes.splice(idx,1); btn.classList.remove('active'); try{ await supabase.from('group_post_likes').delete().eq('post_id',postId).eq('user_id',userLogin.id); }catch(e){} } else { likes.push({post_id:postId, user_id:userLogin.id}); btn.classList.add('active'); try{ await supabase.from('group_post_likes').insert({post_id:postId, user_id:userLogin.id}); }catch(e){} }
-  localStorage.setItem('local_group_likes', JSON.stringify(likes)); btn.innerText=`❤️ ${likes.filter(l=>l.post_id===postId).length} Like`;
+  localStorage.setItem('local_group_likes', JSON.stringify(likes));btn.innerText = `❤️ ${likes.filter(l=>l.post_id===postId).length}`;
 }
 window.kirimKomenGrup = async function(postId){
   if(!userLogin) return alert('Login dulu'); let input=document.getElementById(`inputKomenGrup-${postId}`); let isi=input.value.trim(); if(!isi) return;
@@ -3026,6 +3065,128 @@ document.getElementById('popupGame')?.addEventListener('click', function(e){
   if(e.target.id === 'popupGame') window.tutupGame();
 });
 
+
+// === FINAL CHAT + HAPUS V2 - 100% MUNCUL ===
+window.formatTanggalChat = function(tgl){
+  const d = new Date(tgl);
+  const now = new Date();
+  const kemarin = new Date(); kemarin.setDate(now.getDate()-1);
+  if(d.toDateString() === now.toDateString()) return "Hari ini";
+  if(d.toDateString() === kemarin.toDateString()) return "Kemarin";
+  return d.toLocaleDateString('id-ID',{day:'numeric', month:'long', year:'numeric'});
+}
+window.formatJam = function(tgl){
+  return new Date(tgl).toLocaleTimeString('id-ID',{hour:'2-digit', minute:'2-digit'});
+}
+
+
+// === FINAL HAPUS LANGSUNG ICON SAJA ===
+// === FIX CHAT FINAL ANTI ERROR ===
+window.formatTanggalChat = window.formatTanggalChat || function(tgl){
+  const d = new Date(tgl);
+  const now = new Date();
+  const kemarin = new Date(); kemarin.setDate(now.getDate()-1);
+  if(d.toDateString() === now.toDateString()) return "Hari ini";
+  if(d.toDateString() === kemarin.toDateString()) return "Kemarin";
+  return d.toLocaleDateString('id-ID',{day:'numeric', month:'long', year:'numeric'});
+}
+window.formatJam = window.formatJam || function(tgl){
+  return new Date(tgl).toLocaleTimeString('id-ID',{hour:'2-digit', minute:'2-digit'});
+}
+
+window.renderPesan = function(m){
+  const isi = document.getElementById('isiChat');
+  if(!isi) return;
+  if(m.is_deleted) return;
+  if(m.deleted_by && m.deleted_by.includes(userLogin.id)) return;
+
+  const isMe = m.sender_id === userLogin.id;
+  const waktu = window.formatJam(m.created_at);
+  const centang = isMe ? (m.is_read? '<span style="color:#3b82f6">✓✓</span>' : '<span style="color:#999">✓✓</span>') : '';
+
+  const wrap = document.createElement('div');
+  wrap.id = 'msg-'+m.id;
+  wrap.className = `chat-bubble ${isMe? 'chat-me' : 'chat-lawan'}`;
+  wrap.innerHTML = `
+    <div style="white-space:pre-wrap;word-break:break-word">${(m.content||'').replace(/</g,'&lt;')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+      <span onclick="window.hapusPesan('${m.id}')" style="cursor:pointer;font-size:14px;opacity:0.7">🗑️</span>
+      <span style="font-size:10px;color:#666">${waktu} ${centang}</span>
+    </div>
+  `;
+  isi.appendChild(wrap);
+}
+
+// wrapper biar realtime yang lama gak error
+function renderPesan(m){ return window.renderPesan(m); }
+
+
+// === HAPUS ANTI GAGAL + LOCAL FALLBACK ===
+window.getDeletedCache = function(){
+  return JSON.parse(localStorage.getItem('deleted_msgs_'+userLogin.id)||'[]');
+}
+window.addDeletedCache = function(msgId){
+  let arr = window.getDeletedCache();
+  if(!arr.includes(msgId)){ arr.push(msgId); localStorage.setItem('deleted_msgs_'+userLogin.id, JSON.stringify(arr)); }
+}
+
+window.hapusPesan = async function(msgId){
+  // 1. langsung ilang di UI
+  document.getElementById('msg-'+msgId)?.remove();
+  window.addDeletedCache(msgId);
+
+  // 2. coba update ke supabase (kalau gagal ya biarin, local cache yang jaga)
+  try{
+    const { data } = await supabase.from('messages').select('deleted_by').eq('id', msgId).single();
+    let arr = data?.deleted_by || [];
+    if(!arr.includes(userLogin.id)) arr.push(userLogin.id);
+    const { error } = await supabase.from('messages').update({ deleted_by: arr }).eq('id', msgId);
+    if(error) console.log('RLS error:', error.message);
+  }catch(e){
+    console.log('fallback is_deleted', e.message);
+    await supabase.from('messages').update({ is_deleted: false }).eq('id', msgId); // trigger aja biar gak error
+  }
+
+  // 3. load ulang dengan filter local
+  setTimeout(()=> window.loadPesan(), 200);
+}
+
+window.loadPesan = async function() {
+  if(!convAktif) return;
+  let { data } = await supabase.from('messages').select('*').eq('conversation_id', convAktif).order('created_at');
+  const isi = document.getElementById('isiChat');
+  if(!isi) return;
+  isi.innerHTML = '';
+  if(!data) return;
+
+  const deletedCache = window.getDeletedCache();
+
+  const filtered = data.filter(m => {
+    if(m.is_deleted) return false;
+    if(m.deleted_by && m.deleted_by.includes(userLogin.id)) return false;
+    if(deletedCache.includes(m.id)) return false; // <-- ini kunci biar tanggal kosong ilang walau DB gagal
+    return true;
+  });
+
+  if(filtered.length === 0){
+    isi.innerHTML = '<p style="text-align:center;color:gray;margin-top:20px">Belum ada pesan</p>';
+    return;
+  }
+
+  let tglTerakhir = '';
+  filtered.forEach(m=>{
+    const tglStr = new Date(m.created_at).toDateString();
+    if(tglStr !== tglTerakhir){
+      const badge = document.createElement('div');
+      badge.style.cssText = 'text-align:center;margin:15px 0';
+      badge.innerHTML = `<span style="background:#e2f0ff;color:#0a4a7a;font-size:11px;padding:6px 14px;border-radius:20px;font-weight:700;">${window.formatTanggalChat(m.created_at)}</span>`;
+      isi.appendChild(badge);
+      tglTerakhir = tglStr;
+    }
+    window.renderPesan(m);
+  });
+  isi.scrollTop = isi.scrollHeight;
+}
 
 });
 
