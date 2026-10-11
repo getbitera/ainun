@@ -1333,18 +1333,14 @@ window.loginUser = async function() {
     alert('Gagal login: ' + err.message);
   }
 }
-
 window.lupaPassword = async function(){
-  const email = document.getElementById('loginEmail').value;
-  if(!email) return alert("Isi email kamu dulu di kolom email");
-  
+  const email = document.getElementById('loginEmail').value.trim();
+  if(!email) return alert("Isi email dulu di kolom email");
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://myainun.vercel.app/' // ganti sesuai domain kamu
+    redirectTo: 'https://myainun.vercel.app/'
   });
-
-  if(error) return alert("Gagal: " + error.message);
-  
-  alert("Link reset password sudah dikirim ke email kamu. Cek inbox/spam");
+  if(error) return alert(error.message);
+  alert("Link reset udah dikirim. Cek spam, link cuma aktif 1 jam & cuma bisa dipakai sekali!");
   closeModal('login');
 }
 
