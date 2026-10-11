@@ -307,6 +307,14 @@ div.feed-action{
 </div>
 
 <!-- MODAL KEBIJAKAN PRIVASI -->
+
+<div class="modal" id="resetPassModal"><div class="modal-content">
+  <h2>🔑 GANTI PASSWORD BARU</h2>
+  <input class="input" type="password" id="newPass" placeholder="Password baru min 6 huruf">
+  <button class="btn" style="width:100%" onclick="updatePasswordBaru()">SIMPAN PASSWORD BARU</button>
+</div></div>
+
+
 <div class="modal" id="privasi">
   <div class="modal-content">
     <h2>🔒 KEBIJAKAN PRIVASI</h2>
@@ -3182,6 +3190,23 @@ window.loadPesan = async function() {
     window.renderPesan(m);
   });
   isi.scrollTop = isi.scrollHeight;
+}
+
+
+// DETEKSI LINK RESET DARI EMAIL
+supabase.auth.onAuthStateChange(async (event, session)=>{
+  if(event === 'PASSWORD_RECOVERY'){
+    openModal('resetPassModal');
+  }
+});
+window.updatePasswordBaru = async function(){
+  const np = document.getElementById('newPass').value;
+  if(!np || np.length<6) return alert("Min 6 huruf");
+  const { error } = await supabase.auth.updateUser({ password: np });
+  if(error) return alert(error.message);
+  alert("Password berhasil diganti, silakan login");
+  closeModal('resetPassModal');
+  await supabase.auth.signOut();
 }
 
 });
