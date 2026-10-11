@@ -2850,19 +2850,47 @@ function updateSaldoUI(){
   if(el) el.innerText = Number(saldoSekarang).toLocaleString();
 }
 
+
 async function loadPenyedia(){
   const container = document.getElementById('daftarPenyedia');
   if(!container) return;
   container.innerHTML = 'Loading penyedia...';
-  const { data, error } = await supabase.from('users').select('*').limit(50);
-  if(error){ container.innerHTML = error.message; return; }
+  
+  // filter admin biar gak muncul di PENYEDIA JASA
+  const { data, error } = await supabase
+    .from('users')
+    .select('id,nama,foto,skill,role')
+    .neq('role','admin')
+    .limit(50);
+    
+  if(error){ 
+    container.innerHTML = `<p style="text-align:center;color:red">Error: ${error.message}</p>`; 
+    return; 
+  }
+  
   container.innerHTML = '';
+  
+  if(!data || data.length === 0){
+    container.innerHTML = '<p style="text-align:center">Belum ada penyedia jasa</p>';
+    return;
+  }
+
   data.forEach(u=>{
-    if(userLogin && u.id===userLogin.id) return;
-    container.innerHTML += `<div class="card" style="text-align:center"><img src="${u.foto||''}" class="profil-foto" style="width:80px;height:80px" onclick="lihatProfilOrang('${u.id}')"><h3>${u.nama}</h3><p>${u.skill||''}</p><button class="btn" onclick="bukaChat('${u.id}')">CHAT</button></div>`;
+    if(userLogin && u.id===userLogin.id) return; // jangan tampilkan diri sendiri
+    const foto = u.foto || 'https://via.placeholder.com/100';
+    const nama = u.nama || 'Tanpa Nama';
+    const skill = u.skill || 'belum isi skill';
+    
+    container.innerHTML += `
+      <div class="card" style="text-align:center;padding:15px">
+        <img src="${foto}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;cursor:pointer" onclick="lihatProfilOrang('${u.id}')">
+        <h3 style="margin:8px 0 2px">${nama}</h3>
+        <p style="font-size:13px;color:gray;margin:0 0 10px">${skill}</p>
+        <button class="btn" style="background:#0f5d5e;color:white;padding:8px 20px;border-radius:10px;border:none" onclick="bukaChat('${u.id}')">CHAT</button>
+      </div>`;
   });
 }
-
+ 
 // ====== OVERRIDE PAKSA - TARO PALING BAWAH SEBELUM }); ======
 
 async function loadSaldoBerseri(){
@@ -2886,7 +2914,7 @@ window.cekKoinAsli = async function(userId, jumlahButuh){
 async function loadJobs(){ 
   const { data, error } = await supabase
    .from('jobs')
-   .select(`*, pemberi_job:users!jobs_user_id_fkey(id, nama, foto), pekerja:users!jobs_diambil_oleh_fkey(id, nama, foto)`)
+     .select('*, pemberi_job:users!jobs_user_id_fkey(id,nama,foto,role), pekerja:users!jobs_diambil_oleh_fkey(id,nama,foto,role)')
    .order('created_at', {ascending:false}); 
 
   if(error){ console.error(error); return; }
@@ -2896,6 +2924,7 @@ async function loadJobs(){
 
   data.forEach(job=>{ 
     let btn = ''; 
+       if(job.pemberi_job?.role==='admin') return; // skip job dari admin
     if(job.status === 'open' && job.user_id!== userLogin?.id) 
       btn = `<button class="btn" onclick="ambilJob('${job.id}')">AJUKAN LAMARAN</button>`;
     if(job.user_id === userLogin?.id && job.status === 'open') 
