@@ -29,7 +29,6 @@ header{background:var(--card)!important;padding:15px 0;border-bottom:4px solid v
 .container{max-width:1100px;margin:auto;padding:20px}
 .hero{text-align:center;padding:60px 20px; background:var(--card); border-radius:15px; margin:20px; border:3px solid var(--accent); box-shadow:var(--shadow)}
 .hero h2{font-size:40px;margin-bottom:15px;color:var(--accent)}
-.saldo-box{background:var(--accent);color:#fff;padding:12px 25px;border-radius:10px;font-weight:900;display:inline-flex;align-items:center;gap:10px;font-size:18px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px}
 .card{background:var(--card);padding:20px;border-radius:15px;border:2px solid var(--border);color:var(--text);box-shadow:var(--shadow)}
 .input{width:100%;padding:12px;margin:10px 0;background:#fff;border:2px solid var(--border);border-radius:8px;color:var(--text)}
@@ -363,7 +362,6 @@ div.feed-action{
       <div class="home-dashboard" style="display:flex; flex-direction:column; justify-content:center; height:100%">
         <img src="solusiin.png" class="logo-ainun" style="margin:0 auto 15px auto"> <!-- LOGO DI ATAS -->
         <h3>Dashboard Kamu</h3>
-        <div class="saldo-box" style="width:100%; justify-content:center; margin-bottom:20px">poin <span id="saldoText">0</span></div>
         <button class="btn" style="width:100%" onclick="openModal('post')">📝 POST JOB</button>
       </div>
 
@@ -729,8 +727,7 @@ async function getSignedUrl(bucket, filePath, expires = 3600) {
 
 // CUMA 1X DI SINI
 
-let userLogin = null;
-let ratingJobId = ''; 
+
 let skorRating = 0;
 let jumlahNotifChat = 0; 
 let jumlahNotifTeman = 0;  
@@ -741,6 +738,8 @@ let convAktif = null;
 let lawanChatAktif = null;
 let channelRealtime = null;
 let channelNotifGlobal = null;
+
+let userLogin = null;
 
 
 async function loadAdminPanel(){
@@ -886,50 +885,25 @@ function updateUI(isLogin) {
     document.getElementById('daftarJob').innerHTML = '';
     document.getElementById('daftarTeman').innerHTML = '';
     document.getElementById('daftarVideo').innerHTML = '';
-    saldoSekarang = 0; updateSaldoUI();
     showPage('homePage');
   } 
 }
 
 window.loginUser = async function() { 
-  const emailEl = document.getElementById('loginEmail');
-  const passEl = document.getElementById('loginPass');
-  
-  const email = emailEl.value.trim().toLowerCase();
-  const pass = passEl.value;
-
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
   if (!email || !pass) return alert('Isi email dan password');
-
   try {
-    // 1. Login Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
-      email, 
-      password: pass 
-    }); 
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password: pass }); 
     if (authError) throw authError;
-
-    // 2. Ambil data profile
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single(); 
-
+    const { data: userData, error: userError } = await supabase.from('users').select('*').eq('id', authData.user.id).single(); 
     if (userError) throw userError;
-    if (!userData) throw new Error('Data user tidak ditemukan di tabel users');
-
-    // 3. Simpan session
     userLogin = userData; 
-    localStorage.setItem('bitera_user', JSON.stringify(userData));
-    
-    saldoSekarang = userData.saldo_koin || 0;
-    updateSaldoUI(); 
+    localStorage.setItem('ainun_user', JSON.stringify(userData)); // <-- INI UDAH DIGANTI
     updateUI(true); 
     loadMyProfile(); 
     closeModal('login');
-
   } catch (err) {
-    console.error(err);
     alert('Gagal login: ' + err.message);
   }
 }
@@ -947,8 +921,6 @@ window.lupaPassword = async function(){
 window.logout = async function() { 
   await supabase.auth.signOut();
   userLogin = null;
-  saldoSekarang = 0;
-  saldoBerseri = 0;
   updateUI(false);
   showPage('homePage');
 }
@@ -1099,25 +1071,13 @@ function setupSwipe(){
   }
 }
 
-
 async function loadMyProfile() { 
   if (!userLogin?.id) return;
-
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userLogin.id)
-      .single(); 
-
+    const { data, error } = await supabase.from('users').select('*').eq('id', userLogin.id).single(); 
     if (error) throw error;
     if (!data) return;
 
-    // --- DATA & SALDO ---
-    saldoSekarang = data.saldo_koin || 0;
-    updateSaldoUI();
-
-    // helper biar gak error kalau ID tidak ada di HTML
     const setText = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.innerText = val;
@@ -1134,7 +1094,6 @@ async function loadMyProfile() {
     const nama = data.nama || 'Tanpa Nama';
     const rating = data.jumlah_rating > 0 ? (data.total_rating / data.jumlah_rating).toFixed(1) : '0.0';
 
-    // --- TAMPILAN PROFIL ---
     setText('myNama', nama);
     setText('mySkill', data.skill || '-');
     setText('myBio', data.bio || '-');
@@ -1143,11 +1102,8 @@ async function loadMyProfile() {
     setText('mySekolah', data.sekolah || '-');
     setText('myYoutube', data.youtube || '-');
     setText('myRating', `⭐ ${rating}`);
-
     setSrc('myFoto', data.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=4A7C8A&color=FFF`);
-setSrc('myCover', data.cover || 'default-cover.jpg');
-
-    // --- FORM EDIT ---
+    setSrc('myCover', data.cover || 'default-cover.jpg');
     setValue('editNama', data.nama || '');
     setValue('editSkill', data.skill || '');
     setValue('editBio', data.bio || '');
@@ -1156,18 +1112,13 @@ setSrc('myCover', data.cover || 'default-cover.jpg');
     setValue('editSekolah', data.sekolah || '');
     setValue('editYoutube', data.youtube || '');
 
-    // load teman
     if (typeof loadTemanDiProfil === 'function') {
       loadTemanDiProfil();
-  loadHistoryJobUser('posted');
     }
-
   } catch (err) {
     console.error("Error load profil:", err.message);
-    // alert(err.message); // aktifin kalau mau debug di HP
   }
 }
-
 async function loadTemanDiProfil(){ 
   const { data } = await supabase.from('friendships').select('*, requester:users!requester_id(id,nama,foto), addressee:users!addressee_id(id,nama,foto)').eq('status','accepted').or(`requester_id.eq.${userLogin.id},addressee_id.eq.${userLogin.id}`); 
   const container = document.getElementById('daftarTemanProfil'); container.innerHTML = ''; 
@@ -2029,47 +1980,28 @@ window.openRating = function(jobId, pekerjaId, judul){
   openModal('ratingModal');
 }
 
-// 1 fungsi untuk semua setup login biar gak duplikat
 async function handleLoginSession(userId) {
   try {
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
+    const { data: userData, error } = await supabase.from('users').select('*').eq('id', userId).single();
     if (error) throw error;
-    if (!userData) throw new Error('Data profil tidak ditemukan');
-
     userLogin = userData;
-    localStorage.setItem('ainun_user', JSON.stringify(userData));
-    saldoSekarang = userData.saldo_koin || 0;
-
-    updateSaldoUI();
+    localStorage.setItem('ainun_user', JSON.stringify(userData)); // <-- DIGANTI
     updateUI(true);
     loadMyProfile();
     if (typeof cekRoleAdmin === 'function') cekRoleAdmin();
-
-    // Load data awal
     loadJobs();
     loadPenyedia();
     loadVideos();
-
   } catch (err) {
     console.error('Gagal load profil:', err.message);
-    // Kalau profil gagal, paksa logout biar gak nyangkut
     await supabase.auth.signOut();
   }
 }
 
 function handleLogout() {
   userLogin = null;
-  saldoSekarang = 0;
-  localStorage.removeItem('ainun_user');
-  // hapus key lama kamu biar gak bentrok
-  localStorage.removeItem('bitera_user'); 
-  updateSaldoUI();
-  updateUI(false);
+  localStorage.removeItem('ainun_user'); // <-- CUMA INI, bitera_user HAPUS
+  updateUI(false)
 }
 
 // --- CEK PERTAMA KALI BUKA WEB ---
