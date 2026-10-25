@@ -1401,7 +1401,7 @@ async function loadFeed(filter='semua', btnEl){
   return p.visibilitas==='public' || p.visibilitas==='teman';
 });
     if(!hasil.length){
-      container.innerHTML = '<p class="card">Belum ada postingan untuk filter ini</p>'; return;
+      container.innerHTML = '<p class="card">postingan feed hanya terlihat jika berteman</p>'; return;
     }
 
     // ambil like & komen barengan juga, bukan satu-satu
@@ -1958,17 +1958,7 @@ supabase.auth.onAuthStateChange(async (event, session)=>{
     openModal('resetPassModal');
   }
 });
-window.updatePasswordBaru = async function(){
-  const np = document.getElementById('newPass').value;
-  if(!np || np.length<6) return alert("Min 6 huruf");
-  const { error } = await supabase.auth.updateUser({ password: np });
-  if(error) return alert(error.message);
-  alert("Password berhasil diganti, silakan login");
-  closeModal('resetPassModal');
-  await supabase.auth.signOut();
-}
 
-});
 window.hapusFeed = async function(id){
   if(!userLogin) return alert("Login dulu");
   if(!confirm("Yakin hapus postingan ini? Gak bisa balik lagi.")) return;
@@ -1998,6 +1988,19 @@ window.hapusFeed = async function(id){
     alert("Gagal hapus: " + e.message + "\n\nSolusi: jalankan SQL di bawah di Supabase");
   }
 }
+
+window.updatePasswordBaru = async function(){
+  const np = document.getElementById('newPass').value;
+  if(!np || np.length<6) return alert("Min 6 huruf");
+  const { error } = await supabase.auth.updateUser({ password: np });
+  if(error) return alert(error.message);
+  alert("Password berhasil diganti, silakan login");
+  closeModal('resetPassModal');
+  await supabase.auth.signOut();
+}
+
+});
+
 
 </script>
 </body>
