@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>my ainun - Official Player</title>
+<style>
+:root{--bg:#E8F0F4;--card:#FFF;--text:#2C3E50;--accent:#4A7C8A;--accent-dark:#3E6A77;--border:#D0E0E7;--shadow:0 4px 15px rgba(74,124,138,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:92px}
+.top{position:sticky;top:0;z-index:10;padding:10px 14px;display:flex;gap:10px;align-items:center;background:var(--card);border-bottom:2px solid var(--accent);box-shadow:var(--shadow)}
+.cover{width:46px;height:46px;border-radius:10px;object-fit:cover;border:2px solid var(--accent);flex-shrink:0}
+.playlist{padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,255,255,.7);border-bottom:1px solid var(--border)}
+.song{display:flex;align-items:center;gap:6px;background:var(--card);padding:6px 10px;border-radius:18px;cursor:pointer;font-size:11.5px;max-width:300px;transition:.15s;border:1.5px solid var(--border);color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song:hover{border-color:var(--accent)}
+.song.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{background:var(--card);border:1.5px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:16px;cursor:pointer;font-weight:800;font-size:11px}
+.lyric-section{padding:14px 16px}
+.lyric-title{font-size:19px;color:var(--accent);font-weight:900;margin-bottom:3px}
+.lyric-subtitle{font-size:11px;opacity:.6;margin-bottom:10px}
+.lyric-box{background:var(--card);padding:16px;border-radius:14px;box-shadow:var(--shadow);border:2px solid var(--accent);white-space:pre-wrap;text-align:center}
+.lyric-line{font-size:14px;line-height:1.65;color:var(--text);text-align:center}
+.lyric-line.section{color:var(--accent);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:900;margin-top:14px;margin-bottom:4px}
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:6px 12px 8px;border-top:2px solid var(--accent);box-shadow:0 -4px 16px rgba(74,124,138,.15);z-index:20}
+.progress-wrap{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.time{font-size:11px;color:var(--accent);font-weight:800;min-width:32px;text-align:center}
+.progress{flex:1;height:5px;background:var(--border);border-radius:10px;overflow:hidden;cursor:pointer}
+.fill{height:100%;background:var(--accent);width:0%}
+.controls{display:flex;justify-content:center;align-items:center;gap:8px}
+.icon-btn{border:0;cursor:pointer;display:grid;place-items:center;transition:.15s;border-radius:50%;flex-shrink:0}
+.icon-btn.small{width:32px;height:32px;background:var(--bg);color:var(--accent);font-size:14px;border:1.5px solid var(--border)}
+.icon-btn.small.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.icon-btn.medium{width:40px;height:40px;background:var(--bg);color:var(--accent);font-size:16px;border:1.5px solid var(--border)}
+.icon-btn.big{width:50px;height:50px;background:var(--accent);color:#fff;font-size:20px}
+.mode-label{font-size:8px;font-weight:800;margin-top:2px;text-align:center;color:var(--accent)}
+</style>
+
+</head>
+<body>
+<div class="top">
+<img id="cover" class="cover" src="cover.jpg" onerror="this.src='https://picsum.photos/seed/myainunpurple/400'">
+<div style="flex:1">
+<h1 id="topTitle" style="font-size:20px;font-weight:800;line-height:1.2">my ainun - money is enough มีเงินแล้วสบาย</h1>
+<div style="margin-top:6px;font-size:11px;opacity:.6">Upload mp3 lewat Github aja, file di folder yang sama, otomatis nyambung lirik</div>
+</div>
+</div>
+<div class="playlist" id="playlist"></div>
+<div class="lyric-section" id="lyricSection">
+<div class="lyric-title" id="lyricTitle">Pilih lagu di atas</div>
+<div class="lyric-subtitle" id="lyricSub">My Ainun • Klik judul lagu untuk lihat lirik lengkap & otomatis play</div>
+<div class="lyric-box" id="lyricBox">Klik salah satu lagu di atas untuk mulai...</div>
+</div>
+<div class="bar">
+<div class="progress-wrap">
+<span class="time" id="curTime">0:00</span>
+<div class="progress" id="prog"><div class="fill" id="fill"></div></div>
+<span class="time" id="durTime">0:00</span>
+</div>
+<div class="controls">
+<div style="display:flex;flex-direction:column;align-items:center">
+<button class="icon-btn small" id="shuffleBtn">🔀</button>
+<div class="mode-label" id="shuffleLabel">Acak: Off</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center">
+<button class="icon-btn small" id="repeat1Btn">🔂</button>
+<div class="mode-label">Ulang 1</div>
+</div>
+<button class="icon-btn medium" id="prev">⏮</button>
+<button class="icon-btn big" id="play">▶</button>
+<button class="icon-btn medium" id="next">⏭</button>
+<div style="display:flex;flex-direction:column;align-items:center">
+<button class="icon-btn small" id="repeatAllBtn">🔁</button>
+<div class="mode-label">Ulang Semua</div>
+</div>
+<button class="icon-btn small" id="muteBtn">🔊</button>
+</div>
+</div>
+<audio id="audio"></audio>
+<script>
+const songs=[
+{name:"my ainun- Queen of the Dream",file:"my ainun- Queen of the Dream.mp3",lyrics:`[Chorus]
+One, two, three, alakazam
+No memory, no brain, no multical
+You're pretty, you need majesty
+Loyalty by me, ain't nobody else
+You're pretty, you need majesty
+Queen of the dream, you're my reality
+
+[Verse]
+There is a land called my Ainun
+Let me be you, let me be in there
+You're just so beautiful, miracle, wonderful
+You dance nicely, not perfectly, simply funny
+I mean who said you are queen
+When the matrix turn by real
+I just live in my dream
+Or maybe dream suits not for me
+
+[Chorus]
+One, two, three, alakazam
+No memory, no brain, no multical
+You're pretty, you need majesty
+Loyalty by me, ain't nobody else
+You're pretty, you need majesty
+Queen of the dream, you're my reality
+
+[Verse 2]
+Maybe I see you more than real
+Let me explain, you are black
+Without you nobody can shine
+Not simply order, I will make pressure
+I turn the dream into a throne
+Your name the only spell I know
+The matrix bend, the queen still stands
+Loyalty by me, that's the plan
+
+[Bridge]
+Maybe the dream was never mine to keep
+Maybe I built a world just to hold you
+But if the real world forgets your name
+I'll spell it out, one, two, three, again
+
+[Chorus - Outro]
+One, two, three, alakazam
+No memory, no brain, no multical
+You're pretty, you need majesty
+Loyalty by me, ain't nobody else
+You're pretty, you need majesty
+Queen of the dream, you're my reality
+One, two, three, alakazam
+Loyalty by me, loyalty by me`},
+{name:"my ainun- Just Stay",file:"my ainun- Just Stay.mp3",lyrics:`[Verse]
+I don't know how to explain
+The world keeps spinning out of my hands
+There must be a reason, but not us
+'Cause living's more dangerous than death
+
+[Verse]
+When you see sweety, see it in my eyes
+You see people moving, rum, pam, pam
+You don't need to think too much
+Keep your conscious, keep it light
+
+[Chorus]
+Are you okay, maybe okay
+It's only curly, just a word
+Simple words that make me vulnerable
+Are you okay, maybe okay
+Live is dangerous, live is dangerous
+No one with power, neither queen nor king
+Low beneath something you don't know
+Are you okay, maybe okay
+
+[Bridge]
+Are you okay, maybe not okay
+Let me talk it easily, softly
+If you're okay or maybe not
+Just stay, and live is dangerous
+
+[Chorus]
+Are you okay, maybe okay
+It's only curly, just a word
+Simple words that make me vulnerable
+Are you okay, maybe okay
+Live is dangerous, but I'm still here`},
+{name:"my ainun - Happiness Is Simple",file:"my ainun - Happiness Is Simple.mp3",lyrics:`[Chorus]
+I don't want to follow your way
+I think about her, you know it
+She pulled me off the script, another direction
+No no no, I'm lost for some reason
+I said happiness is simple
+See you, hearing you, that's enough
+There is a land called my ainun
+Not a simulation, it's particular
+
+[Verse]
+Maybe it was just a distraction
+Another direction, no no no
+I lost for some reason, im sorry
+I don't own this drama, it's yours
+Beautiful girl, smile, beautiful pretty
+Every line I wrote was yours to say
+I'm sorry, I don't own this drama
+It's yours to you, I just gave it away
+
+[Verse 2]
+When I'm with her I'm not crazy
+Not lazy, not busy, not chasing
+Cause she's logical, she makes it clear
+Every question she can answer here
+There's a land called my ainun
+Not a simulation, it's particular
+See you, hearing you, that's enough
+Happiness is simple, that's the truth`},
+{name:"my ainun - Give Me Some Space",file:"my ainun - Give Me Some Space.mp3",lyrics:`[Verse]
+Save your breath the air is thin
+I can see the place you're in
+Moving lips but nothing real
+Telling me how I should feel
+
+[Chorus]
+Don't talk too much I don't like it
+Bite your tongue before you strike it
+Keep it down give me some space
+Get that static out my face
+
+[Verse]
+Every word is just a drill
+Boring holes until I spill
+I don't need a monologue
+Barking like a neighborhood dog
+
+[Outro]
+Just stop
+I said stop
+Quiet`},
+{name:"my ainun - Tell me your wish",file:"my ainun - Tell me your wish.mp3",lyrics:`[Verse]
+people run for something
+own for everything
+not easy
+there must be a place
+rumor can be so un real
+
+[Chorus]
+tell me your wish
+not promise to make it
+real is out there
+im not human
+i dont eat by dream
+
+[Verse]
+run or me
+gimmic is sentropil
+
+[Chorus]
+tell me your wish
+hear me my wish
+alien not for wish
+you just so preety
+or maybe alienity
+
+[Outro]
+i will make u human
+preety less or more
+not ok for real
+gimmic for self`},
+{name:"my ainun- Alakazam",file:"my ainun- Alakazam.mp3",lyrics:`[Verse]
+1 2 3 alakazam
+no memory no brain no multical
+you preety you need majesty
+loyalti by me
+
+[Chorus]
+there is land called my ainun
+let me be you in there
+you just so beautifull miracle wonderfull
+
+[Verse]
+you dance nicely not perfectly simply funny
+i mean who say you are queen when matrix turn by real
+
+[Pre-Chorus]
+i just live in my dream
+nor maybe dream suits not for me
+maybe i see you more then real
+
+[Chorus]
+let me explain you are black
+without you nobody cant shine
+not simply order i will make pressure`},
+{name:"my ainun- Are You Ok",file:"my ainun- Are You Ok.mp3",lyrics:`[Verse]
+I don't know how to explain
+sweety the world become more uncontrollably found
+There must be a reason but not us
+Because live is more dangerous than death
+
+[Pre-Chorus]
+When you see sweety see there in My Ainun
+You see people in the rum pam pam
+You don't need to think too much
+Keep your conscious
+
+[Chorus]
+If you ok or are you ok maybe ok its only curly
+Simple word that's make me vulnerable
+Nobody with power either queen or king
+Low by the something you don't know
+
+[Outro]
+Are you ok maybe not ok
+Let me talk it easily
+Live is dangerous`},
+{name:"my ainun- NOPE",file:"my ainun- NOPE.mp3",lyrics:`eeeeee I don't wanna love I don't need
+Push you throw you paradise in my Ainun yee
+
+[Verse]
+Let's say it too grammatical
+Only listen to logical
+They say you need focus I say nope
+What's yours in that mind part of glimpse
+He says my attitude so abstract
+
+[Build-Up]
+Let's say code by logic pass by
+Tell me what to do I say who
+
+[Drop]
+eeeeee I don't wanna love I don't need
+Push you throw you paradise in my Ainun yee`},
+{name:"my ainun- Not Human",file:"my ainun- Not Human.mp3",lyrics:`[Hook]
+People run for something
+Own for everything
+Not easy
+There must be a place
+
+[Verse]
+Rumor can be so unreal
+Tell me your wish
+Not promise to make it
+Real is out there
+
+[Hook]
+People run for something
+Own for everything
+Not easy
+There must be a place
+
+[Verse]
+I'm not human
+I don't eat by dream
+Run or me
+Gimmick is sentropil
+
+[Bridge]
+Tell me your wish
+Hear me my wish
+Alien not for wish
+You just so pretty
+Or maybe alienity
+I will make you human
+Pretty less or more
+Not okay for real
+
+[Hook]
+People run for something
+Own for everything
+Not easy
+There must be a place
+Gimmick for self
+Gimmick for self`},
+{name:"my ainun- Paradise In My Ain",file:"my ainun- Paradise In My Ain.mp3",lyrics:`Let's say it, too grammatical
+Only listen to logical
+They say you need focus, I say nope
+What's yours in that mind, part of glimpse
+He says my attitude so abstract
+
+[Pre-Chorus]
+Let's say code by logic, pass by
+Tell me what to do, I say who?
+No script, no map, no reason why
+Watch me burn it all to the sky
+
+[Chorus]
+I don't wanna love, I don't need
+Push you, throw you, paradise in my ain
+They can keep their rules, I don't need
+I'm the glitch they can't explain
+Paradise in my ain, in my ain
+Breaking every chain, breaking every chain
+I don't wanna love, I don't need
+I'm the fire, I'm the flame
+
+[Bridge]
+Maybe they're scared of what they can't decode
+Maybe quiet hearts are the ones they know
+But I'm not a question with a tidy line
+I'm the answer screaming through the static and the sky`},
+{name:"my ainun - dangerous อยู่ได้ก็อันตราย",file:"my ainun - dangerous อยู่ได้ก็อันตราย.mp3",lyrics:`ฉันไม่รู้จะอธิบายยังไง
+ที่รัก โลกมันควบคุมไม่ได้มากขึ้นเรื่อยๆ
+ต้องมีเหตุผลบางอย่าง แต่ไม่ใช่เรา
+เพราะการมีชีวิตอยู่มันอันตรายกว่าความตาย
+
+[Pre-Chorus]
+เมื่อเธอเห็นที่รัก ให้มองที่นั่นใน My Ainun ของฉัน
+เธอจะเห็นผู้คนใน rum pam pam
+เธอไม่ต้องคิดมาก
+แค่รักษาสติไว้
+
+[Chorus]
+ถ้าเธอโอเค หรือเธอโอเคไหม บางทีโอเคมันก็แค่ลอนผม
+คำง่ายๆ ที่ทำให้ฉันอ่อนแอ
+
+[Bridge]
+ไม่มีใครมีอำนาจ ไม่ว่าจะเป็นราชินีหรือราชา
+ต่ำลงเพราะบางสิ่งที่เธอไม่รู้
+
+[Outro]
+เธอโอเคไหม บางทีก็ไม่โอเค
+ให้ฉันพูดมันง่ายๆ
+การมีชีวิตอยู่มันอันตราย`},
+{name:"my ainun -Don't wanna fall in love ไม่อยากมีความรัก",file:"my ainun -Don't wanna fall in love ไม่อยากมีความรัก.mp3",lyrics:`[Verse]
+อยู่คนเดียวก็ดีอยู่แล้ว
+ไม่ต้องคอยไปคิดถึงใคร
+ไม่ต้องมีน้ำตา ไม่ต้องเสียใจ
+ชีวิตมันสงบเกินไป
+
+[Pre-Chorus]
+แต่พอเธอเดินเข้ามา
+รอยยิ้มนั้นทำฉันสั่นไหว
+ฉันต้องถอยออกมา ให้ไกล
+
+[Chorus]
+ไม่อยากมีความรัก
+มันทำให้ใจวุ่นวาย
+ไม่อยากจะคาดหวัง
+ไม่อยากต้องมานั่งร้องไห้
+ขออยู่คนเดียวตรงนี้
+ไม่ต้องมีใครข้างกาย
+ความรักมันอันตรายเกินไป`},
+{name:"my ainun -live is dangerous การมีชีวิตอยู่มันอันตราย",file:"my ainun -live is dangerous การมีชีวิตอยู่มันอันตราย.mp3",lyrics:`ฉันไม่รู้จะอธิบายยังไง
+ที่รัก โลกมันควบคุมไม่ได้มากขึ้นเรื่อยๆ
+ต้องมีเหตุผลบางอย่าง แต่ไม่ใช่เรา
+เพราะการมีชีวิตอยู่มันอันตรายกว่าความตาย
+
+[Verse]
+เมื่อเธอเห็นที่รัก ให้มองที่นั่นใน My Ainun ของฉัน
+เธอจะเห็นผู้คนใน rum pam pam
+เธอไม่ต้องคิดมาก
+แค่รักษาสติไว้
+
+[Chorus]
+ถ้าเธอโอเค หรือเธอโอเคไหม บางทีโอเคมันก็แค่ลอนผม
+คำง่ายๆ ที่ทำให้ฉันอ่อนแอ
+ไม่มีใครมีอำนาจ ไม่ว่าจะเป็นราชินีหรือราชา
+ต่ำลงเพราะบางสิ่งที่เธอไม่รู้
+เธอโอเคไหม บางทีก็ไม่โอเค
+ให้ฉันพูดมันง่ายๆ
+การมีชีวิตอยู่มันอันตราย
+
+[Verse 2]
+คืนนี้แสงไฟยังเหมือนเดิม
+แต่เงาบนผนังมันยาวขึ้นทุกที
+ฉันนับลมหายใจแทนการนับดาว
+เพราะท้องฟ้าก็ไม่ใช่ของเรา
+
+[Bridge]
+ถ้าโลกนี้หมุนเร็วเกินไป
+ให้เรานั่งลงด้วยกันตรงนี้
+ไม่ต้องรู้เหตุผล ไม่ต้องกลัว
+แค่หายใจไปด้วยกันช้าๆ
+
+[Chorus]
+แต่ถ้าเธออยู่ตรงนี้ ฉันก็ไม่กลัว
+การมีชีวิตอยู่มันอันตราย
+แต่ฉันเลือกที่จะหายใจต่อไป`},
+{name:"my ainun -Money เงินคือเพื่อนแท้",file:"my ainun -Money เงินคือเพื่อนแท้.mp3",lyrics:`ชีวิตเรามันงานเยอะมาก
+บางทีทีมงานเราแทบไม่ได้นอน
+คอนเทนต์มันเยอะทุกวัน
+แต่เงินมันไหลเข้ามาไม่ขาดสาย
+
+[Verse]
+มีเงินไม่มีหลักก็ไม่เป็นไร
+เพราะเรามีชีวิตสบาย
+เงินเยอะก็ยิ้มได้ทุกวัน
+ไม่ต้องพึ่งใครก็ยืนได้เอง
+
+[Pre-Chorus]
+ไม่ต้องมีใครมาคอยดูแล
+เพราะเงินในกระเป๋าทำให้สบาย
+
+[Chorus]
+ชีวิตมีเงินเยอะก็ดี
+สบายใจไม่ต้องเหนื่อยนัก
+เงินเยอะชีวิตก็สุข
+ไม่ต้องมีใครก็สบาย
+ชีวิตมีเงินเยอะก็ดี
+เงินคือเพื่อนแท้ของเรา
+มีเงินเยอะก็ยิ้มได้ทุกวัน
+สบายใจไม่ต้องกลัวอะไร`},
+{name:"my ainun-money is enough มีเงินแล้วสบาย",file:"my ainun-money is enough มีเงินแล้วสบาย.mp3",lyrics:`ชีวิตเรามันงานเยอะมาก
+บางครั้งทีมงานของเรางานมีงานเยอะ
+
+[Pre-Chorus]
+คอนเทนต์มันเยอะแต่ว่ามีเงิน
+
+[Chorus]
+มีเงินไม่มีหลักนั่นคือผู้เพราะเราได้มีชีวิตสบายสบายถ้ามีเงินเยอะ
+ชีวิตมีเงินเยอะก็ดี ชีวิตมีเงินเยอะนั่นคือผู้
+
+[Chorus - Full]
+Money is enough, I feel the calm tonight
+(มีเงินแล้วสบายใจคืนนี้)
+No more worry, peace is on my mind
+(ไม่ต้องกังวล ใจสบาย)
+Breathing slow, the city fades to calm
+(ค่อยๆ หายใจ เมืองค่อยๆ เงียบลง)
+I'm content, enough is all I need
+(พอแล้ว ก็เพียงพอแล้ว)
+
+[Outro]
+เราไม่ต้องมีใคร อะไรมีเงินก็ดีใจสบายยย`}
+];
+let cur=0,mode='normal',isShuffle=false;
+const audio=document.getElementById('audio');
+const playBtn=document.getElementById('play');
+function renderPlaylist(){
+  const pl=document.getElementById('playlist');pl.innerHTML='';
+  songs.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='song'+(i===cur?' active':'');
+    d.innerHTML=`<span onclick="openLyric(${i})">${s.name}</span>`;
+    pl.appendChild(d);
+  });
+}
+function parseLyrics(text){
+  return text.split('\n').map(l=>{
+    const t=l.trim();
+    if(!t) return '<div class="lyric-line">&nbsp;</div>';
+    if(t.startsWith('[')) return `<div class="lyric-line section">${t}</div>`;
+    return `<div class="lyric-line">${t}</div>`;
+  }).join('');
+}
+function openLyric(i){
+  cur=i;const s=songs[i];
+  audio.src=s.file;
+  document.getElementById('topTitle').textContent=s.name;
+  document.getElementById('lyricTitle').textContent=s.name;
+  document.getElementById('lyricSub').textContent='My Ainun • '+s.name+' • Lirik lengkap di bawah';
+  document.getElementById('lyricBox').innerHTML=parseLyrics(s.lyrics);
+  document.getElementById('lyricSection').classList.add('show');
+  renderPlaylist();
+  audio.play().catch(()=>{console.log('File belum ada di folder:',s.file);});
+}
+function nextSong(){
+  if(isShuffle){
+    let n;do{n=Math.floor(Math.random()*songs.length);}while(songs.length>1&&n===cur);
+    openLyric(n);
+  }else{cur=(cur+1)%songs.length;openLyric(cur);}
+}
+function prevSong(){cur=(cur-1+songs.length)%songs.length;openLyric(cur);}
+playBtn.onclick=()=>audio.paused?audio.play():audio.pause();
+document.getElementById('next').onclick=()=>nextSong();
+document.getElementById('prev').onclick=()=>prevSong();
+// FIX ACAK OFF
+document.getElementById('shuffleBtn').onclick=function(){
+  isShuffle=!isShuffle;
+  mode=isShuffle?'shuffle':'normal';
+  this.classList.toggle('active',isShuffle);
+  document.getElementById('shuffleLabel').textContent=isShuffle?'Acak: ON':'Acak: Off';
+  document.getElementById('repeat1Btn').classList.remove('active');
+  document.getElementById('repeatAllBtn').classList.remove('active');
+};
+document.getElementById('repeat1Btn').onclick=function(){
+  if(mode==='repeat1'){mode='normal';this.classList.remove('active');}
+  else{mode='repeat1';this.classList.add('active');document.getElementById('repeatAllBtn').classList.remove('active');isShuffle=false;document.getElementById('shuffleBtn').classList.remove('active');document.getElementById('shuffleLabel').textContent='Acak: Off';}
+};
+document.getElementById('repeatAllBtn').onclick=function(){
+  if(mode==='repeatAll'){mode='normal';this.classList.remove('active');}
+  else{mode='repeatAll';this.classList.add('active');document.getElementById('repeat1Btn').classList.remove('active');}
+};
+document.getElementById('muteBtn').onclick=()=>{audio.muted=!audio.muted;document.getElementById('muteBtn').textContent=audio.muted?'🔇':'🔊';};
+document.getElementById('prog').onclick=(e)=>{const r=e.currentTarget.getBoundingClientRect();if(audio.duration)audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;};
+audio.addEventListener('timeupdate',()=>{
+  const pct=audio.duration?audio.currentTime/audio.duration*100:0;
+  document.getElementById('fill').style.width=pct+'%';
+  const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+  document.getElementById('curTime').textContent=fmt(audio.currentTime||0);
+  document.getElementById('durTime').textContent=fmt(audio.duration||0);
+});
+audio.addEventListener('play',()=>playBtn.textContent='⏸');
+audio.addEventListener('pause',()=>playBtn.textContent='▶');
+audio.addEventListener('ended',()=>{if(mode==='repeat1'){audio.currentTime=0;audio.play();}else{nextSong();}});
+renderPlaylist();
+openLyric(0);
+</script>
+</body>
+</html> 

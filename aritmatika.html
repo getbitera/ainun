@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Angka + Bebek - 60s Hafal</title>
+<style>
+ body{margin:0;background:#e0fdf8;display:flex;justify-content:center;padding:10px;font-family:sans-serif}
+.main{display:flex;gap:10px;max-width:500px;width:100%}
+.bebek-box{width:90px;flex-shrink:0;background:#fff;border-radius:20px;padding:8px;box-shadow:0 6px 20px rgba(32,197,186,0.2);height:fit-content;position:sticky;top:10px;text-align:center}
+.bebek-img{width:100%;animation:goyang 0.8s ease-in-out infinite}
+ @keyframes goyang{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.bubble{background:#20C5BA;color:#fff;padding:8px 10px;border-radius:14px;font-weight:700;font-size:13px;margin-bottom:8px;position:relative}
+.bubble:after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #20C5BA}
+.card{flex:1;background:#fff;border-radius:20px;padding:14px;box-shadow:0 6px 20px rgba(32,197,186,0.2)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.box{aspect-ratio:1;background:#f0fffd;border:2px solid #b2f0ea;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#0e5a56;cursor:pointer}
+.box.active{border-color:#20C5BA;box-shadow:0 0 0 2px #a7f3ef;transform:scale(1.05)}
+.box.show-all{background:#20C5BA;color:#fff}
+.box.clue{background:#a7f3ef}
+.box.hidden{background:#fff;border-style:dashed}
+.box.correct{background:#20C5BA;color:#fff}
+.keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.key{padding:12px 0;background:#20C5BA;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="bebek-box" onclick="ngomong('kit')">
+    <div id="bubble" class="bubble">คิดดีๆ นะ</div>
+    <img class="bebek-img" src="bebek_panda_cantik.png" alt="bebek">
+    <div style="font-size:9px;color:#20C5BA;margin-top:4px">tap buat ngomong</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0;color:#0e5a56;font-size:14px">Memory 60 Detik</h3>
+    <div style="font-size:11px;display:flex;justify-content:space-between;color:#0e5a56"><span>⏱ <b id="time">60</b>s</span><span id="msg">Klik mulai</span><span>🎯 <b id="prog">0/14</b></span></div>
+    <div id="grid" class="grid"></div>
+    <button id="btnStart" style="width:100%;padding:12px;background:#20C5BA;border:none;border-radius:10px;color:#fff;font-weight:700">TAMPILKAN 60 DETIK</button>
+    <div id="keypadArea" style="display:none;margin-top:10px">
+      <div class="keypad">
+        <button class="key" data-num="0">0</button><button class="key" data-num="1">1</button><button class="key" data-num="2">2</button><button class="key" data-num="3">3</button><button class="key" data-num="4">4</button>
+        <button class="key" data-num="5">5</button><button class="key" data-num="6">6</button><button class="key" data-num="7">7</button><button class="key" data-num="8">8</button><button class="key" data-num="9">9</button>
+      </div>
+      <div style="font-size:10px;color:#888;text-align:center;margin-top:6px">Waktu jawab bebas - tidak terbatas</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let grid=document.getElementById('grid'), msg=document.getElementById('msg'), timeEl=document.getElementById('time'), prog=document.getElementById('prog'), bubble=document.getElementById('bubble'), selectedBox=null;
+
+function buatLevel(){
+ grid.innerHTML='';prog.textContent='0/14';document.getElementById('keypadArea').style.display='none';
+ let nums=Array.from({length:16},()=>Math.floor(Math.random()*10));
+ let clues=[Math.floor(Math.random()*16),Math.floor(Math.random()*16)];clues=[...new Set(clues)];
+ while(clues.length<2)clues=[...new Set([...clues,Math.floor(Math.random()*16)])];
+ for(let i=0;i<16;i++){let b=document.createElement('div');b.className='box';b.dataset.angka=nums[i];b.dataset.clue=clues.includes(i);grid.appendChild(b);}
+ msg.textContent='Siap hafalin 60 detik?';timeEl.textContent=60;document.getElementById('btnStart').style.display='block';
+}
+
+function tampil(){
+ grid.querySelectorAll('.box').forEach(b=>{b.textContent=b.dataset.angka;b.classList.add('show-all');});
+ let c=60;
+ document.getElementById('btnStart').style.display='none';
+ msg.textContent='HAFALKAN! 60 DETIK!';
+ timeEl.textContent=c;
+ let t=setInterval(()=>{
+   c--;timeEl.textContent=c;
+   if(c<=0){clearInterval(t);hilang();}
+ },1000);
+}
+
+function hilang(){
+ grid.querySelectorAll('.box').forEach(b=>{
+   b.classList.remove('show-all');
+   if(b.dataset.clue==='true'){b.classList.add('clue');b.textContent=b.dataset.angka;}
+   else{b.textContent='';b.classList.add('hidden');b.onclick=()=>pilihBox(b);}
+ });
+ msg.textContent='Isi! Waktu jawab BEBAS!';
+ document.getElementById('keypadArea').style.display='block';
+ timeEl.textContent='∞';
+ let f=document.querySelector('.box.hidden');if(f)pilihBox(f);
+ bubble.innerHTML='คิดดีๆ นะ<br><small>kit di di na</small>';
+ ngomong('kit');
+}
+
+function pilihBox(b){if(selectedBox)selectedBox.classList.remove('active');selectedBox=b;b.classList.add('active');}
+
+function isiAngka(num){
+ if(!selectedBox){let f=document.querySelector('.box.hidden');if(f)pilihBox(f);else return;}
+ let benar=selectedBox.dataset.angka;
+ if(num===benar){
+   selectedBox.textContent=num;selectedBox.classList.remove('hidden','active');selectedBox.classList.add('correct');selectedBox.onclick=null;
+   let ok=document.querySelectorAll('.box.correct').length;prog.textContent=ok+'/14';
+   let next=document.querySelector('.box.hidden');if(next)pilihBox(next);else{selectedBox=null;msg.textContent='LOLOS!'; bubble.innerHTML='เก่งมาก!<br><small>keng mak!</small>'; ngomong('keng'); setTimeout(()=>buatLevel(),1500);}
+ }else{
+   bubble.innerHTML='เสียใจอ่ะ ทำไมต้องไม่ได้<br><small>sie jai aa thamai tong mai dai</small>';
+   msg.textContent=`Salah! Harusnya ${benar} - Ulang acak lagi...`;
+   ngomong('siejai');
+   setTimeout(()=>{buatLevel();},2000);
+ }
+}
+document.querySelectorAll('.key').forEach(k=>k.onclick=()=>isiAngka(k.dataset.num));
+document.getElementById('btnStart').onclick=tampil;buatLevel();
+
+function ngomong(jenis){
+ let teks='คิดดีๆนะ';let rate=0.9,pitch=1;
+ if(jenis==='kit'){teks='คิดดีๆนะ';rate=0.9;pitch=1.1;}
+ else if(jenis==='siejai'){teks='เสียใจอ่ะ ทำไมต้องไม่ได้อ่ะ';rate=0.6;pitch=0.7;}
+ else if(jenis==='keng'){teks='เก่งมาก';rate=1.1;pitch=1.2;}
+ const u=new SpeechSynthesisUtterance(teks);u.lang='th-TH';u.rate=rate;u.pitch=pitch;speechSynthesis.speak(u);
+}
+</script>
+</body>
+</html>
