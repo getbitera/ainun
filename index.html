@@ -1390,17 +1390,16 @@ async function loadFeed(filter='semua', btnEl){
     }
 
     // filter cepet
-    let hasil = data.filter(p=>{
-      if(!userLogin) return p.visibilitas==='public';
-      if(filter==='public') return p.visibilitas==='public';
-      if(filter==='privat') return p.user_id===userLogin.id;
-      if(filter==='teman') return p.visibilitas==='teman' && (p.user_id===userLogin.id || temanIds.includes(p.user_id));
-      if(p.visibilitas==='public') return true;
-      if(p.visibilitas==='privat') return p.user_id===userLogin.id;
-      if(p.visibilitas==='teman') return p.user_id===userLogin.id || temanIds.includes(p.user_id);
-      return false;
-    });
-
+  let hasil = data.filter(p=>{
+  if(p.user_id === userLogin?.id) return true; // punya sendiri boleh
+  if(!userLogin) return false; // kalau belum login, gak boleh liat apa-apa
+  if(!temanIds.includes(p.user_id)) return false; // BUKAN TEMAN = GAK BOLEH LIAT
+  
+  if(filter==='public') return p.visibilitas==='public';
+  if(filter==='privat') return false;
+  if(filter==='teman') return true;
+  return p.visibilitas==='public' || p.visibilitas==='teman';
+});
     if(!hasil.length){
       container.innerHTML = '<p class="card">Belum ada postingan untuk filter ini</p>'; return;
     }
@@ -1970,7 +1969,35 @@ window.updatePasswordBaru = async function(){
 }
 
 });
-
+window.hapusFeed = async function(id){
+  if(!userLogin) return alert("Login dulu");
+  if(!confirm("Yakin hapus postingan ini? Gak bisa balik lagi.")) return;
+  
+  try{
+    // 1. hapus like & komen dulu biar gak kena foreign key
+    await supabase.from('feed_likes').delete().eq('post_id', id);
+    await supabase.from('feed_komentar').delete().eq('post_id', id);
+    
+    // 2. hapus gambar dari storage kalau ada
+    try{
+      const { data: post } = await supabase.from('postingan').select('gambar_url').eq('id', id).single();
+      if(post?.gambar_url && post.gambar_url.includes('/postingan/')){
+        let path = post.gambar_url.split('/postingan/')[1];
+        if(path) await supabase.storage.from('postingan').remove([path]);
+      }
+    }catch(e){}
+    
+    // 3. hapus postingannya - hanya punya sendiri
+    const { error } = await supabase.from('postingan').delete().eq('id', id).eq('user_id', userLogin.id);
+    if(error) throw error;
+    
+    alert("Postingan dihapus ✅");
+    loadFeed('semua');
+    
+  }catch(e){
+    alert("Gagal hapus: " + e.message + "\n\nSolusi: jalankan SQL di bawah di Supabase");
+  }
+}
 
 </script>
 </body>
