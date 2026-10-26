@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KARAOKE YOUTUBE + MIC KONSER</title>
+<style>
+body{margin:0;background:#0a0a0a;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.header{background:#FF0000;color:white;width:100%;padding:8px 12px;display:flex;justify-content:space-between;font-weight:900;align-items:center}
+#stageWrap{width:100%;max-width:480px;position:relative;background:black;aspect-ratio:16/9;overflow:hidden;border-bottom:3px solid #FF0000}
+#player{width:100%;height:100%}
+#micOverlay{position:absolute;bottom:10px;right:10px;font-size:50px;filter:drop-shadow(0 0 10px #FF0000);z-index:5;transition:transform 0.1s}
+#micOverlay.sing{animation:shake 0.15s infinite}
+@keyframes shake{0%{transform:scale(1.1) rotate(-3deg)}50%{transform:scale(1.25) rotate(3deg)}100%{transform:scale(1.1) rotate(-3deg)}}
+#ytInputWrap{width:100%;max-width:480px;background:#212121;padding:8px;display:flex;gap:6px}
+#ytInput{flex:1;padding:10px;border-radius:20px;border:2px solid #FF0000;background:#000;color:white}
+.panel{width:100%;max-width:480px;background:#212121;padding:10px;border-radius:0 0 16px 16px}
+.row{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+.label{font-size:11px;font-weight:900;color:#FFCC80;min-width:110px}
+input[type=range]{flex:1;margin:0 8px;accent-color:#FF0000}
+.btn{border:none;padding:8px 14px;border-radius:20px;font-weight:900;cursor:pointer}
+.btn-mic{width:100%;padding:14px;font-size:18px;background:#00C853;color:white;box-shadow:0 4px 0 #2E7D32;margin-bottom:8px}
+.btn-mic.off{background:#FF1744;box-shadow:0 4px 0 #B71C1C}
+canvas{width:100%;height:50px;background:#000;border-radius:8px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.eff{background:#3E2723;border:2px solid #5D4037;padding:6px;border-radius:10px;text-align:center;font-size:10px;font-weight:900}
+.eff.active{border-color:#FF0000;background:#5D4037}
+.quickList{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.quick{white-space:nowrap;background:#000;border:1px solid #FF0000;color:#FFCC80;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:900}
+</style>
+</head>
+<body>
+
+<div class="header">
+<span>▶️ YT KARAOKE</span>
+<span style="font-size:10px">MIC KONSER</span>
+</div>
+
+<div id="stageWrap">
+<div id="player"></div>
+<div id="micOverlay">🎤</div>
+</div>
+
+<div id="ytInputWrap">
+<input id="ytInput" placeholder="Paste link YouTube karaoke di sini... contoh: https://youtu.be/xxxx">
+<button class="btn" style="background:#FF0000;color:white" onclick="loadYT()">▶️ Play</button>
+</div>
+
+<div class="quickList">
+<div class="quick" onclick="setYT('https://www.youtube.com/watch?v=7PCv3uT5GSM')">🎤 Rungkad Karaoke</div>
+<div class="quick" onclick="setYT('https://www.youtube.com/watch?v=2Vv-BfVoq4g')">🎤 Perfect - Ed Sheeran</div>
+<div class="quick" onclick="setYT('https://www.youtube.com/watch?v=QcIy9NiNbmo')">🎤 Let It Go Karaoke</div>
+<div class="quick" onclick="setYT('https://www.youtube.com/watch?v=8wA2pNSrF3g')">🎤 Komang - Raim Laode</div>
+</div>
+
+<div class="panel">
+<button id="micBtn" class="btn btn-mic off" onclick="toggleMic()">🎤 NYALAKAN MIC KARAOKE</button>
+
+<canvas id="viz"></canvas>
+
+<div class="row"><span class="label">VOL MUSIK YT</span><input id="ytVol" type="range" min="0" max="100" value="80"><span id="ytVolV">80%</span></div>
+<div class="row"><span class="label">VOL MIC KAMU</span><input id="micVol" type="range" min="0" max="200" value="130"><span id="micVolV">130%</span></div>
+<div class="row"><span class="label">ECHO KONSER</span><input id="echo" type="range" min="0" max="80" value="40"><span id="echoV">40%</span></div>
+<div class="row"><span class="label">REVERB STADION</span><input id="reverb" type="range" min="0" max="100" value="65"><span id="reverbV">65%</span></div>
+
+<div class="presets">
+<div class="eff active" id="e-concert" onclick="setPreset('concert')">🏟️ KONSER</div>
+<div class="eff" id="e-karaoke" onclick="setPreset('karaoke')">🎙️ KARAOKE ROOM</div>
+<div class="eff" id="e-duet" onclick="setPreset('duet')">👫 DUET</div>
+<div class="eff" id="e-clean" onclick="setPreset('clean')">🔇 MIC BERSIH</div>
+</div>
+
+<div style="margin-top:8px;display:flex;gap:6px">
+<button class="btn" style="flex:1;background:#FF6F00;color:white" onclick="cheer()">🙌 Sorak!</button>
+<button class="btn" style="flex:1;background:#1565C0;color:white" onclick="toggleLyrics()">📝 Lirik ON/OFF</button>
+</div>
+
+<div style="font-size:9px;color:#9E9E9E;margin-top:8px;text-align:center">
+Wajib pakai HEADSET biar gak storing! | Izinkan mic | YouTube butuh klik play dulu
+</div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+let ytPlayer=null, videoId='7PCv3uT5GSM';
+let audioCtx, micStream, source, gainNode, delayNode, delayGain, convolver, reverbGain, bassFilter, analyser;
+let isMicOn=false;
+
+function onYouTubeIframeAPIReady(){
+  ytPlayer=new YT.Player('player',{
+    height:'100%', width:'100%', videoId:videoId,
+    playerVars:{playsinline:1, rel:0, modestbranding:1},
+    events:{'onReady':(e)=>{ e.target.setVolume(80); }}
+  });
+}
+function parseId(url){
+  let m=url.match(/(?:v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:url.trim();
+}
+function loadYT(){
+  let url=document.getElementById('ytInput').value;
+  if(!url) return;
+  videoId=parseId(url);
+  if(ytPlayer) ytPlayer.loadVideoById(videoId);
+}
+function setYT(url){ document.getElementById('ytInput').value=url; loadYT(); }
+
+document.getElementById('ytVol').oninput=e=>{
+  if(ytPlayer) ytPlayer.setVolume(e.target.value);
+  document.getElementById('ytVolV').innerText=e.target.value+'%';
+};
+
+// MIC KONSER LOGIC
+const viz=document.getElementById('viz'), vCtx=viz.getContext('2d');
+viz.width=400; viz.height=50;
+
+async function toggleMic(){
+  if(isMicOn){ stopMic(); return; }
+  try{
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, autoGainControl:false, noiseSuppression:false}});
+    source=audioCtx.createMediaStreamSource(micStream);
+    gainNode=audioCtx.createGain(); gainNode.gain.value=1.3;
+    bassFilter=audioCtx.createBiquadFilter(); bassFilter.type='lowshelf'; bassFilter.frequency.value=250; bassFilter.gain.value=5;
+    delayNode=audioCtx.createDelay(2); delayNode.delayTime.value=0.30;
+    delayGain=audioCtx.createGain(); delayGain.gain.value=0.4;
+    convolver=audioCtx.createConvolver(); reverbGain=audioCtx.createGain(); reverbGain.gain.value=0.65;
+    analyser=audioCtx.createAnalyser(); analyser.fftSize=256;
+    let rate=audioCtx.sampleRate, len=rate*2.8, imp=audioCtx.createBuffer(2,len,rate);
+    for(let c=0;c<2;c++){ let ch=imp.getChannelData(c); for(let i=0;i<len;i++) ch[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)*0.6; }
+    convolver.buffer=imp;
+    
+    source.connect(bassFilter); bassFilter.connect(gainNode);
+    gainNode.connect(analyser);
+    gainNode.connect(audioCtx.destination);
+    gainNode.connect(delayNode); delayNode.connect(delayGain); delayGain.connect(gainNode); delayGain.connect(audioCtx.destination);
+    gainNode.connect(convolver); convolver.connect(reverbGain); reverbGain.connect(audioCtx.destination);
+    
+    isMicOn=true;
+    document.getElementById('micBtn').innerText='🔴 MIC ON - LAGI KARAOKEAN';
+    document.getElementById('micBtn').classList.remove('off');
+    document.getElementById('micOverlay').classList.add('sing');
+    drawViz();
+  }catch(e){ alert('Mic gagal: '+e.message); }
+}
+function stopMic(){
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx) audioCtx.close();
+  isMicOn=false;
+  document.getElementById('micBtn').innerText='🎤 NYALAKAN MIC KARAOKE';
+  document.getElementById('micBtn').classList.add('off');
+  document.getElementById('micOverlay').classList.remove('sing');
+}
+
+document.getElementById('micVol').oninput=e=>{ if(gainNode) gainNode.gain.value=e.target.value/100; document.getElementById('micVolV').innerText=e.target.value+'%'; };
+document.getElementById('echo').oninput=e=>{ if(delayGain){ delayGain.gain.value=e.target.value/100; delayNode.delayTime.value=0.15+e.target.value/200; } document.getElementById('echoV').innerText=e.target.value+'%'; };
+document.getElementById('reverb').oninput=e=>{ if(reverbGain) reverbGain.gain.value=e.target.value/100; document.getElementById('reverbV').innerText=e.target.value+'%'; };
+
+function setPreset(p){
+  document.querySelectorAll('.eff').forEach(x=>x.classList.remove('active'));
+  document.getElementById('e-'+p).classList.add('active');
+  if(!isMicOn) return;
+  if(p==='concert'){ delayNode.delayTime.value=0.35; delayGain.gain.value=0.45; reverbGain.gain.value=0.75; bassFilter.gain.value=6; }
+  if(p==='karaoke'){ delayNode.delayTime.value=0.18; delayGain.gain.value=0.28; reverbGain.gain.value=0.4; bassFilter.gain.value=3; }
+  if(p==='duet'){ delayNode.delayTime.value=0.12; delayGain.gain.value=0.15; reverbGain.gain.value=0.25; bassFilter.gain.value=1; }
+  if(p==='clean'){ delayGain.gain.value=0; reverbGain.gain.value=0; bassFilter.gain.value=0; }
+}
+function drawViz(){
+  if(!isMicOn) return;
+  requestAnimationFrame(drawViz);
+  let data=new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  vCtx.clearRect(0,0,viz.width,viz.height);
+  let bw=viz.width/data.length*2;
+  for(let i=0;i<data.length;i++){ let h=data[i]/2; vCtx.fillStyle=`hsl(${0+h/3},100%,50%)`; vCtx.fillRect(i*bw, viz.height-h, bw-1, h); }
+}
+function cheer(){
+  if(!audioCtx) return;
+  let buf=audioCtx.createBuffer(1, audioCtx.sampleRate*1.5, audioCtx.sampleRate);
+  let ch=buf.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i]=(Math.random()*2-1)*0.25;
+  let src=audioCtx.createBufferSource(); src.buffer=buf; src.connect(audioCtx.destination); src.start();
+}
+function toggleLyrics(){
+  let p=document.getElementById('stageWrap');
+  p.style.aspectRatio = p.style.aspectRatio==='16/9' ? '9/16' : '16/9';
+}
+</script>
+</body>
+</html>
