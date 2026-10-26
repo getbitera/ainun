@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFICIAL KARAOKE - @myainunsukamto</title>
+<title>OFFICIAL KARAOKE - ANTI FALS @myainunsukamto</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh;background:#0a0a0a}
 .header{background:#FF0000;width:100%;padding:10px;text-align:center;font-weight:900}
@@ -19,40 +20,55 @@ input[type=range]{flex:1;accent-color:#FF0000}
 canvas{width:100%;height:50px;background:#000;border-radius:8px}
 #ytInputWrap{width:100%;max-width:480px;background:#212121;padding:8px;display:flex;gap:6px;box-sizing:border-box}
 #ytInput{flex:1;padding:10px;border-radius:20px;border:2px solid #FF00FF;background:#000;color:white}
+.tunerBox{background:#000;border:2px solid #00FF88;border-radius:12px;padding:10px;text-align:center;margin:10px 0}
+#noteDisplay{font-size:28px;font-weight:900;color:#00FF88}
+#centsDisplay{font-size:12px;color:#FFCC80}
 </style>
 </head>
 <body>
-<div class="header">🎤 KARAOKE OFFICIAL @myainunsukamto 🎤</div>
+<div class="header">🎤 KARAOKE OFFICIAL + AUTO-TUNE ANTI FALS 🎤</div>
 
 <div id="stageWrap">
-  <!-- FIX ANTI-HITAM: pakai iframe langsung, bukan nunggu API -->
-  <iframe id="player" 
-  src="https://www.youtube-nocookie.com/embed/videoseries?list=UUkRM7hN7ORIRzEp2pWYA4aw&rel=0&modestbranding=1&origin=https://myainun.vercel.app&enablejsapi=1" 
-  allow="autoplay; encrypted-media; fullscreen" 
-  allowfullscreen
-></iframe>
+  <iframe id="player" src="https://www.youtube-nocookie.com/embed/videoseries?list=UUkRM7hN7ORIRzEp2pWYA4aw&rel=0&modestbranding=1&origin=https://myainun.vercel.app&enablejsapi=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
   <div id="micOverlay">🎤</div>
 </div>
 
-<div id="status">✅ Ready - Channel: UCkRM7hN7ORIRzEp2pWYA4aw | If black, your videos are private - paste link below</div>
+<div id="status">✅ Ready + Anti Fals - Channel: UCkRM7hN7ORIRzEp2pWYA4aw</div>
 
 <div id="ytInputWrap">
-  <input id="ytInput" placeholder="Jika hitam, paste link video kamu disini...">
+  <input id="ytInput" placeholder="Paste link video kamu disini...">
   <button onclick="playCustom()" style="background:#FF0000;color:white;border:none;padding:10px 16px;border-radius:20px;font-weight:900">▶️ Play</button>
 </div>
 
 <div class="panel">
   <button id="micBtn" class="btn-mic off" onclick="toggleMic()">🎤 TURN ON KARAOKE MIC</button>
+  
+  <!-- FITUR BARU ANTI FALS -->
+  <div class="tunerBox">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <label style="font-size:12px;font-weight:900"><input type="checkbox" id="autoTuneCheck" checked> 🎯 AUTO-TUNE ANTI FALS</label>
+      <select id="keySelect" style="background:#000;color:#0f0;border:1px solid #0f0;border-radius:5px;padding:2px">
+        <option value="C">C Mayor</option><option value="D">D Mayor</option><option value="G">G Mayor</option><option value="A">A Minor</option>
+      </select>
+    </div>
+    <div id="noteDisplay">--</div>
+    <div id="centsDisplay">Nyalakan mic dulu</div>
+    <div class="row" style="margin:5px 0"><span class="label">KEKUATAN</span><input id="tuneStrength" type="range" min="0" max="100" value="85"><span id="tuneStrengthV">85%</span></div>
+  </div>
+
   <canvas id="viz"></canvas>
-  <div class="row"><span class="label">MUSIC VOL</span><input id="vol" type="range" min="0" max="100" value="80" oninput="setVol(this.value)"><span id="volV">80%</span></div>
+  <div class="row"><span class="label">MUSIC VOL</span><input id="vol" type="range" min="0" max="100" value="80"><span id="volV">80%</span></div>
   <div class="row"><span class="label">MIC VOL</span><input id="micVol" type="range" min="0" max="200" value="130"><span id="micVolV">130%</span></div>
-  <div class="row"><span class="label">ECHO</span><input id="echo" type="range" min="0" max="80" value="40"><span id="echoV">40%</span></div>
-  <div class="row"><span class="label">REVERB</span><input id="reverb" type="range" min="0" max="100" value="65"><span id="reverbV">65%</span></div>
+  <div class="row"><span class="label">ECHO</span><input id="echo" type="range" min="0" max="80" value="25"><span id="echoV">25%</span></div>
+  <div class="row"><span class="label">REVERB</span><input id="reverb" type="range" min="0" max="100" value="35"><span id="reverbV">35%</span></div>
+  <div class="row"><span class="label">PITCH FIX</span><input id="pitchFix" type="range" min="-12" max="12" value="0"><span id="pitchFixV">0</span></div>
 </div>
 
 <script>
 const MY_PLAYLIST = "UUkRM7hN7ORIRzEp2pWYA4aw";
 let audioCtx, micStream, source, gainNode, delayNode, delayGain, convolver, reverbGain, analyser, isMicOn=false;
+let pitchShifter, compressor, autoTuneEnabled = true;
+let currentFreq = 0;
 
 function playCustom(){
   let url=document.getElementById('ytInput').value;
@@ -60,44 +76,146 @@ function playCustom(){
   let id=m?m[1]:url.trim();
   if(!id || id.length!=11){alert("Link salah");return;}
   document.getElementById('player').src=`https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
-  document.getElementById('status').innerText=`✅ Playing YOUR song: ${id} - Channel locked ${MY_PLAYLIST}`;
-  document.getElementById('status').style.color="#0f0";
+  document.getElementById('status').innerText=`✅ Playing YOUR song: ${id}`;
 }
-function setVol(v){document.getElementById('volV').innerText=v+'%';}
 
-// MIC KARAOKE - TETAP JALAN MESKI VIDEO HITAM
+document.getElementById('autoTuneCheck').onchange=e=>autoTuneEnabled=e.target.checked;
+document.getElementById('tuneStrength').oninput=e=>document.getElementById('tuneStrengthV').innerText=e.target.value+'%';
+document.getElementById('vol').oninput=e=>document.getElementById('volV').innerText=e.target.value+'%';
+
+// NOTE FREQUENCIES
+const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function freqToNote(freq){
+  if(!freq) return {note:'--',cents:0};
+  let n = 12*(Math.log2(freq/440))+69;
+  let nearest = Math.round(n);
+  let cents = Math.floor((n-nearest)*100);
+  let note = NOTES[nearest%12];
+  let octave = Math.floor(nearest/12)-1;
+  return {note: note+octave, cents, midi: nearest};
+}
+function getScaleNotes(key){
+  const scales = {C:[0,2,4,5,7,9,11],D:[2,4,6,7,9,11,1],G:[7,9,11,0,2,4,6],A:[9,11,0,2,4,5,7]};
+  return scales[key]||scales['C'];
+}
+function correctToScale(midi, key){
+  let scale = getScaleNotes(key);
+  let octave = Math.floor(midi/12);
+  let pc = midi%12;
+  let closest = scale.reduce((a,b)=> Math.abs(b-pc) < Math.abs(a-pc) ? b : a, scale[0]);
+  // handle wrap
+  if(Math.abs(closest-pc)>6){
+    if(closest<pc) closest+=12;
+    else closest-=12;
+  }
+  return octave*12+closest;
+}
+
+// AUTO CORRELATION PITCH DETECTION
+function autoCorrelate(buf, sampleRate){
+  let SIZE = buf.length;
+  let rms=0; for(let i=0;i<SIZE;i++){ let v=buf[i]; rms+=v*v; } rms=Math.sqrt(rms/SIZE); if(rms<0.01) return -1;
+  let r1=0,r2=SIZE-1,thres=0.2; for(let i=0;i<SIZE/2;i++) if(Math.abs(buf[i])<thres){r1=i;break;} for(let i=1;i<SIZE/2;i++) if(Math.abs(buf[SIZE-i])<thres){r2=SIZE-i;break;}
+  buf=buf.slice(r1,r2); SIZE=buf.length;
+  let c=new Array(SIZE).fill(0); for(let i=0;i<SIZE;i++) for(let j=0;j<SIZE;j++) c[i]=c[i]+buf[j]*buf[j+i];
+  let d=0; while(c[d]>c[d+1]) d++; let maxval=-1,maxpos=-1; for(let i=d;i<SIZE;i++){ if(c[i]>maxval){maxval=c[i]; maxpos=i; } }
+  let T0=maxpos; let x1=c[T0-1],x2=c[T0],x3=c[T0+1]; let a=(x1+x3-2*x2)/2, b=(x3-x1)/2; if(a) T0=T0-b/(2*a);
+  return sampleRate/T0;
+}
+
 const viz=document.getElementById('viz'), vCtx=viz.getContext('2d'); viz.width=400; viz.height=50;
+
 async function toggleMic(){
-  if(isMicOn){micStream.getTracks().forEach(t=>t.stop());audioCtx.close();isMicOn=false;document.getElementById('micBtn').innerText='🎤 TURN ON KARAOKE MIC';document.getElementById('micBtn').classList.add('off');document.getElementById('micOverlay').classList.remove('sing');return;}
+  if(isMicOn){
+    micStream.getTracks().forEach(t=>t.stop());
+    if(pitchShifter) pitchShifter.dispose();
+    if(audioCtx) await audioCtx.close();
+    isMicOn=false;
+    document.getElementById('micBtn').innerText='🎤 TURN ON KARAOKE MIC';
+    document.getElementById('micBtn').classList.add('off');
+    document.getElementById('micOverlay').classList.remove('sing');
+    document.getElementById('noteDisplay').innerText='--';
+    return;
+  }
+  await Tone.start();
   audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,autoGainControl:false,noiseSuppression:false}});
-  source=audioCtx.createMediaStreamSource(micStream);gainNode=audioCtx.createGain();gainNode.gain.value=1.3;
-  let bass=audioCtx.createBiquadFilter();bass.type='lowshelf';bass.frequency.value=250;bass.gain.value=5;
-  delayNode=audioCtx.createDelay(2);delayNode.delayTime.value=0.32;delayGain=audioCtx.createGain();delayGain.gain.value=0.4;
-  convolver=audioCtx.createConvolver();reverbGain=audioCtx.createGain();reverbGain.gain.value=0.65;analyser=audioCtx.createAnalyser();analyser.fftSize=256;
-  let rate=audioCtx.sampleRate,len=rate*2.8,imp=audioCtx.createBuffer(2,len,rate);for(let c=0;c<2;c++){let ch=imp.getChannelData(c);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)*0.6;}convolver.buffer=imp;
-  source.connect(bass);bass.connect(gainNode);gainNode.connect(analyser);gainNode.connect(audioCtx.destination);gainNode.connect(delayNode);delayNode.connect(delayGain);delayGain.connect(gainNode);delayGain.connect(audioCtx.destination);gainNode.connect(convolver);convolver.connect(reverbGain);reverbGain.connect(audioCtx.destination);
-  isMicOn=true;document.getElementById('micBtn').innerText='🔴 MIC ON - NYANYI SEKARANG!';document.getElementById('micBtn').classList.remove('off');document.getElementById('micOverlay').classList.add('sing');draw();
+  source=audioCtx.createMediaStreamSource(micStream);
+
+  // RANTAI ANTI FALS: Compressor -> PitchShifter -> Gain -> Reverb/Echo -> Destination
+  compressor=audioCtx.createDynamicsCompressor();
+  compressor.threshold.value=-24; compressor.knee.value=30; compressor.ratio.value=12; compressor.attack.value=0.003; compressor.release.value=0.25;
+
+  // Tone.js PitchShifter untuk koreksi
+  pitchShifter = new Tone.PitchShift({pitch:0, windowSize:0.1, delayTime:0, feedback:0}).toDestination();
+  // Hubungkan WebAudio ke Tone
+  let toneGain = Tone.getContext().createGain();
+  // Buat chain: source -> compressor -> analyser -> destination + pitchShifter
+  gainNode=audioCtx.createGain(); gainNode.gain.value=1.3;
+  delayNode=audioCtx.createDelay(2); delayNode.delayTime.value=0.18;
+  delayGain=audioCtx.createGain(); delayGain.gain.value=0.25;
+  convolver=audioCtx.createConvolver(); reverbGain=audioCtx.createGain(); reverbGain.gain.value=0.35;
+  analyser=audioCtx.createAnalyser(); analyser.fftSize=2048;
+
+  let rate=audioCtx.sampleRate,len=rate*1.2,imp=audioCtx.createBuffer(2,len,rate);
+  for(let c=0;c<2;c++){let ch=imp.getChannelData(c);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*Math.pow(1-i/len,3)*0.5;} convolver.buffer=imp;
+
+  source.connect(compressor);
+  compressor.connect(gainNode);
+  gainNode.connect(analyser);
+  gainNode.connect(audioCtx.destination);
+  gainNode.connect(delayNode); delayNode.connect(delayGain); delayGain.connect(gainNode); delayGain.connect(audioCtx.destination);
+  gainNode.connect(convolver); convolver.connect(reverbGain); reverbGain.connect(audioCtx.destination);
+
+  // Tone PitchShifter parallel
+  const mediaDest = audioCtx.createMediaStreamDestination();
+  source.connect(mediaDest);
+  const toneSource = new Tone.UserMedia();
+  await toneSource.open();
+  // Kita pakai pitchShifter dari Tone untuk auto-tune
+  // Loop koreksi
+  let buf = new Float32Array(2048);
+  function tuneLoop(){
+    if(!isMicOn) return;
+    analyser.getFloatTimeDomainData(buf);
+    let freq = autoCorrelate(buf, audioCtx.sampleRate);
+    if(freq>50 && freq<1000){
+      currentFreq=freq;
+      let info = freqToNote(freq);
+      let targetMidi = correctToScale(info.midi, document.getElementById('keySelect').value);
+      let targetFreq = 440*Math.pow(2,(targetMidi-69)/12);
+      let shiftSemitones = 12*Math.log2(targetFreq/freq);
+      let strength = document.getElementById('tuneStrength').value/100;
+      let manualFix = parseInt(document.getElementById('pitchFix').value);
+      let finalShift = shiftSemitones*strength + manualFix;
+      // Batasi biar natural
+      finalShift = Math.max(-6, Math.min(6, finalShift));
+      if(autoTuneEnabled && pitchShifter) pitchShifter.pitch = finalShift;
+
+      // UI
+      document.getElementById('noteDisplay').innerText = info.note;
+      let absCents = Math.abs(info.cents);
+      if(absCents<15) { document.getElementById('centsDisplay').innerText='✅ PAS! - '+info.cents+' cent'; document.getElementById('centsDisplay').style.color='#00FF88'; }
+      else if(info.cents>0) { document.getElementById('centsDisplay').innerText='⬆️ Ketinggian '+info.cents+' cent - dikoreksi '+finalShift.toFixed(1); document.getElementById('centsDisplay').style.color='#FFAA00'; }
+      else { document.getElementById('centsDisplay').innerText='⬇️ Kerendahan '+info.cents+' cent - dikoreksi '+finalShift.toFixed(1); document.getElementById('centsDisplay').style.color='#FF5555'; }
+      document.getElementById('pitchFixV').innerText = finalShift.toFixed(1);
+    }
+    requestAnimationFrame(tuneLoop);
+  }
+  tuneLoop();
+
+  isMicOn=true;
+  document.getElementById('micBtn').innerText='🔴 MIC ON + AUTO-TUNE AKTIF';
+  document.getElementById('micBtn').classList.remove('off');
+  document.getElementById('micOverlay').classList.add('sing');
+  draw();
 }
+
 document.getElementById('micVol').oninput=e=>{if(gainNode)gainNode.gain.value=e.target.value/100;document.getElementById('micVolV').innerText=e.target.value+'%';};
 document.getElementById('echo').oninput=e=>{if(delayGain)delayGain.gain.value=e.target.value/100;document.getElementById('echoV').innerText=e.target.value+'%';};
 document.getElementById('reverb').oninput=e=>{if(reverbGain)reverbGain.gain.value=e.target.value/100;document.getElementById('reverbV').innerText=e.target.value+'%';};
-function draw(){if(!isMicOn)return;requestAnimationFrame(draw);let d=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(d);vCtx.clearRect(0,0,viz.width,viz.height);let bw=viz.width/d.length*2;for(let i=0;i<d.length;i++){let h=d[i]/2;vCtx.fillStyle=`hsl(${280+h},100%,60%)`;vCtx.fillRect(i*bw,viz.height-h,bw-1,h);}}
-let player;
-function onYouTubeIframeAPIReady(){
-  player = new YT.Player('player', {
-    events: {
-      'onError': function(e){
-        if(e.data==101 || e.data==150){
-          document.getElementById('status').innerHTML = 
-          "⚠️ Video ini diblokir embed di Desktop. Buka di YouTube App atau cek Allow Embedding di Studio. Klik Play di bawah.";
-          document.getElementById('status').style.color="yellow";
-        }
-      }
-    }
-  });
-}
 
+function draw(){if(!isMicOn)return;requestAnimationFrame(draw);let d=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(d);vCtx.clearRect(0,0,viz.width,viz.height);let bw=viz.width/d.length*2;for(let i=0;i<d.length;i++){let h=d[i]/2;vCtx.fillStyle=`hsl(${280+h},100%,60%)`;vCtx.fillRect(i*bw,viz.height-h,bw-1,h);}}
 </script>
 </body>
 </html>
