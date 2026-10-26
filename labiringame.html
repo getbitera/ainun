@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Labirin SUSAH - Anti Pinggir</title>
+<style>
+body{margin:0;background:#212121;display:flex;flex-direction:column;align-items:center;min-height:100vh;font-family:Arial;touch-action:none}
+h2{margin:8px 0 2px;color:#FFCC80;font-size:16px}
+#frame{background:#5D4037;padding:10px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+canvas{background:#FFF3E0;border-radius:4px;display:block;touch-action:none;cursor:crosshair}
+.info{color:#BCAAA4;font-size:11px;margin-top:6px;text-align:center;line-height:1.3}
+#msg{font-size:14px;font-weight:900;min-height:18px;margin-top:6px}
+.btns{display:flex;gap:8px;margin-top:8px}
+button{background:#3E2723;color:#FFE0B2;border:2px solid #8D6E63;padding:7px 14px;border-radius:20px;font-weight:900}
+</style>
+</head>
+<body>
+<h2>🔥 LABIRIN SUSAH - GAK BISA LEWAT PINGGIR 🔥</h2>
+<div id="frame"><canvas id="c" width="360" height="360"></canvas></div>
+<div class="info">
+<span id="level">Level 1 - JALUR SEMPIT</span><br>
+Pinggir udah ditutup tembok! Harus lewat tengah!
+</div>
+<div id="msg" style="color:#FFCC80">Mulai dari START hijau!</div>
+<div class="btns">
+<button onclick="clearLine()">🗑️ Hapus Garis</button>
+<button onclick="nextLevel()">➡️ Ganti Level</button>
+</div>
+
+<script>
+const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
+let level=1, drawing=false, path=[], isWin=false, isLose=false;
+
+const levels=[
+{
+  name:"JALUR SEMPIT",
+  start:{x:20,y:20,r:14},
+  finish:{x:340,y:340,r:14},
+  borderWalls:[{x:0,y:0,w:360,h:12},{x:0,y:348,w:360,h:12},{x:0,y:0,w:12,h:360},{x:348,y:0,w:12,h:360}],
+  holes:[
+    {x:60,y:60,r:11},{x:110,y:40,r:10},{x:180,y:35,r:10},{x:250,y:50,r:11},{x:310,y:70,r:11},
+    {x:40,y:110,r:10},{x:100,y:120,r:11},{x:180,y:110,r:12},{x:260,y:110,r:10},{x:320,y:130,r:10},
+    {x:50,y:180,r:11},{x:130,y:180,r:12},{x:210,y:180,r:11},{x:300,y:200,r:11},
+    {x:40,y:250,r:10},{x:120,y:250,r:11},{x:200,y:250,r:12},{x:280,y:260,r:10},
+    {x:70,y:310,r:11},{x:150,y:310,r:10},{x:220,y:320,r:11},
+  ],
+  walls:[
+    {x:50,y:50,w:100,h:8},{x:200,y:50,w:80,h:8},
+    {x:40,y:90,w:8,h:80},{x:140,y:90,w:8,h:80},{x:230,y:90,w:8,h:80},{x:310,y:90,w:8,h:80},
+    {x:50,y:140,w:80,h:8},{x:180,y:140,w:120,h:8},
+    {x:80,y:200,w:8,h:80},{x:180,y:160,w:8,h:80},{x:260,y:160,w:8,h:80},
+    {x:50,y:210,w:80,h:8},{x:200,y:210,w:80,h:8},
+    {x:40,y:280,w:100,h:8},{x:200,y:280,w:100,h:8},
+    {x:140,y:50,w:8,h:30},{x:140,y:210,w:8,h:80},
+  ],
+  checkpoints:[{x:90,y:90},{x:270,y:90},{x:90,y:240},{x:270,y:240}]
+},
+{
+  name:"PUTAR BALIK",
+  start:{x:180,y:20,r:14},
+  finish:{x:180,y:340,r:14},
+  borderWalls:[{x:0,y:0,w:360,h:12},{x:0,y:348,w:360,h:12},{x:0,y:0,w:12,h:360},{x:348,y:0,w:12,h:360}],
+  holes:[
+    {x:50,y:50,r:12},{x:130,y:50,r:10},{x:230,y:50,r:10},{x:310,y:50,r:12},
+    {x:80,y:130,r:11},{x:180,y:130,r:13},{x:280,y:130,r:11},
+    {x:50,y:200,r:10},{x:130,y:200,r:11},{x:230,y:200,r:11},{x:310,y:200,r:10},
+    {x:80,y:280,r:11},{x:180,y:280,r:13},{x:280,y:280,r:11},
+  ],
+  walls:[
+    {x:30,y:70,w:120,h:8},{x:210,y:70,w:120,h:8},
+    {x:30,y:100,w:8,h:80},{x:150,y:100,w:8,h:80},{x:200,y:100,w:8,h:80},{x:320,y:100,w:8,h:80},
+    {x:30,y:160,w:120,h:8},{x:210,y:160,w:120,h:8},
+    {x:30,y:230,w:120,h:8},{x:210,y:230,w:120,h:8},
+    {x:30,y:230,w:8,h:80},{x:150,y:230,w:8,h:80},{x:200,y:230,w:8,h:80},{x:320,y:230,w:8,h:80},
+  ],
+  checkpoints:[{x:90,y:130},{x:270,y:130},{x:90,y:260},{x:270,y:260}]
+},
+{
+  name:"FINAL BOSS",
+  start:{x:20,y:180,r:14},
+  finish:{x:340,y:180,r:14},
+  borderWalls:[{x:0,y:0,w:360,h:12},{x:0,y:348,w:360,h:12},{x:0,y:0,w:12,h:360},{x:348,y:0,w:12,h:360}],
+  holes:[
+    {x:70,y:70,r:10},{x:150,y:60,r:11},{x:230,y:70,r:10},{x:300,y:70,r:10},
+    {x:70,y:130,r:11},{x:150,y:130,r:12},{x:230,y:130,r:12},{x:300,y:130,r:11},
+    {x:70,y:230,r:11},{x:150,y:230,r:12},{x:230,y:230,r:12},{x:300,y:230,r:11},
+    {x:70,y:300,r:10},{x:150,y:300,r:11},{x:230,y:300,r:10},{x:300,y:300,r:10},
+  ],
+  walls:[
+    {x:60,y:50,w:8,h:80},{x:140,y:40,w:8,h:60},{x:220,y:50,w:8,h:80},{x:300,y:40,w:8,h:60},
+    {x:50,y:110,w:60,h:8},{x:130,y:100,w:100,h:8},{x:250,y:110,w:60,h:8},
+    {x:60,y:160,w:80,h:8},{x:220,y:160,w:80,h:8},
+    {x:50,y:200,w:60,h:8},{x:130,y:190,w:100,h:8},{x:250,y:200,w:60,h:8},
+    {x:60,y:230,w:8,h:80},{x:140,y:260,w:8,h:60},{x:220,y:230,w:8,h:80},{x:300,y:260,w:8,h:60},
+  ],
+  checkpoints:[{x:100,y:100},{x:260,y:100},{x:100,y:260},{x:260,y:260}]
+}
+];
+
+function getD(){return levels[level-1];}
+let visited=[];
+
+function drawBase(){
+  ctx.clearRect(0,0,360,360);
+  let d=getD();
+  ctx.fillStyle='#FFF3E0'; ctx.fillRect(0,0,360,360);
+  ctx.fillStyle='#3E2723'; d.borderWalls.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+  d.holes.forEach(h=>{
+    ctx.fillStyle='#3E2723'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r-3,0,Math.PI*2); ctx.fill();
+  });
+  d.walls.forEach(w=>{
+    ctx.fillStyle='#8D6E63'; ctx.fillRect(w.x,w.y,w.w,w.h);
+    ctx.fillStyle='#5D4037'; ctx.fillRect(w.x,w.y,w.w,3);
+  });
+  d.checkpoints.forEach((cp,i)=>{
+    let done=visited.includes(i);
+    ctx.fillStyle=done?'#00C853':'#FFAB00'; ctx.globalAlpha=done?0.3:0.6;
+    ctx.beginPath(); ctx.arc(cp.x,cp.y,6,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+    ctx.strokeStyle=done?'#00C853':'#FF6F00'; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  });
+  ctx.fillStyle='#2E7D32'; ctx.beginPath(); ctx.arc(d.start.x,d.start.y,d.start.r,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.font='bold 9px Arial'; ctx.fillText('START',d.start.x-14,d.start.y+3);
+  ctx.fillStyle='#C62828'; ctx.beginPath(); ctx.arc(d.finish.x,d.finish.y,d.finish.r,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.fillText('FINISH',d.finish.x-16,d.finish.y+3);
+}
+function drawPath(){
+  if(path.length<2) return;
+  ctx.strokeStyle=isLose?'#FF1744':isWin?'#00C853':'#1565C0';
+  ctx.lineWidth=5; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y); ctx.stroke();
+  let p=path[path.length-1]; ctx.fillStyle=ctx.strokeStyle; ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
+}
+function render(){ drawBase(); drawPath(); }
+function hitTest(x,y){
+  let d=getD();
+  for(let b of d.borderWalls){ if(x>b.x && x<b.x+b.w && y>b.y && y<b.y+b.h) return 'border'; }
+  for(let h of d.holes){ if(Math.hypot(x-h.x,y-h.y) < h.r+5) return 'hole'; }
+  for(let w of d.walls){ if(x>w.x-3 && x<w.x+w.w+3 && y>w.y-3 && y<w.y+w.h+3) return 'wall'; }
+  return null;
+}
+function checkCP(x,y){
+  let d=getD();
+  d.checkpoints.forEach((cp,i)=>{
+    if(!visited.includes(i) && Math.hypot(x-cp.x,y-cp.y)<18) visited.push(i);
+  });
+}
+function getPos(e){
+  let rect=canvas.getBoundingClientRect();
+  let t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-rect.left)*(360/rect.width), y:(t.clientY-rect.top)*(360/rect.height)};
+}
+canvas.addEventListener('pointerdown',e=>{
+  let p=getPos(e), d=getD();
+  if(Math.hypot(p.x-d.start.x,p.y-d.start.y)>d.start.r+12){
+    document.getElementById('msg').innerText='❌ Mulai dari START hijau!'; document.getElementById('msg').style.color='#FF1744'; return;
+  }
+  drawing=true; path=[p]; visited=[]; isWin=false; isLose=false;
+  document.getElementById('msg').innerText='✏️ Lewati semua titik kuning!'; document.getElementById('msg').style.color='#FFCC80';
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!drawing || isWin || isLose) return;
+  let p=getPos(e); path.push(p); checkCP(p.x,p.y);
+  let hit=hitTest(p.x,p.y);
+  if(hit){
+    isLose=true; drawing=false;
+    document.getElementById('msg').innerText= hit==='hole'?'💀 MASUK LUBANG!': hit==='border'?'🧱 NABRAK TEMBOK LUAR!':'🧱 NABRAK DINDING KAYU!';
+    document.getElementById('msg').style.color='#FF1744'; render(); return;
+  }
+  let d=getD();
+  if(Math.hypot(p.x-d.finish.x,p.y-d.finish.y) < d.finish.r){
+    if(visited.length < d.checkpoints.length){
+      document.getElementById('msg').innerText=`⚠️ Belum lewat semua titik! ${visited.length}/${d.checkpoints.length}`; return;
+    }
+    isWin=true; drawing=false;
+    document.getElementById('msg').innerText='🎉 MENANG!'; document.getElementById('msg').style.color='#00E676';
+  }
+  render();
+});
+canvas.addEventListener('pointerup',()=>{drawing=false;});
+function clearLine(){ path=[]; visited=[]; isWin=false; isLose=false; document.getElementById('msg').innerText='Mulai dari START hijau!'; document.getElementById('msg').style.color='#FFCC80'; render(); }
+function nextLevel(){ level++; if(level>levels.length) level=1; document.getElementById('level').innerText=`Level ${level} - ${getD().name}`; clearLine(); }
+render();
+</script>
+</body>
+</html>
