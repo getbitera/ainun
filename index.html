@@ -295,7 +295,7 @@ div.feed-action{
         <button class="btn-sm btn-menu" onclick="window.location.href='musik.html'">🎵 Musik</button>
    <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜</button>
    <button class="btn-sm btn-menu" onclick="showPage('groupsPage',this)">👥 GRUP</button>
-<button onclick="bukaGame()" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
+<button onclick="showPage('gamesPage')" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
       <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹</button>
       <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥<span id="badgeTeman" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬<span id="badgeChat" class="notif-badge">0</span></button>
@@ -309,7 +309,16 @@ div.feed-action{
 </div>
 </header>
 
-
+<div id="gamesPage" class="container" style="display:none">
+  <h2>🎮 PILIH GAME - <span id="jumlahGame">0</span> GAME</h2>
+  <div class="card">
+    <div style="display:flex; gap:10px;">
+      <input class="input" id="cariGameInput" placeholder="Cari game..." style="margin:0" onkeydown="if(event.key==='Enter') filterGame()">
+      <button class="btn" onclick="filterGame()">CARI</button>
+    </div>
+  </div>
+  <div id="daftarSemuaGame" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:12px;"></div>
+</div>
 
 <!-- CARD POPUP 5 GAME (awal sembunyi) -->
 <div id="popupGame" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100000;align-items:center;justify-content:center;padding:15px">
@@ -1811,23 +1820,60 @@ window.loadDaftarTeman = loadDaftarTeman;
 
 
 // FIX FINAL - HARUS PAKAI window. BIAR TOMBOL HEADER BISA PANGGIL
-window.bukaGame = function(){ 
-  const p = document.getElementById('popupGame');
-  if(p){ 
-    p.style.display='flex'; 
-    p.style.zIndex = '100000'; // biar di atas header z-index 9998
-  }
+
+// === DAFTAR 1000 GAME - TINGGAL TAMBAHIN DI SINI ===
+const ALL_GAMES = [
+  { nama: 'game SAINS 1-10', desc: 'soal jawaban dan waktu', icon: '📝', link: 'game.html' },
+  { nama: 'karaoke', desc: 'nyanyi karaoke', icon: '🎤', link: 'karaoke.html' },
+  { nama: 'Runut Fokus', desc: 'Logika cepat', icon: '🔢', link: '/aritmatika.html' },
+  { nama: 'Imajinasi Lucu', desc: 'Gambar buatan sendiri', icon: '🎨', link: '/imajinasi.html' },
+  { nama: 'find the spot', desc: 'temukan gambar', icon: '💚', link: 'find.html' },
+  // tambah terus sampai 1000 -> contoh:
+  // { nama: 'Game 6', desc: 'deskripsi', icon: '🎮', link: 'game6.html' },
+];
+
+window.renderGameList = function(list = ALL_GAMES){
+  const c = document.getElementById('daftarSemuaGame');
+  if(!c) return;
+  document.getElementById('jumlahGame').innerText = list.length;
+  c.innerHTML = '';
+  list.forEach(g=>{
+    c.innerHTML += `
+      <div onclick="location.href='${g.link}'" style="padding:14px;border:2px solid #000;border-radius:16px;cursor:pointer;background:#fff;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center">
+        <span style="font-size:32px">${g.icon}</span>
+        <b style="font-size:14px">${g.nama}</b>
+        <small style="opacity:0.6;font-size:11px">${g.desc}</small>
+      </div>`;
+  });
 }
-window.tutupGame = function(){ 
-  const p = document.getElementById('popupGame');
-  if(p){ p.style.display='none'; }
+window.filterGame = function(){
+  const k = document.getElementById('cariGameInput').value.toLowerCase();
+  if(!k) return renderGameList();
+  renderGameList(ALL_GAMES.filter(g=> g.nama.toLowerCase().includes(k) || g.desc.toLowerCase().includes(k)));
 }
 
-// biar kalau klik di luar card, ketutup
-document.getElementById('popupGame')?.addEventListener('click', function(e){
-  if(e.target.id === 'popupGame') window.tutupGame();
-});
-
+// update showPage biar kenal gamesPage
+const originalShowPage = window.showPage;
+window.showPage = async function(pageId, el){
+  const allPages = ['feedPage','groupsPage','videosPage','friendsPage','myProfilePage','chatPage','gamesPage'];
+  document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  allPages.forEach(id=>{
+    const page = document.getElementById(id);
+    if(page) page.style.display='none';
+  }); 
+  const target = document.getElementById(pageId);
+  if(!target) return;
+  target.style.display='block';
+  window.scrollTo(0,0);
+  if(pageId==='gamesPage') renderGameList();
+  if(pageId==='feedPage') loadFeed('semua');
+  if(pageId==='groupsPage') loadGroups();
+  if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
+  if(pageId==='myProfilePage'){ loadMyProfile(); loadTemanDiProfil(); }
+  if(pageId==='videosPage') loadVideos();
+  if(pageId==='chatPage') loadDaftarChat();
+}
 
 // === FINAL CHAT + HAPUS V2 - 100% MUNCUL ===
 window.formatTanggalChat = function(tgl){
