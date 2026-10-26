@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,18 +26,18 @@ textarea,input{width:100%;border:1px solid #c9b896;background:#fffefb;padding:12
 <div class="museum">
 <h1>MY AINUN</h1>
 <div class="sub">LEVEL 1 - MUSEUM</div>
-<div class="frame"><img src="level1.jpg" alt="Rumah Patung"></div>
+<div class="frame"><img src="level1.jpg" alt="Statue House"></div>
 <div class="plaque">
-<label>1. Bercerita bebas, tanpa batas:</label>
+<label>1. Tell your story freely, without limits:</label>
 <textarea id="story" rows="5"></textarea>
-<label>2. Rangkum jadi 1-5 kata sifat:</label>
+<label>2. Summarize into 1-5 adjectives:</label>
 <div class="row">
 <input id="a1" placeholder="1"><input id="a2" placeholder="2"><input id="a3" placeholder="3"><input id="a4" placeholder="4"><input id="a5" placeholder="5">
 </div>
-<button class="btn" onclick="go()">SELESAI</button>
-<button class="btn2" id="nextBtn" onclick="window.location.href='level2.html'">LANJUT LEVEL 2 →</button>
+<button class="btn" onclick="go()">DONE</button>
+<button class="btn2" id="nextBtn" onclick="window.location.href='level2.html'">CONTINUE TO LEVEL 2 →</button>
 <div id="out"></div>
-<div class="note">hanya hiburan semata - selesai, hapus, lewat - heheheheh</div>
+<div class="note">just for entertainment - done, delete, pass - heheheheh</div>
 </div>
 </div>
 <script>
@@ -46,8 +46,8 @@ const s=document.getElementById('story').value.trim();
 const ad=[1,2,3,4,5].map(i=>document.getElementById('a'+i).value.trim()).filter(Boolean);
 const out=document.getElementById('out');
 const next=document.getElementById('nextBtn');
-if(!s){alert('Tulis ceritanya dulu');return}
-if(!ad.length){alert('Isi minimal 1 kata sifat');return}
+if(!s){alert('Write your story first');return}
+if(!ad.length){alert('Fill at least 1 adjective');return}
 out.style.display='block';
 out.innerHTML='<p><b>"'+s+'"</b></p><p style="margin-top:12px;letter-spacing:0.1em">'+ad.join(' • ')+'</p>';
 next.style.display='block';
