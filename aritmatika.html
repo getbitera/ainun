@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Angka + Bebek - 60s Hafal</title>
+<title>Number + Duck Game - 60s Memorize</title>
 <style>
  body{margin:0;background:#e0fdf8;display:flex;justify-content:center;padding:10px;font-family:sans-serif}
 .main{display:flex;gap:10px;max-width:500px;width:100%}
@@ -27,22 +27,22 @@
 <body>
 <div class="main">
   <div class="bebek-box" onclick="ngomong('kit')">
-    <div id="bubble" class="bubble">คิดดีๆ นะ</div>
-    <img class="bebek-img" src="bebek_panda_cantik.png" alt="bebek">
-    <div style="font-size:9px;color:#20C5BA;margin-top:4px">tap buat ngomong</div>
+    <div id="bubble" class="bubble">Think carefully!</div>
+    <img class="bebek-img" src="bebek_panda_cantik.png" alt="duck">
+    <div style="font-size:9px;color:#20C5BA;margin-top:4px">tap to speak</div>
   </div>
 
   <div class="card">
-    <h3 style="margin:0;color:#0e5a56;font-size:14px">Memory 60 Detik</h3>
-    <div style="font-size:11px;display:flex;justify-content:space-between;color:#0e5a56"><span>⏱ <b id="time">60</b>s</span><span id="msg">Klik mulai</span><span>🎯 <b id="prog">0/14</b></span></div>
+    <h3 style="margin:0;color:#0e5a56;font-size:14px">60 Second Memory</h3>
+    <div style="font-size:11px;display:flex;justify-content:space-between;color:#0e5a56"><span>⏱ <b id="time">60</b>s</span><span id="msg">Click start</span><span>🎯 <b id="prog">0/14</b></span></div>
     <div id="grid" class="grid"></div>
-    <button id="btnStart" style="width:100%;padding:12px;background:#20C5BA;border:none;border-radius:10px;color:#fff;font-weight:700">TAMPILKAN 60 DETIK</button>
+    <button id="btnStart" style="width:100%;padding:12px;background:#20C5BA;border:none;border-radius:10px;color:#fff;font-weight:700">SHOW FOR 60 SECONDS</button>
     <div id="keypadArea" style="display:none;margin-top:10px">
       <div class="keypad">
         <button class="key" data-num="0">0</button><button class="key" data-num="1">1</button><button class="key" data-num="2">2</button><button class="key" data-num="3">3</button><button class="key" data-num="4">4</button>
         <button class="key" data-num="5">5</button><button class="key" data-num="6">6</button><button class="key" data-num="7">7</button><button class="key" data-num="8">8</button><button class="key" data-num="9">9</button>
       </div>
-      <div style="font-size:10px;color:#888;text-align:center;margin-top:6px">Waktu jawab bebas - tidak terbatas</div>
+      <div style="font-size:10px;color:#888;text-align:center;margin-top:6px">Answer time unlimited</div>
     </div>
   </div>
 </div>
@@ -56,14 +56,14 @@ function buatLevel(){
  let clues=[Math.floor(Math.random()*16),Math.floor(Math.random()*16)];clues=[...new Set(clues)];
  while(clues.length<2)clues=[...new Set([...clues,Math.floor(Math.random()*16)])];
  for(let i=0;i<16;i++){let b=document.createElement('div');b.className='box';b.dataset.angka=nums[i];b.dataset.clue=clues.includes(i);grid.appendChild(b);}
- msg.textContent='Siap hafalin 60 detik?';timeEl.textContent=60;document.getElementById('btnStart').style.display='block';
+ msg.textContent='Ready to memorize 60s?';timeEl.textContent=60;document.getElementById('btnStart').style.display='block';
 }
 
 function tampil(){
  grid.querySelectorAll('.box').forEach(b=>{b.textContent=b.dataset.angka;b.classList.add('show-all');});
  let c=60;
  document.getElementById('btnStart').style.display='none';
- msg.textContent='HAFALKAN! 60 DETIK!';
+ msg.textContent='MEMORIZE! 60 SECONDS!';
  timeEl.textContent=c;
  let t=setInterval(()=>{
    c--;timeEl.textContent=c;
@@ -77,11 +77,11 @@ function hilang(){
    if(b.dataset.clue==='true'){b.classList.add('clue');b.textContent=b.dataset.angka;}
    else{b.textContent='';b.classList.add('hidden');b.onclick=()=>pilihBox(b);}
  });
- msg.textContent='Isi! Waktu jawab BEBAS!';
+ msg.textContent='Fill in! Unlimited time!';
  document.getElementById('keypadArea').style.display='block';
  timeEl.textContent='∞';
  let f=document.querySelector('.box.hidden');if(f)pilihBox(f);
- bubble.innerHTML='คิดดีๆ นะ<br><small>kit di di na</small>';
+ bubble.innerHTML='Think carefully!';
  ngomong('kit');
 }
 
@@ -93,10 +93,10 @@ function isiAngka(num){
  if(num===benar){
    selectedBox.textContent=num;selectedBox.classList.remove('hidden','active');selectedBox.classList.add('correct');selectedBox.onclick=null;
    let ok=document.querySelectorAll('.box.correct').length;prog.textContent=ok+'/14';
-   let next=document.querySelector('.box.hidden');if(next)pilihBox(next);else{selectedBox=null;msg.textContent='LOLOS!'; bubble.innerHTML='เก่งมาก!<br><small>keng mak!</small>'; ngomong('keng'); setTimeout(()=>buatLevel(),1500);}
+   let next=document.querySelector('.box.hidden');if(next)pilihBox(next);else{selectedBox=null;msg.textContent='PASSED!'; bubble.innerHTML='Excellent!'; ngomong('keng'); setTimeout(()=>buatLevel(),1500);}
  }else{
-   bubble.innerHTML='เสียใจอ่ะ ทำไมต้องไม่ได้<br><small>sie jai aa thamai tong mai dai</small>';
-   msg.textContent=`Salah! Harusnya ${benar} - Ulang acak lagi...`;
+   bubble.innerHTML='Oh no, why did you get it wrong?';
+   msg.textContent=`Wrong! Should be ${benar} - Shuffling again...`;
    ngomong('siejai');
    setTimeout(()=>{buatLevel();},2000);
  }
@@ -105,11 +105,11 @@ document.querySelectorAll('.key').forEach(k=>k.onclick=()=>isiAngka(k.dataset.nu
 document.getElementById('btnStart').onclick=tampil;buatLevel();
 
 function ngomong(jenis){
- let teks='คิดดีๆนะ';let rate=0.9,pitch=1;
- if(jenis==='kit'){teks='คิดดีๆนะ';rate=0.9;pitch=1.1;}
- else if(jenis==='siejai'){teks='เสียใจอ่ะ ทำไมต้องไม่ได้อ่ะ';rate=0.6;pitch=0.7;}
- else if(jenis==='keng'){teks='เก่งมาก';rate=1.1;pitch=1.2;}
- const u=new SpeechSynthesisUtterance(teks);u.lang='th-TH';u.rate=rate;u.pitch=pitch;speechSynthesis.speak(u);
+ let teks='Think carefully';let rate=0.9,pitch=1;
+ if(jenis==='kit'){teks='Think carefully';rate=0.9;pitch=1.1;}
+ else if(jenis==='siejai'){teks='Oh no, why did you get it wrong?';rate=0.8;pitch=0.8;}
+ else if(jenis==='keng'){teks='Excellent!';rate=1.1;pitch=1.2;}
+ const u=new SpeechSynthesisUtterance(teks);u.lang='en-US';u.rate=rate;u.pitch=pitch;speechSynthesis.speak(u);
 }
 </script>
 </body>
