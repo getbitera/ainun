@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFICIAL KARAOKE - @myainunvercel</title>
+<title>OFFICIAL KARAOKE - @myainunsukamto</title>
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh;background:#0a0a0a}
 .header{background:#FF0000;width:100%;padding:10px;text-align:center;font-weight:900}
@@ -22,11 +22,15 @@ canvas{width:100%;height:50px;background:#000;border-radius:8px}
 </style>
 </head>
 <body>
-<div class="header">🎤 KARAOKE OFFICIAL @myainunvercel 🎤</div>
+<div class="header">🎤 KARAOKE OFFICIAL @myainunsukamto 🎤</div>
 
 <div id="stageWrap">
   <!-- FIX ANTI-HITAM: pakai iframe langsung, bukan nunggu API -->
-  <iframe id="player" src="https://www.youtube.com/embed/videoseries?list=UUkRM7hN7ORIRzEp2pWYA4aw&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <iframe id="player" 
+  src="https://www.youtube-nocookie.com/embed/videoseries?list=UUkRM7hN7ORIRzEp2pWYA4aw&rel=0&modestbranding=1&origin=https://myainun.vercel.app&enablejsapi=1" 
+  allow="autoplay; encrypted-media; fullscreen" 
+  allowfullscreen
+></iframe>
   <div id="micOverlay">🎤</div>
 </div>
 
@@ -79,6 +83,21 @@ document.getElementById('micVol').oninput=e=>{if(gainNode)gainNode.gain.value=e.
 document.getElementById('echo').oninput=e=>{if(delayGain)delayGain.gain.value=e.target.value/100;document.getElementById('echoV').innerText=e.target.value+'%';};
 document.getElementById('reverb').oninput=e=>{if(reverbGain)reverbGain.gain.value=e.target.value/100;document.getElementById('reverbV').innerText=e.target.value+'%';};
 function draw(){if(!isMicOn)return;requestAnimationFrame(draw);let d=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(d);vCtx.clearRect(0,0,viz.width,viz.height);let bw=viz.width/d.length*2;for(let i=0;i<d.length;i++){let h=d[i]/2;vCtx.fillStyle=`hsl(${280+h},100%,60%)`;vCtx.fillRect(i*bw,viz.height-h,bw-1,h);}}
+let player;
+function onYouTubeIframeAPIReady(){
+  player = new YT.Player('player', {
+    events: {
+      'onError': function(e){
+        if(e.data==101 || e.data==150){
+          document.getElementById('status').innerHTML = 
+          "⚠️ Video ini diblokir embed di Desktop. Buka di YouTube App atau cek Allow Embedding di Studio. Klik Play di bawah.";
+          document.getElementById('status').style.color="yellow";
+        }
+      }
+    }
+  });
+}
+
 </script>
 </body>
 </html>
