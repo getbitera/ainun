@@ -2,111 +2,52 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFFICIAL KARAOKE - @myainunvercel</title>
+<title>OFFICIAL - @myainunvercel</title>
 <style>
-body{margin:0;background:#000;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh;background:radial-gradient(circle at 20% 30%, rgba(255,0,128,.4) 0%, transparent 50%),radial-gradient(circle at 80% 20%, rgba(0,255,255,.3) 0%, transparent 50%),#0a0a0a}
-.header{background:#FF0000;width:100%;padding:8px 12px;display:flex;justify-content:space-between;font-weight:900}
-#stageWrap{width:100%;max-width:480px;position:relative;background:black;aspect-ratio:16/9;overflow:hidden;border:2px solid #FF00FF;box-shadow:0 0 30px rgba(255,0,255,.4)}
-#player{width:100%;height:100%} #micOverlay{position:absolute;bottom:10px;right:10px;font-size:50px;z-index:5} #micOverlay.sing{animation:shake .15s infinite}
-@keyframes shake{0%{transform:scale(1.1) rotate(-3deg)}50%{transform:scale(1.25) rotate(3deg)}100%{transform:scale(1.1) rotate(-3deg)}}
-#ytInputWrap{width:100%;max-width:480px;background:#212121;padding:8px;display:flex;gap:6px}
-#ytInput{flex:1;padding:10px;border-radius:20px;border:2px solid #FF0000;background:#000;color:white}
-.panel{width:100%;max-width:480px;background:#212121;padding:10px;border-radius:0 0 16px 16px}
-.row{display:flex;justify-content:space-between;align-items:center;margin:8px 0} .label{font-size:11px;font-weight:900;color:#FFCC80;min-width:110px}
-input[type=range]{flex:1;margin:0 8px;accent-color:#FF0000} .btn{border:none;padding:8px 14px;border-radius:20px;font-weight:900;cursor:pointer}
-.btn-mic{width:100%;padding:14px;font-size:18px;background:#00C853;color:white;margin-bottom:8px} .btn-mic.off{background:#FF1744}
-canvas{width:100%;height:50px;background:#000;border-radius:8px} .quickList{display:flex;gap:6px;overflow-x:auto;padding:8px}
-.quick{white-space:nowrap;background:#000;border:1px solid #FF00FF;color:#FFCC80;padding:8px 12px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;min-width:120px;text-align:center}
-.quick.active{border-color:#FF0000;background:#330000} #status{font-size:11px;text-align:center;padding:8px;background:#000;border-radius:10px;margin:6px;width:100%;max-width:480px;box-sizing:border-box}
+body{margin:0;background:#000;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#stageWrap{width:100%;max-width:480px;position:relative;background:#111;aspect-ratio:16/9;border:2px solid #FF00FF;display:flex;align-items:center;justify-content:center}
+#player{width:100%;height:100%}
+#status{width:100%;max-width:480px;background:#000;color:#0f0;text-align:center;padding:8px;font-size:12px;border:1px solid #FF00FF}
 </style>
 </head>
 <body>
-<div class="header"><span>▶️ MY OFFICIAL</span><span style="font-size:10px">@myainunvercel ONLY</span></div>
-<div id="stageWrap"><div id="player"></div><div id="micOverlay">🎤</div></div>
-<div id="status">🔒 Loading your official songs from UCkRM7hN7ORIRzEp2pWYA4aw...</div>
-<div id="ytInputWrap"><input id="ytInput" placeholder="Paste ONLY your channel link..."><button class="btn" style="background:#FF0000;color:white" onclick="loadYT()">▶️ Play</button></div>
-<div class="quickList" id="myVideosList"></div>
-<div class="panel">
-<button id="micBtn" class="btn btn-mic off" onclick="toggleMic()">🎤 TURN ON KARAOKE MIC</button>
-<canvas id="viz"></canvas>
-<div class="row"><span class="label">MUSIC VOL</span><input id="ytVol" type="range" min="0" max="100" value="80"><span id="ytVolV">80%</span></div>
-<div class="row"><span class="label">MIC VOL</span><input id="micVol" type="range" min="0" max="200" value="130"><span id="micVolV">130%</span></div>
-<div class="row"><span class="label">ECHO</span><input id="echo" type="range" min="0" max="80" value="40"><span id="echoV">40%</span></div>
-<div class="row"><span class="label">REVERB</span><input id="reverb" type="range" min="0" max="100" value="65"><span id="reverbV">65%</span></div>
-<div style="font-size:9px;color:#666;text-align:center;margin-top:6px">© 2026 @myainunvercel - All songs are original. Protected by copyright.</div>
+<div id="stageWrap"><div id="player"></div></div>
+<div id="status">🔒 LOCKED to UCkRM7hN7ORIRzEp2pWYA4aw (@myainunvercel) - Paste your own video below</div>
+<div style="width:100%;max-width:480px;padding:8px;display:flex;gap:6px;background:#212121">
+<input id="ytInput" style="flex:1;padding:10px;border-radius:20px;background:#000;color:white;border:2px solid #FF0000" placeholder="Paste YOUR video link, ex: https://youtu.be/xxxx">
+<button onclick="loadYT()" style="background:#FF0000;color:white;border:none;padding:10px 16px;border-radius:20px;font-weight:900">▶️ Play</button>
 </div>
+
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 const MY_CHANNEL_ID = "UCkRM7hN7ORIRzEp2pWYA4aw";
-let MY_ALLOWED_VIDEO_IDS = [];
-let ytPlayer=null, currentId=null;
-let audioCtx, micStream, source, gainNode, delayNode, delayGain, convolver, reverbGain, bassFilter, analyser, isMicOn=false;
+const MY_HANDLE = "@myainunvercel";
+// ISI DENGAN VIDEO ID MILIKMU - contoh cara ambil ID ada di bawah
+let MY_SONGS = []; // kosongkan dulu, nanti auto terisi pas kamu paste
 
-function onYouTubeIframeAPIReady(){ loadChannelVideos(); }
-
-async function loadChannelVideos(){
-  try{
-    // Use RSS2JSON to get latest 15 videos from your channel - NO API KEY NEEDED
-    let rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${MY_CHANNEL_ID}`;
-    let apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    let res = await fetch(apiUrl);
-    let data = await res.json();
-    if(data.items && data.items.length>0){
-      MY_ALLOWED_VIDEO_IDS = data.items.map(item=>{
-        let m=item.link.match(/(?:v=)([a-zA-Z0-9_-]{11})/);
-        return m?m[1]:null;
-      }).filter(Boolean);
-      document.getElementById('status').innerHTML=`✅ ${data.items.length} Official Songs Loaded from @myainunvercel - Locked`;
-      renderList(data.items);
-      currentId = MY_ALLOWED_VIDEO_IDS[0];
-      ytPlayer = new YT.Player('player',{height:'100%',width:'100%',videoId:currentId,playerVars:{playsinline:1,rel:0},events:{onReady:e=>e.target.setVolume(80)}});
-    } else { throw "empty"; }
-  }catch(e){
-    document.getElementById('status').innerHTML=`⚠️ Could not auto-load. Add your Video IDs manually in code. Your Channel ID: ${MY_CHANNEL_ID} is locked.`;
-    MY_ALLOWED_VIDEO_IDS = ["dQw4w9WgXcQ"]; // fallback
-    ytPlayer = new YT.Player('player',{height:'100%',width:'100%',videoId:MY_ALLOWED_VIDEO_IDS[0]});
-  }
+let ytPlayer;
+function onYouTubeIframeAPIReady(){
+  ytPlayer = new YT.Player('player',{height:'100%',width:'100%',videoId:'',playerVars:{playsinline:1}});
 }
-
-function renderList(items){
-  const list=document.getElementById('myVideosList');
-  list.innerHTML='';
-  items.forEach((item,i)=>{
-    let div=document.createElement('div'); div.className='quick'; if(i==0) div.classList.add('active');
-    div.innerHTML=`🎤 ${item.title.substring(0,20)}...`;
-    div.onclick=()=>{ document.querySelectorAll('.quick').forEach(x=>x.classList.remove('active')); div.classList.add('active'); currentId=MY_ALLOWED_VIDEO_IDS[i]; ytPlayer.loadVideoById(currentId); };
-    list.appendChild(div);
-  });
+function parseId(url){
+  let m=url.match(/(?:v=|\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
 }
-function parseId(url){ let m=url.match(/(?:v=|\.be\/)([a-zA-Z0-9_-]{11})/); return m?m[1]:url.trim(); }
-async function loadYT(){
-  let id=parseId(document.getElementById('ytInput').value);
-  if(!id || id.length!=11){ alert("Invalid YouTube link"); return; }
-  if(!MY_ALLOWED_VIDEO_IDS.includes(id)){
-    document.getElementById('status').innerHTML=`❌ BLOCKED: ${id} is NOT from @myainunvercel (UCkRM7hN7ORIRzEp2pWYA4aw)`;
-    document.getElementById('status').style.color="#f00";
-    alert(`⛔ BLOCKED - COPYRIGHT PROTECTION\n\nThis karaoke is locked to ONLY your channel:\n@myainunvercel\n${MY_CHANNEL_ID}\n\nVideo ${id} is not in your official list.\n\nYour fans can ONLY sing your original songs.`);
-    return;
-  }
-  document.getElementById('status').innerHTML=`✅ Playing your official: ${id}`; document.getElementById('status').style.color="#0f0";
-  currentId=id; ytPlayer.loadVideoById(currentId);
+function loadYT(){
+  let url=document.getElementById('ytInput').value;
+  let id=parseId(url);
+  if(!id){ alert("Link salah! Contoh benar: https://youtu.be/ABC123xyz12"); return; }
+  
+  // SIMPAN KE LIST MILIKMU
+  if(!MY_SONGS.includes(id)) MY_SONGS.push(id);
+  
+  document.getElementById('status').innerHTML = `✅ Playing YOUR song: ${id} | Total your songs: ${MY_SONGS.length} | Channel locked: ${MY_HANDLE}`;
+  document.getElementById('status').style.color="#0f0";
+  ytPlayer.loadVideoById(id);
+  
+  // Tampilkan ID biar bisa kamu copy ke kode permanen
+  console.log("Tambahkan ini ke MY_SONGS: ", JSON.stringify(MY_SONGS));
 }
-// MIC LOGIC
-const viz=document.getElementById('viz'), vCtx=viz.getContext('2d'); viz.width=400; viz.height=50;
-document.getElementById('ytVol').oninput=e=>{ if(ytPlayer) ytPlayer.setVolume(e.target.value); document.getElementById('ytVolV').innerText=e.target.value+'%'; };
-async function toggleMic(){
-  if(isMicOn){ micStream.getTracks().forEach(t=>t.stop()); audioCtx.close(); isMicOn=false; document.getElementById('micBtn').innerText='🎤 TURN ON KARAOKE MIC'; document.getElementById('micBtn').classList.add('off'); document.getElementById('micOverlay').classList.remove('sing'); return; }
-  audioCtx=new (window.AudioContext||window.webkitAudioContext)(); micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,autoGainControl:false,noiseSuppression:false}});
-  source=audioCtx.createMediaStreamSource(micStream); gainNode=audioCtx.createGain(); gainNode.gain.value=1.3; bassFilter=audioCtx.createBiquadFilter(); bassFilter.type='lowshelf'; bassFilter.frequency.value=250; bassFilter.gain.value=5;
-  delayNode=audioCtx.createDelay(2); delayNode.delayTime.value=0.3; delayGain=audioCtx.createGain(); delayGain.gain.value=0.4; convolver=audioCtx.createConvolver(); reverbGain=audioCtx.createGain(); reverbGain.gain.value=0.65; analyser=audioCtx.createAnalyser(); analyser.fftSize=256;
-  let rate=audioCtx.sampleRate,len=rate*2.8,imp=audioCtx.createBuffer(2,len,rate); for(let c=0;c<2;c++){ let ch=imp.getChannelData(c); for(let i=0;i<len;i++) ch[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)*0.6; } convolver.buffer=imp;
-  source.connect(bassFilter); bassFilter.connect(gainNode); gainNode.connect(analyser); gainNode.connect(audioCtx.destination); gainNode.connect(delayNode); delayNode.connect(delayGain); delayGain.connect(gainNode); delayGain.connect(audioCtx.destination); gainNode.connect(convolver); convolver.connect(reverbGain); reverbGain.connect(audioCtx.destination);
-  isMicOn=true; document.getElementById('micBtn').innerText='🔴 MIC ON - SINGING'; document.getElementById('micBtn').classList.remove('off'); document.getElementById('micOverlay').classList.add('sing'); drawViz();
-}
-document.getElementById('micVol').oninput=e=>{ if(gainNode) gainNode.gain.value=e.target.value/100; document.getElementById('micVolV').innerText=e.target.value+'%'; };
-document.getElementById('echo').oninput=e=>{ if(delayGain) delayGain.gain.value=e.target.value/100; document.getElementById('echoV').innerText=e.target.value+'%'; };
-document.getElementById('reverb').oninput=e=>{ if(reverbGain) reverbGain.gain.value=e.target.value/100; document.getElementById('reverbV').innerText=e.target.value+'%'; };
-function drawViz(){ if(!isMicOn) return; requestAnimationFrame(drawViz); let d=new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(d); vCtx.clearRect(0,0,viz.width,viz.height); let bw=viz.width/d.length*2; for(let i=0;i<d.length;i++){ let h=d[i]/2; vCtx.fillStyle=`hsl(${0+h/3},100%,50%)`; vCtx.fillRect(i*bw,viz.height-h,bw-1,h); } }
 </script>
 </body>
 </html>
