@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEVEL 1 - 16 SOAL - FULL RANDOM</title>
+<title>LEVEL 1 - 16 QUESTIONS - FULL RANDOM</title>
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:600px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
@@ -20,33 +20,33 @@ body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin
 </head>
 <body>
 <div class="container">
-<h2 style="color:#004D40">🟢 LEVEL 1 - 16 SOAL - FULL RANDOM 100%</h2>
-<div class="info"><span id="noSoal">Soal 1/16</span><span id="benar">BENAR: 0/16</span><span id="totalTimer">48.0s</span></div>
+<h2 style="color:#004D40">🟢 LEVEL 1 - 16 QUESTIONS - FULL RANDOM 100%</h2>
+<div class="info"><span id="noSoal">Question 1/16</span><span id="benar">CORRECT: 0/16</span><span id="totalTimer">48.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
 <div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px;line-height:1.6"></div>
-<button id="btnNext" class="next-btn" onclick="lanjutKeLevel2()">➡️ LANJUT KE LEVEL 2 (100% BENAR) ➡️</button>
-<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 ULANGI LEVEL 1 (SOAL AKAN ACAK LAGI)</button>
+<button id="btnNext" class="next-btn" onclick="lanjutKeLevel2()">➡️ CONTINUE TO LEVEL 2 (100% CORRECT) ➡️</button>
+<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 REPLAY LEVEL 1 (QUESTIONS WILL SHUFFLE AGAIN)</button>
 </div>
 <script>
 const SOAL_ORIG=[
-{q:"Sel saraf pengirim sinyal disebut?",a:["Organ","Akson","Neuron","Kranial"],k:2},
-{q:"Gaya tarik bumi disebut gaya?",a:["Magnet","Gravitasi","Gesek","Pegas"],k:1},
-{q:"Gas yang dibutuhkan untuk bernapas?",a:["Karbon","Nitrogen","Oksigen","Hidrogen"],k:2},
-{q:"Materi genetik pembawa sifat?",a:["RNA","DNA","Enzim","Protein"],k:1},
-{q:"Kemampuan melakukan usaha disebut?",a:["Gaya","Daya","Energi","Momentum"],k:2},
-{q:"Atom yang bermuatan listrik disebut?",a:["Molekul","Ion","Proton","Neutron"],k:1},
-{q:"Partikel terkecil dari unsur?",a:["Atom","Sel","Molekul","Senyawa"],k:0},
-{q:"Patogen super kecil penyebab penyakit?",a:["Bakteri","Jamur","Virus","Protozoa"],k:2},
-{q:"Kumpulan jaringan membentuk?",a:["Sel","Organ","Sistem","Organisme"],k:1},
-{q:"Biokatalisator dalam tubuh?",a:["Hormon","Enzim","Vitamin","Mineral"],k:1},
-{q:"Alat reproduksi pada jamur?",a:["Biji","Spora","Tunas","Akar"],k:1},
-{q:"Cairan merah yang mengalir di tubuh?",a:["Limfa","Plasma","Darah","Cairan"],k:2},
-{q:"Seluruh materi genetik disebut?",a:["Genom","Gen","Kromosom","Fenotip"],k:0},
-{q:"Organ terbesar pada manusia?",a:["Jantung","Paru","Kulit","Hati"],k:2},
-{q:"Sistem penghantar impuls?",a:["Otot","Tulang","Saraf","Darah"],k:2},
-{q:"Proses pembentukan glukosa dari lemak?",a:["Glikolisis","Ketogenesis","Fotosintesis","Respirasi"],k:1}
+{q:"What is the nerve cell that transmits signals called?",a:["Organ","Axon","Neuron","Cranial"],k:2},
+{q:"What is the force of attraction of the earth called?",a:["Magnetic","Gravity","Friction","Spring"],k:1},
+{q:"What gas is needed for breathing?",a:["Carbon","Nitrogen","Oxygen","Hydrogen"],k:2},
+{q:"What is the genetic material that carries traits?",a:["RNA","DNA","Enzyme","Protein"],k:1},
+{q:"What is the ability to do work called?",a:["Force","Power","Energy","Momentum"],k:2},
+{q:"What is an atom with an electric charge called?",a:["Molecule","Ion","Proton","Neutron"],k:1},
+{q:"What is the smallest particle of an element?",a:["Atom","Cell","Molecule","Compound"],k:0},
+{q:"What is the super small pathogen that causes disease?",a:["Bacteria","Fungus","Virus","Protozoa"],k:2},
+{q:"A collection of tissues forms a?",a:["Cell","Organ","System","Organism"],k:1},
+{q:"What is the biocatalyst in the body?",a:["Hormone","Enzyme","Vitamin","Mineral"],k:1},
+{q:"What is the reproductive tool in fungi?",a:["Seed","Spore","Bud","Root"],k:1},
+{q:"What is the red fluid that flows in the body?",a:["Lymph","Plasma","Blood","Fluid"],k:2},
+{q:"What is all genetic material called?",a:["Genome","Gene","Chromosome","Phenotype"],k:0},
+{q:"What is the largest organ in humans?",a:["Heart","Lung","Skin","Liver"],k:2},
+{q:"What is the impulse conduction system?",a:["Muscle","Bone","Nerve","Blood"],k:2},
+{q:"What is the process of forming glucose from fat?",a:["Glycolysis","Ketogenesis","Photosynthesis","Respiration"],k:1}
 ];
 
 function shuffle(arr){
@@ -66,20 +66,19 @@ function acakJawaban(soal){
     k: list.findIndex(x=>x.isBenar)
   };
 }
-// 2x ACAK: 1. Acak urutan soal, 2. Acak jawaban
 const SOAL = shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
 
 let idx=0,benar=0,totalTime=48,sisaTotal=48,timer,salahList=[];
-function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Soal ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
-function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`BENAR: ${benar}/16`;setTimeout(()=>{idx++;render();},400);}
+function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Question ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
+function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Answer: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`CORRECT: ${benar}/16`;setTimeout(()=>{idx++;render();},400);}
 function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
 function lanjutKeLevel2(){if(benar!==16) return;localStorage.setItem('level1_benar', benar);window.location.href='level2.html';}
 function end(){
   clearInterval(timer);
-  document.getElementById('soalText').innerText='LEVEL 1 SELESAI!';
+  document.getElementById('soalText').innerText='LEVEL 1 COMPLETE!';
   document.getElementById('pilihan').innerHTML='';
-  let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:12px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:12px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length}:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 16/16!</div>`;
-  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 16</div><div style="font-size:13px;color:#555">${benar===16? 'WOW 100%! Lanjut Level 2 kebuka' : 'Wajib 100% (16/16) untuk lanjut. Soal akan acak lagi kalau ulangi!'}</div>${listSalah}`;
+  let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:12px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:12px;color:#B71C1C"><b>FAILED - WRONG ${salahList.length}:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 PERFECT 16/16!</div>`;
+  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">CORRECT: ${benar} of 16</div><div style="font-size:13px;color:#555">${benar===16? 'WOW 100%! Level 2 unlocked' : 'You need 100% (16/16) to continue. Questions will shuffle if you replay!'}</div>${listSalah}`;
   document.getElementById('btnUlang').style.display='block';
   if(benar===16){document.getElementById('btnNext').style.display='block';}
 }
