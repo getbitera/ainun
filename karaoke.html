@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KARAOKE YOUTUBE + MIC KONSER</title>
+<title>YOUTUBE KARAOKE + CONCERT MIC</title>
 <style>
-body{margin:0;background:#0a0a0a;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+body{margin:0;background:#000;color:white;font-family:Arial;display:flex;flex-direction:column;align-items:center;min-height:100vh;
+background: radial-gradient(circle at 20% 30%, rgba(255,0,128,.4) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(0,255,255,.3) 0%, transparent 50%),
+            #0a0a0a;
+}
 .header{background:#FF0000;color:white;width:100%;padding:8px 12px;display:flex;justify-content:space-between;font-weight:900;align-items:center}
-#stageWrap{width:100%;max-width:480px;position:relative;background:black;aspect-ratio:16/9;overflow:hidden;border-bottom:3px solid #FF0000}
+#stageWrap{width:100%;max-width:480px;position:relative;background:black;aspect-ratio:16/9;overflow:hidden;border-bottom:3px solid #FF0000; box-shadow: 0 0 30px rgba(255,0,255,.4), 0 0 60px rgba(0,255,255,.2) inset; border:2px solid #FF00FF;}
 #player{width:100%;height:100%}
 #micOverlay{position:absolute;bottom:10px;right:10px;font-size:50px;filter:drop-shadow(0 0 10px #FF0000);z-index:5;transition:transform 0.1s}
 #micOverlay.sing{animation:shake 0.15s infinite}
@@ -23,17 +27,17 @@ input[type=range]{flex:1;margin:0 8px;accent-color:#FF0000}
 .btn-mic.off{background:#FF1744;box-shadow:0 4px 0 #B71C1C}
 canvas{width:100%;height:50px;background:#000;border-radius:8px}
 .presets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.eff{background:#3E2723;border:2px solid #5D4037;padding:6px;border-radius:10px;text-align:center;font-size:10px;font-weight:900}
+.eff{background:#3E2723;border:2px solid #5D4037;padding:6px;border-radius:10px;text-align:center;font-size:10px;font-weight:900; cursor:pointer;}
 .eff.active{border-color:#FF0000;background:#5D4037}
 .quickList{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
-.quick{white-space:nowrap;background:#000;border:1px solid #FF0000;color:#FFCC80;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:900}
+.quick{white-space:nowrap;background:#000;border:1px solid #FF0000;color:#FFCC80;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:900; cursor:pointer;}
 </style>
 </head>
 <body>
 
 <div class="header">
 <span>▶️ YT KARAOKE</span>
-<span style="font-size:10px">MIC KONSER</span>
+<span style="font-size:10px">CONCERT MIC</span>
 </div>
 
 <div id="stageWrap">
@@ -42,7 +46,7 @@ canvas{width:100%;height:50px;background:#000;border-radius:8px}
 </div>
 
 <div id="ytInputWrap">
-<input id="ytInput" placeholder="Paste link YouTube karaoke di sini... contoh: https://youtu.be/xxxx">
+<input id="ytInput" placeholder="Paste YouTube karaoke link here... e.g. https://youtu.be/xxxx">
 <button class="btn" style="background:#FF0000;color:white" onclick="loadYT()">▶️ Play</button>
 </div>
 
@@ -54,29 +58,29 @@ canvas{width:100%;height:50px;background:#000;border-radius:8px}
 </div>
 
 <div class="panel">
-<button id="micBtn" class="btn btn-mic off" onclick="toggleMic()">🎤 NYALAKAN MIC KARAOKE</button>
+<button id="micBtn" class="btn btn-mic off" onclick="toggleMic()">🎤 TURN ON KARAOKE MIC</button>
 
 <canvas id="viz"></canvas>
 
-<div class="row"><span class="label">VOL MUSIK YT</span><input id="ytVol" type="range" min="0" max="100" value="80"><span id="ytVolV">80%</span></div>
-<div class="row"><span class="label">VOL MIC KAMU</span><input id="micVol" type="range" min="0" max="200" value="130"><span id="micVolV">130%</span></div>
-<div class="row"><span class="label">ECHO KONSER</span><input id="echo" type="range" min="0" max="80" value="40"><span id="echoV">40%</span></div>
-<div class="row"><span class="label">REVERB STADION</span><input id="reverb" type="range" min="0" max="100" value="65"><span id="reverbV">65%</span></div>
+<div class="row"><span class="label">YT MUSIC VOL</span><input id="ytVol" type="range" min="0" max="100" value="80"><span id="ytVolV">80%</span></div>
+<div class="row"><span class="label">YOUR MIC VOL</span><input id="micVol" type="range" min="0" max="200" value="130"><span id="micVolV">130%</span></div>
+<div class="row"><span class="label">CONCERT ECHO</span><input id="echo" type="range" min="0" max="80" value="40"><span id="echoV">40%</span></div>
+<div class="row"><span class="label">STADIUM REVERB</span><input id="reverb" type="range" min="0" max="100" value="65"><span id="reverbV">65%</span></div>
 
 <div class="presets">
-<div class="eff active" id="e-concert" onclick="setPreset('concert')">🏟️ KONSER</div>
+<div class="eff active" id="e-concert" onclick="setPreset('concert')">🏟️ CONCERT</div>
 <div class="eff" id="e-karaoke" onclick="setPreset('karaoke')">🎙️ KARAOKE ROOM</div>
 <div class="eff" id="e-duet" onclick="setPreset('duet')">👫 DUET</div>
-<div class="eff" id="e-clean" onclick="setPreset('clean')">🔇 MIC BERSIH</div>
+<div class="eff" id="e-clean" onclick="setPreset('clean')">🔇 CLEAN MIC</div>
 </div>
 
 <div style="margin-top:8px;display:flex;gap:6px">
-<button class="btn" style="flex:1;background:#FF6F00;color:white" onclick="cheer()">🙌 Sorak!</button>
-<button class="btn" style="flex:1;background:#1565C0;color:white" onclick="toggleLyrics()">📝 Lirik ON/OFF</button>
+<button class="btn" style="flex:1;background:#FF6F00;color:white" onclick="cheer()">🙌 Cheer!</button>
+<button class="btn" style="flex:1;background:#1565C0;color:white" onclick="toggleLyrics()">📝 Lyrics ON/OFF</button>
 </div>
 
 <div style="font-size:9px;color:#9E9E9E;margin-top:8px;text-align:center">
-Wajib pakai HEADSET biar gak storing! | Izinkan mic | YouTube butuh klik play dulu
+Must use HEADSET to avoid feedback! | Allow mic access | YouTube needs to click play first
 </div>
 </div>
 
@@ -110,7 +114,6 @@ document.getElementById('ytVol').oninput=e=>{
   document.getElementById('ytVolV').innerText=e.target.value+'%';
 };
 
-// MIC KONSER LOGIC
 const viz=document.getElementById('viz'), vCtx=viz.getContext('2d');
 viz.width=400; viz.height=50;
 
@@ -137,17 +140,17 @@ async function toggleMic(){
     gainNode.connect(convolver); convolver.connect(reverbGain); reverbGain.connect(audioCtx.destination);
     
     isMicOn=true;
-    document.getElementById('micBtn').innerText='🔴 MIC ON - LAGI KARAOKEAN';
+    document.getElementById('micBtn').innerText='🔴 MIC ON - SINGING NOW';
     document.getElementById('micBtn').classList.remove('off');
     document.getElementById('micOverlay').classList.add('sing');
     drawViz();
-  }catch(e){ alert('Mic gagal: '+e.message); }
+  }catch(e){ alert('Mic failed: '+e.message); }
 }
 function stopMic(){
   if(micStream) micStream.getTracks().forEach(t=>t.stop());
   if(audioCtx) audioCtx.close();
   isMicOn=false;
-  document.getElementById('micBtn').innerText='🎤 NYALAKAN MIC KARAOKE';
+  document.getElementById('micBtn').innerText='🎤 TURN ON KARAOKE MIC';
   document.getElementById('micBtn').classList.add('off');
   document.getElementById('micOverlay').classList.remove('sing');
 }
