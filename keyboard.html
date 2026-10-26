@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing - Green + Black Keyboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Consolas','Courier New',monospace}
+body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%,#c8f7c5 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px}
+.header{width:100%;max-width:850px;display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#1a1a1a;border-radius:14px;color:#fff}
+.logo{font-weight:900;letter-spacing:2px}.logo span{color:#a8e6a3}
+.modes{display:flex;gap:6px}
+.modeBtn{background:#2a2a2a;color:#888;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer}
+.modeBtn.active{background:#a8e6a3;color:#000}
+#stats{width:100%;max-width:850px;display:flex;gap:10px;margin:12px 0}
+.stat{background:#1a1a1a;color:#fff;padding:10px 16px;border-radius:12px;min-width:85px;text-align:center}
+.stat b{font-size:20px;display:block;color:#a8e6a3}.stat small{font-size:9px;color:#666;letter-spacing:1px}
+#gameBox{width:100%;max-width:850px;background:#fff;border-radius:18px;padding:22px;border:2px solid #1a1a1a;box-shadow:8px 8px 0 #1a1a1a}
+#words{font-size:20px;line-height:2;color:#ccc;min-height:80px;max-height:130px;overflow:hidden}
+.word{display:inline-block;margin-right:10px}
+.char{padding:0 1px;border-radius:3px}
+.char.correct{color:#111}
+.char.incorrect{color:#fff;background:#ff4757}
+.char.current{border-bottom:3px solid #1a1a1a;background:#a8e6a3;color:#000}
+.char.extra{color:#fff;background:#ff4757;opacity:.8}
+#input{position:absolute;opacity:0}
+#focusMsg{position:absolute;inset:0;background:rgba(255,255,255,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;font-weight:900;font-size:18px;cursor:pointer;z-index:5;gap:6px;color:#1a1a1a}
+
+/* BLACK KEYBOARD */
+#keyboard{width:100%;max-width:850px;margin-top:14px;background:#1a1a1a;border-radius:18px;padding:12px;border:2px solid #000;box-shadow:8px 8px 0 rgba(0,0,0,0.2)}
+.kb-row{display:flex;justify-content:center;gap:4px;margin-bottom:6px}
+.key{background:#2a2a2a;color:#a8a8a8;border:1px solid #333;border-bottom:3px solid #000;padding:10px 0;min-width:32px;flex:1;max-width:52px;text-align:center;border-radius:8px;font-size:12px;font-weight:700;transition:all .08s;user-select:none}
+.key.wide{max-width:80px;flex:1.5;background:#222}
+.key.space{max-width:320px;flex:4}
+.key.active{background:#a8e6a3;color:#000;transform:translateY(2px);border-bottom:1px solid #000;box-shadow:0 0 15px #a8e6a3}
+.key.hit{animation:hit .15s}
+@keyframes hit{50%{transform:scale(0.92)}}
+.key.correct-hit{background:#00c853;color:#fff}
+.key.wrong-hit{background:#ff4757;color:#fff}
+
+#result{display:none;width:100%;max-width:850px;background:#1a1a1a;color:#fff;border-radius:20px;padding:20px;margin-top:14px;text-align:center;border:2px solid #000}
+.wpmBig{font-size:64px;font-weight:900;color:#a8e6a3}
+.badge{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:900;margin:3px;display:inline-block}
+#chart{display:flex;align-items:flex-end;gap:2px;height:80px;background:#222;border-radius:10px;padding:6px;margin-top:10px}
+.bar{flex:1;background:#a8e6a3;border-radius:3px 3px 0 0;min-width:3px}
+</style>
+</head>
+<body>
+<div class="header">
+<div class="logo">TYPE<span>GREEN</span></div>
+<div class="modes">
+<button class="modeBtn active" onclick="setMode('time',15)">15s</button>
+<button class="modeBtn" onclick="setMode('time',30)">30s</button>
+<button class="modeBtn" onclick="setMode('time',60)">60s</button>
+<button class="modeBtn" onclick="setMode('words',50)">50w</button>
+</div>
+</div>
+
+<div id="stats">
+<div class="stat"><small>WPM</small><b id="wpm">0</b></div>
+<div class="stat"><small>ACC</small><b id="acc">100%</b></div>
+<div class="stat"><small>TIME</small><b id="time">15</b></div>
+<div class="stat"><small>ERRORS</small><b id="err">0</b></div>
+</div>
+
+<div id="gameBox" style="position:relative" onclick="document.getElementById('input').focus()">
+<div id="words"></div>
+<input id="input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<div id="focusMsg">👆 CLICK TO START<div style="font-size:12px;font-weight:400;color:#666">Green background + Black keyboard</div></div>
+</div>
+
+<div id="keyboard">
+<div class="kb-row">
+<div class="key" data-k="q">Q</div><div class="key" data-k="w">W</div><div class="key" data-k="e">E</div><div class="key" data-k="r">R</div><div class="key" data-k="t">T</div><div class="key" data-k="y">Y</div><div class="key" data-k="u">U</div><div class="key" data-k="i">I</div><div class="key" data-k="o">O</div><div class="key" data-k="p">P</div>
+</div>
+<div class="kb-row">
+<div class="key" data-k="a">A</div><div class="key" data-k="s">S</div><div class="key" data-k="d">D</div><div class="key" data-k="f">F</div><div class="key" data-k="g">G</div><div class="key" data-k="h">H</div><div class="key" data-k="j">J</div><div class="key" data-k="k">K</div><div class="key" data-k="l">L</div>
+</div>
+<div class="kb-row">
+<div class="key wide" data-k="Shift">SHIFT</div>
+<div class="key" data-k="z">Z</div><div class="key" data-k="x">X</div><div class="key" data-k="c">C</div><div class="key" data-k="v">V</div><div class="key" data-k="b">B</div><div class="key" data-k="n">N</div><div class="key" data-k="m">M</div>
+<div class="key wide" data-k="Backspace">⌫</div>
+</div>
+<div class="kb-row">
+<div class="key space" data-k=" ">SPACE</div>
+</div>
+</div>
+
+<div id="result">
+<h3 id="resTitle"></h3>
+<div class="wpmBig" id="resWpm">0 WPM</div>
+<div id="resBadges"></div>
+<div id="chart"></div>
+<div id="resDetail" style="text-align:left;background:#222;padding:12px;border-radius:10px;margin-top:12px;font-size:11px;color:#aaa"></div>
+<button style="width:100%;margin-top:12px;padding:14px;background:#a8e6a3;border:none;border-radius:12px;font-weight:900;cursor:pointer;color:#000" onclick="restart()">RESTART ↻</button>
+</div>
+
+<script>
+const wordList=["the","be","to","of","and","a","in","that","have","I","it","for","not","on","with","he","as","you","do","at","this","but","his","by","from","they","we","say","her","she","or","an","will","my","one","all","would","there","their","what","so","up","out","if","about","who","get","which","go","me","when","make","can","like","time","no","just","him","know","take","people","into","year","your","good","some","could","them","see","other","than","then","now","look","only","come","its","over","think","also","back","after","use","two","how","our","work","first","well","way","even","new","want","because","any","these","give","day","most","us","is","was","are","has","been","green","black","keyboard","color","fast","type","speed","test","monkey","focus","game","challenge","pro"];
+let mode={type:'time',value:15}, timeLeft=15, timer=null, started=false, words=[], currentWord=0, currentChar=0, correct=0, incorrect=0, history=[], wpmHistory=[];
+
+function generateWords(n=100){ words=[]; for(let i=0;i<n;i++) words.push(wordList[Math.floor(Math.random()*wordList.length)]); return words; }
+function render(){
+  const c=document.getElementById('words'); c.innerHTML='';
+  words.forEach((w,i)=>{
+    let wd=document.createElement('div'); wd.className='word';
+    [...w].forEach((ch,j)=>{
+      let sp=document.createElement('span'); sp.className='char';
+      if(i<currentWord){ sp.className= history[i] && history[i][j] ? 'char correct' : 'char incorrect'; }
+      else if(i===currentWord){
+        if(j<currentChar) sp.className= history[i] && history[i][j] ? 'char correct' : 'char incorrect';
+        if(j===currentChar) sp.classList.add('current');
+      }
+      sp.textContent=ch; wd.appendChild(sp);
+    });
+    if(history[i] && history[i].length>w.length){
+      for(let k=w.length;k<history[i].length;k++){ let s=document.createElement('span'); s.className='char extra'; s.textContent=history[i][k]; wd.appendChild(s); }
+    }
+    c.appendChild(wd);
+  });
+}
+function setMode(t,v){ mode={type:t,value:v}; document.querySelectorAll('.modeBtn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); restart(); }
+function highlightKey(k, correct=true){
+  let key=document.querySelector(`.key[data-k="${k.toLowerCase()}"]`) || document.querySelector(`.key[data-k="${k}"]`) || document.querySelector(`.key[data-k=" "]`);
+  if(!key && k===' ') key=document.querySelector(`.key.space`);
+  if(!key) return;
+  key.classList.add('active'); key.classList.add(correct ? 'correct-hit' : 'wrong-hit'); key.classList.add('hit');
+  setTimeout(()=>{ key.classList.remove('active','correct-hit','wrong-hit','hit'); },200);
+}
+function start(){
+  if(started) return; started=true; document.getElementById('focusMsg').style.display='none';
+  timeLeft= mode.type==='time' ? mode.value : 999;
+  timer=setInterval(()=>{
+    if(mode.type==='time'){ timeLeft-=0.1; document.getElementById('time').innerText=Math.ceil(timeLeft); if(timeLeft<=0) finish(); }
+    let wpm=Math.round((correct/5)/((mode.value-timeLeft)/60||1)); if(mode.type!=='time') wpm=Math.round((correct/5)/((Date.now()-startTime)/60000));
+    wpmHistory.push(wpm); document.getElementById('wpm').innerText=isFinite(wpm)?wpm:0;
+    document.getElementById('acc').innerText= correct+incorrect===0? '100%' : Math.round(correct/(correct+incorrect)*100)+'%';
+  },100); window.startTime=Date.now();
+}
+function restart(){
+  clearInterval(timer); started=false; currentWord=0; currentChar=0; correct=0; incorrect=0; history=[]; wpmHistory=[];
+  words=generateWords(mode.type==='words'?mode.value:150);
+  document.getElementById('result').style.display='none'; document.getElementById('gameBox').style.display='block';
+  document.getElementById('focusMsg').style.display='flex'; document.getElementById('time').innerText=mode.type==='time'?mode.value:'--';
+  document.getElementById('wpm').innerText='0'; document.getElementById('acc').innerText='100%'; document.getElementById('err').innerText='0';
+  document.getElementById('input').value=''; render();
+}
+const input=document.getElementById('input');
+input.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){ e.preventDefault(); restart(); }
+  // highlight keyboard
+  if(e.key.length===1 || e.key===' ' || e.key==='Backspace' || e.key==='Shift'){
+    // check if correct
+    let expected='';
+    if(words[currentWord]) expected=words[currentWord][currentChar] || ' ';
+    let isCorrect = e.key.toLowerCase()===expected.toLowerCase() || (e.key===' ' && expected===' ');
+    if(e.key!=='Backspace' && e.key!=='Shift') highlightKey(e.key, isCorrect);
+  }
+});
+input.addEventListener('input',e=>{
+  let val=e.target.value; if(!started) start();
+  if(val.endsWith(' ')){
+    history[currentWord]=[...val.trim()];
+    let w=words[currentWord];
+    for(let i=0;i<w.length;i++){ if(history[currentWord][i]===w[i]) correct++; else incorrect++; }
+    if(history[currentWord].length>w.length) incorrect+=history[currentWord].length-w.length;
+    currentWord++; currentChar=0; e.target.value='';
+    if(mode.type==='words' && currentWord>=mode.value){ finish(); return; }
+    if(currentWord>=words.length-20) words=words.concat(generateWords(50));
+  }else{ currentChar=val.length; history[currentWord]=[...val]; }
+  render(); document.getElementById('err').innerText=incorrect;
+});
+function finish(){
+  clearInterval(timer);
+  document.getElementById('gameBox').style.display='none'; document.getElementById('result').style.display='block';
+  let timeSpent= mode.type==='time' ? mode.value : (Date.now()-startTime)/1000;
+  let wpm=Math.round((correct/5)/(timeSpent/60)); let acc=Math.round(correct/(correct+incorrect||1)*100);
+  document.getElementById('resWpm').innerText=wpm+' WPM';
+  let level=wpm<20?'Beginner 🐢':wpm<40?'Average 🐰':wpm<60?'Fast ⚡':wpm<80?'Pro 🚀':wpm<100?'Master 🔥':'Godlike 👑';
+  document.getElementById('resTitle').innerText=level;
+  document.getElementById('resBadges').innerHTML=`<span class="badge" style="background:#a8e6a3;color:#000">WPM ${wpm}</span><span class="badge" style="background:#fff;color:#000">ACC ${acc}%</span><span class="badge" style="background:#ff4757;color:#fff">ERR ${incorrect}</span>`;
+  let chart=document.getElementById('chart'); chart.innerHTML=''; let max=Math.max(...wpmHistory,1);
+  wpmHistory.slice(-50).forEach(v=>{ let bar=document.createElement('div'); bar.className='bar'; bar.style.height=(v/max*100)+'%'; chart.appendChild(bar); });
+  document.getElementById('resDetail').innerHTML=`Time: ${timeSpent.toFixed(1)}s | Correct: ${correct} | Total: ${correct+incorrect} | Net WPM: ${wpm}`;
+}
+document.addEventListener('click',()=>{ document.getElementById('input').focus(); });
+restart();
+</script>
+</body>
+</html>

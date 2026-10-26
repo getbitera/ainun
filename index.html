@@ -1000,9 +1000,9 @@ async function loadTemanDiProfil(){
   document.getElementById('myJumlahTeman').innerText = `${jumlah} Teman`;
   document.getElementById('myJumlahTeman2').innerText = jumlah;
 }
-
-// === DAFTAR SEMUA GAME - EDIT DISINI AJA BUAT 1000 GAME ===
+  // === DAFTAR SEMUA GAME - EDIT DISINI AJA BUAT 1000 GAME ===
 const DAFTAR_GAME = [
+  // GAME LAMA
   { nama: 'game SAINS 1-10', desc: 'soal jawaban dan waktu', icon: '📝', link: 'game.html' },
   { nama: 'karaoke', desc: 'nyanyi karaoke', icon: '🎤', link: 'karaoke.html' },
   { nama: 'Runut Fokus', desc: 'Logika cepat', icon: '🔢', link: '/aritmatika.html' },
@@ -1010,7 +1010,16 @@ const DAFTAR_GAME = [
   { nama: 'find the spot', desc: 'temukan gambar', icon: '💚', link: 'find.html' },
   { nama: 'drawing game', desc: 'gambar bebas sesuka kamu', icon: '✏️', link: 'drawinggame.html' },
   { nama: 'labirin game', desc: 'keluar dari labirin', icon: '🧩', link: 'labiringame.html' },
+
+  // GAME BARU - TINGGAL UPLOAD FILENYA
+  { nama: 'game poker', desc: 'kartu poker Texas Holdem', icon: '♠️', link: 'poker.html' },
+  { nama: 'game keyboard', desc: 'tes kecepatan ketik + keyboard hitam hijau', icon: '⌨️', link: 'keyboard.html' },
+  { nama: 'game color', desc: 'susun warna balok', icon: '🎨', link: 'color.html' },
+  { nama: 'game square', desc: 'block blast hapus baris full', icon: '🟦', link: 'square.html' },
+  { nama: 'game run', desc: 'balapan lari tap cepat + sorakan', icon: '🏃', link: 'run.html' },
+  { nama: 'game racing', desc: 'racing mobil / lari endless', icon: '🏁', link: 'racing.html' },
 ];
+
 
 function renderGameList(list = DAFTAR_GAME){
   const c = document.getElementById('gridGameList');

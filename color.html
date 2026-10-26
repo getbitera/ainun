@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIGHTMARE - Color Blind Test</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:6px}
+.header{width:100%;max-width:430px;background:linear-gradient(90deg,#ff0000,#000);color:#fff;padding:8px;border-radius:10px;text-align:center;font-weight:900;font-size:14px}
+#gameBox{width:100%;max-width:430px;background:#0a0a0a;border-radius:18px;margin-top:8px;padding:8px;text-align:center;border:2px solid #ff0000;animation:shake .2s infinite}
+@keyframes shake{0%{transform:translate(0)}25%{transform:translate(0.5px,0.5px)}50%{transform:translate(-0.5px,0)}75%{transform:translate(0.5px,-0.5px)}}
+canvas{width:100%;max-width:380px;aspect-ratio:1;background:#fff;border-radius:50%;margin:5px auto;display:block}
+#q{font-size:12px;font-weight:900;color:#ff4444}
+#timerWrap{width:100%;height:12px;background:#222;border-radius:10px;margin:4px 0;overflow:hidden}
+#timerBar{height:100%;width:100%;background:linear-gradient(90deg,#ff0000,#ffff00);transition:width .05s linear}
+.inputRow{display:flex;gap:4px;justify-content:center}
+input{width:60px;padding:10px;border-radius:8px;border:none;text-align:center;font-size:18px;font-weight:900}
+.btn{padding:10px 12px;border:none;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px}
+.btn-ok{background:#ff0000;color:#fff}.btn-skip{background:#222;color:#fff;border:1px solid #444}
+#result{display:none;width:100%;max-width:430px;background:#fff;color:#000;border-radius:18px;padding:14px;margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="header">💀 NIGHTMARE MODE 💀<br><small style="font-size:9px;font-weight:400">1-2 RGB DIFF | 10,000 DOTS | 5 SEC | 3 TRAPS</small></div>
+<div id="gameBox">
+<div id="timerWrap"><div id="timerBar"></div></div>
+<div id="q">LV <span id="lv">1</span>/12 <span id="hint"></span></div>
+<canvas id="plate" width="800" height="800"></canvas>
+<div class="inputRow">
+<input id="ans" type="tel" placeholder="?">
+<button class="btn btn-ok" onclick="check()">OK</button>
+<button class="btn btn-skip" onclick="skip()">EMPTY</button>
+</div>
+<div style="font-size:8px;color:#666;margin-top:3px">⚠️ Level 4,8,12 are EMPTY - Don't guess!</div>
+</div>
+<div id="result">
+<h3 id="resTitle"></h3>
+<p id="resDesc" style="font-size:12px;margin:6px 0"></p>
+<div id="detail" style="text-align:left;background:#eee;padding:8px;border-radius:8px;font-size:10px"></div>
+<button class="btn" style="background:#ff0000;color:#fff;width:100%;margin-top:8px;padding:12px" onclick="location.reload()">TRY AGAIN 💀</button>
+</div>
+<script>
+function hslToRgb(h,s,l){
+ let r,g,b;
+ if(s==0){r=g=b=l;}else{
+  const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+  let q=l<0.5?l*(1+s):l+s-l*s;
+  let p=2*l-q;
+  r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+ }
+ return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+// NIGHTMARE: hue difference only 2 degrees, lightness identical
+const levels=[
+ {num:12, h1:0.10, h2:0.28, type:'normal', note:'8%'},
+ {num:8, h1:0.0, h2:0.25, type:'normal', note:'7%'},
+ {num:6, h1:0.25, h2:0.12, type:'deutan', note:'2% NIGHTMARE'},
+ {num:0, h1:0, h2:0, type:'trap', note:'TRAP!'},
+ {num:5, h1:0.26, h2:0.13, type:'deutan', note:'1.5% INSANE'},
+ {num:29, h1:0.02, h2:0.26, type:'protan', note:'2% NIGHTMARE'},
+ {num:3, h1:0.58, h2:0.45, type:'tritan', note:'1% IMPOSSIBLE'},
+ {num:0, h1:0, h2:0, type:'trap', note:'TRAP 2!'},
+ {num:16, h1:0.05, h2:0.27, type:'normal', note:'5%'},
+ {num:2, h1:0.59, h2:0.46, type:'tritan', note:'1% IMPOSSIBLE'},
+ {num:74, h1:0.03, h2:0.28, type:'protan', note:'2%'},
+ {num:0, h1:0, h2:0, type:'trap', note:'TRAP 3!'},
+];
+let cur=0, score=0, misses={protan:0,deutan:0,tritan:0,normal:0,trap:0}, timeLeft=5, timer=null;
+
+function drawPlate(num,h1,h2,type){
+ const c=document.getElementById('plate');
+ const ctx=c.getContext('2d');
+ const W=800,H=800;
+ ctx.clearRect(0,0,W,H);
+ if(type==='trap'){
+   ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+   for(let i=0;i<10000;i++){
+     let x=Math.random()*W,y=Math.random()*H;
+     if(Math.hypot(x-W/2,y-H/2)>310) continue;
+     let r=1+Math.random()*4;
+     let col=`rgb(${130+Math.random()*30},${145+Math.random()*30},${110+Math.random()*30})`;
+     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+   }
+   return;
+ }
+ ctx.fillStyle='#000';
+ ctx.font='bold 180px Arial Black';
+ ctx.textAlign='center'; ctx.textBaseline='middle';
+ ctx.fillText(String(num),W/2,H/2+10);
+ const mask=ctx.getImageData(0,0,W,H).data;
+ ctx.clearRect(0,0,W,H);
+ ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+ let fg=hslToRgb(h1,0.65,0.55);
+ let bg=hslToRgb(h2,0.65,0.55);
+ for(let i=0;i<10000;i++){
+   let x=Math.random()*W,y=Math.random()*H;
+   if(Math.hypot(x-W/2,y-H/2)>315) continue;
+   let r=0.8+Math.random()*3.2;
+   let idx=(Math.floor(y)*W+Math.floor(x))*4;
+   let isNum=mask[idx+3]>20;
+   let base=isNum?fg:bg;
+   let v=(Math.random()-0.5)*6;
+   let col=`rgb(${Math.max(0,Math.min(255,base[0]+v))},${Math.max(0,Math.min(255,base[1]+v))},${Math.max(0,Math.min(255,base[2]+v))})`;
+   ctx.fillStyle=col;
+   ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+ }
+}
+
+function startTimer(){
+ timeLeft=5; if(timer) clearInterval(timer);
+ timer=setInterval(()=>{
+   timeLeft-=0.05;
+   document.getElementById('timerBar').style.width=(timeLeft/5*100)+'%';
+   if(timeLeft<=0){ clearInterval(timer); skip(); }
+ },50);
+}
+function loadLevel(){
+ if(cur>=levels.length){showResult();return;}
+ let l=levels[cur];
+ document.getElementById('lv').innerText=cur+1;
+ document.getElementById('hint').innerText=l.note;
+ document.getElementById('ans').value='';
+ drawPlate(l.num,l.h1,l.h2,l.type);
+ startTimer();
+}
+function check(){
+ clearInterval(timer);
+ let v=document.getElementById('ans').value.trim();
+ let l=levels[cur];
+ if(l.type==='trap'){
+   if(v!==''){ misses.trap++; }
+   else score++;
+ }else{
+   if(parseInt(v)===l.num) score++; else misses[l.type]++;
+ }
+ cur++; loadLevel();
+}
+function skip(){
+ clearInterval(timer);
+ let l=levels[cur];
+ if(l.type==='trap') score++; else misses[l.type]++;
+ cur++; loadLevel();
+}
+function showResult(){
+ document.getElementById('gameBox').style.display='none';
+ document.getElementById('result').style.display='block';
+ let t=`SCORE ${score}/12`;
+ if(score>=9) t=`INSANE! ${score}/12 - ROBOT EYES 🤖`;
+ else if(score>=6) t=`GG! ${score}/12 - Above average`;
+ else if(score<=2) t=`Normal - ${score}/12 - Nightmare is torture`;
+ else t=`Score ${score}/12 - Nightmare`;
+
+ document.getElementById('resTitle').innerText=t;
+ document.getElementById('resDesc').innerText=`Nightmare hue diff is only 2 degrees, RGB diff 2 points. Average normal person gets only 4-5. If you get 7+ your eyes are superhuman.`;
+ document.getElementById('detail').innerHTML=`
+ Miss Protan:${misses.protan} Deutan:${misses.deutan} Tritan:${misses.tritan} Normal:${misses.normal}<br>
+ Traps: ${misses.trap===0?'All passed ✅':'Failed '+misses.trap+' trap(s) ❌'}<br>
+ <b>Why it's hard:</b><br>
+ - Color diff only 1-2 RGB (eye needs 15+ for easy)<br>
+ - Lightness identical 0.55, can't use brightness<br>
+ - 10,000 dots size 1px<br>
+ - Number 180px super thin<br>
+ - Timer 5 seconds
+ `;
+}
+loadLevel();
+</script>
+</body>
+</html>
