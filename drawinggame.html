@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Game Gambar & Mewarnai</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFF8E1;font-family:Arial;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.header{background:#FF6F00;color:white;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:900}
+#app{display:flex;flex:1;overflow:hidden}
+#tools{width:72px;background:white;border-right:3px solid #FFE0B2;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;overflow-y:auto}
+.tool{width:52px;height:52px;border-radius:12px;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;background:#FFF3E0}
+.tool.active{border-color:#FF6F00;background:#FFE0B2;transform:scale(1.1)}
+.colors{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
+.color{width:28px;height:28px;border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3);cursor:pointer}
+.color.active{border:3px solid #000;transform:scale(1.2)}
+#canvasWrap{flex:1;background:#E0E0E0;display:flex;align-items:center;justify-content:center;position:relative;padding:6px}
+canvas{background:white;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);touch-action:none;max-width:100%;max-height:100%}
+#sketsaBar{position:absolute;bottom:8px;left:8px;right:8px;background:rgba(255,255,255,.95);border-radius:12px;padding:6px;display:flex;gap:6px;overflow-x:auto;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.sketsa{width:56px;height:56px;border:2px solid #FFE0B2;border-radius:8px;font-size:28px;display:flex;align-items:center;justify-content:center;background:white;cursor:pointer;flex-shrink:0}
+.sketsa.active{border-color:#FF6F00;background:#FFF3E0}
+#sizeBar{display:flex;gap:4px;align-items:center;margin-top:6px}
+.dot{border-radius:50%;background:#333;cursor:pointer;border:2px solid transparent}
+.dot.active{border-color:#FF6F00}
+.btn{width:100%;padding:6px;border:none;border-radius:8px;font-weight:900;font-size:11px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="header">
+<span>🎨 GAMBAR & MEWARNAI 🎨</span>
+<span style="font-size:11px"><button onclick="clearCanvas()" style="background:white;color:#FF6F00;border:none;padding:4px 8px;border-radius:10px;font-weight:900">🗑️ Hapus</button> <button onclick="saveImg()" style="background:#2E7D32;color:white;border:none;padding:4px 8px;border-radius:10px;font-weight:900">💾 Simpan</button></span>
+</div>
+<div id="app">
+<div id="tools">
+<div class="tool active" id="t-brush" onclick="setTool('brush')" title="Kuas">🖌️</div>
+<div class="tool" id="t-bucket" onclick="setTool('bucket')" title="Ember Cat">🪣</div>
+<div class="tool" id="t-eraser" onclick="setTool('eraser')" title="Penghapus">🧽</div>
+<div class="tool" id="t-rainbow" onclick="setTool('rainbow')" title="Pelangi">🌈</div>
+
+<div id="sizeBar">
+<div class="dot active" style="width:8px;height:8px" onclick="setSize(3,this)"></div>
+<div class="dot" style="width:14px;height:14px" onclick="setSize(8,this)"></div>
+<div class="dot" style="width:20px;height:20px" onclick="setSize(16,this)"></div>
+<div class="dot" style="width:26px;height:26px" onclick="setSize(26,this)"></div>
+</div>
+
+<div class="colors" id="colors"></div>
+<button class="btn" style="background:#FFE0B2;margin-top:6px" onclick="document.getElementById('colorPick').click()">+ Warna</button>
+<input type="color" id="colorPick" style="display:none" oninput="addCustomColor(this.value)">
+
+<button class="btn" style="background:#E1F5FE;margin-top:8px" onclick="undo()">↩️ Undo</button>
+</div>
+
+<div id="canvasWrap">
+<canvas id="c" width="500" height="500"></canvas>
+<div id="sketsaBar">
+<div class="sketsa active" onclick="loadSketch('blank',this)">⬜<br><small style="font-size:8px">Kosong</small></div>
+<div class="sketsa" onclick="loadSketch('cat',this)">🐱</div>
+<div class="sketsa" onclick="loadSketch('dog',this)">🐶</div>
+<div class="sketsa" onclick="loadSketch('house',this)">🏠</div>
+<div class="sketsa" onclick="loadSketch('car',this)">🚗</div>
+<div class="sketsa" onclick="loadSketch('flower',this)">🌸</div>
+<div class="sketsa" onclick="loadSketch('dino',this)">🦖</div>
+<div class="sketsa" onclick="loadSketch('rainbow',this)">🌈</div>
+<div class="sketsa" onclick="loadSketch('fish',this)">🐟</div>
+</div>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
+let tool='brush', color='#000000', size=8;
+let drawing=false, last={x:0,y:0};
+let history=[];
+
+const palette=['#000000','#FF1744','#FF9100','#FFEA00','#00E676','#00B0FF','#651FFF','#FF4081','#795548','#FFFFFF','#FFCDD2','#FFE0B2','#FFF9C4','#C8E6C9','#BBDEFB'];
+
+function initColors(){
+  const cont=document.getElementById('colors');
+  palette.forEach(c=>{
+    let d=document.createElement('div'); d.className='color'; d.style.background=c;
+    if(c===color) d.classList.add('active');
+    d.onclick=()=>{color=c; document.querySelectorAll('.color').forEach(x=>x.classList.remove('active')); d.classList.add('active'); if(tool==='eraser') setTool('brush');};
+    cont.appendChild(d);
+  });
+}
+initColors();
+
+function setTool(t){
+  tool=t;
+  document.querySelectorAll('.tool').forEach(x=>x.classList.remove('active'));
+  document.getElementById('t-'+t).classList.add('active');
+}
+function setSize(s,el){
+  size=s;
+  document.querySelectorAll('.dot').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+function addCustomColor(v){
+  color=v;
+  let d=document.createElement('div'); d.className='color active'; d.style.background=v;
+  document.querySelectorAll('.color').forEach(x=>x.classList.remove('active'));
+  d.onclick=()=>{color=v; document.querySelectorAll('.color').forEach(x=>x.classList.remove('active')); d.classList.add('active');};
+  document.getElementById('colors').appendChild(d);
+}
+
+function saveState(){
+  history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+  if(history.length>20) history.shift();
+}
+function undo(){
+  if(history.length===0) return;
+  let img=history.pop();
+  ctx.putImageData(img,0,0);
+}
+
+function getPos(e){
+  let r=canvas.getBoundingClientRect();
+  let t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-r.left)*(canvas.width/r.width), y:(t.clientY-r.top)*(canvas.height/r.height)};
+}
+
+// DRAWING
+canvas.addEventListener('pointerdown',e=>{
+  let p=getPos(e);
+  if(tool==='bucket'){ saveState(); bucketFill(Math.floor(p.x),Math.floor(p.y), color); return; }
+  drawing=true; last=p; saveState();
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!drawing) return;
+  let p=getPos(e);
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  if(tool==='eraser'){ ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='rgba(0,0,0,1)'; }
+  else { ctx.globalCompositeOperation='source-over'; 
+    if(tool==='rainbow'){ let hue=(Date.now()/10)%360; ctx.strokeStyle=`hsl(${hue},100%,50%)`; }
+    else ctx.strokeStyle=color;
+  }
+  ctx.lineWidth=size;
+  ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+  last=p;
+});
+canvas.addEventListener('pointerup',()=>{drawing=false; ctx.globalCompositeOperation='source-over';});
+
+// BUCKET FILL
+function bucketFill(x,y, fillColor){
+  let imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  let data=imgData.data;
+  let stack=[[x,y]];
+  let startPos=(y*canvas.width+x)*4;
+  let startR=data[startPos], startG=data[startPos+1], startB=data[startPos+2], startA=data[startPos+3];
+  let fillR=parseInt(fillColor.slice(1,3),16), fillG=parseInt(fillColor.slice(3,5),16), fillB=parseInt(fillColor.slice(5,7),16);
+  if(startR===fillR && startG===fillG && startB===fillB) return;
+  function match(pos){
+    return data[pos]===startR && data[pos+1]===startG && data[pos+2]===startB && data[pos+3]===startA;
+  }
+  while(stack.length){
+    let [cx,cy]=stack.pop();
+    let pos=(cy*canvas.width+cx)*4;
+    if(cy<0||cy>=canvas.height||cx<0||cx>=canvas.width||!match(pos)) continue;
+    // scanline fill
+    let left=cx, right=cx;
+    while(left>=0 && match((cy*canvas.width+left)*4)) left--;
+    while(right<canvas.width && match((cy*canvas.width+right)*4)) right++;
+    for(let i=left+1;i<right;i++){
+      let p=(cy*canvas.width+i)*4;
+      data[p]=fillR; data[p+1]=fillG; data[p+2]=fillB; data[p+3]=255;
+    }
+    for(let i=left+1;i<right;i++){
+      stack.push([i,cy-1]); stack.push([i,cy+1]);
+    }
+  }
+  ctx.putImageData(imgData,0,0);
+}
+
+// SKETSA
+function loadSketch(name, el){
+  document.querySelectorAll('.sketsa').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#000'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.lineJoin='round';
+  saveState();
+  if(name==='blank') return;
+  ctx.beginPath();
+  if(name==='cat'){
+    ctx.arc(250,280,80,0,Math.PI*2); // kepala
+    ctx.moveTo(190,230); ctx.lineTo(170,160); ctx.lineTo(210,200); // telinga kiri
+    ctx.moveTo(310,230); ctx.lineTo(330,160); ctx.lineTo(290,200); // kanan
+    ctx.moveTo(220,270); ctx.arc(220,270,8,0,Math.PI*2); // mata
+    ctx.moveTo(280,270); ctx.arc(280,270,8,0,Math.PI*2);
+    ctx.moveTo(250,285); ctx.lineTo(240,295); ctx.lineTo(260,295); ctx.closePath(); // hidung
+    ctx.moveTo(200,320); ctx.quadraticCurveTo(250,360,300,320); // mulut
+  } else if(name==='dog'){
+    ctx.arc(250,250,90,0,Math.PI*2);
+    ctx.moveTo(160,240); ctx.ellipse(150,240,20,40,0,0,Math.PI*2);
+    ctx.moveTo(340,240); ctx.ellipse(350,240,20,40,0,0,Math.PI*2);
+    ctx.moveTo(220,240); ctx.arc(220,240,10,0,Math.PI*2);
+    ctx.moveTo(280,240); ctx.arc(280,240,10,0,Math.PI*2);
+    ctx.moveTo(250,260); ctx.arc(250,260,12,0,Math.PI);
+  } else if(name==='house'){
+    ctx.rect(150,200,200,180); ctx.moveTo(150,200); ctx.lineTo(250,120); ctx.lineTo(350,200);
+    ctx.rect(220,280,60,100); ctx.rect(170,230,40,40); ctx.rect(290,230,40,40);
+  } else if(name==='car'){
+    ctx.rect(100,250,300,80); ctx.moveTo(140,250); ctx.arc(170,250,40,Math.PI,0); ctx.moveTo(300,250); ctx.arc(330,250,40,Math.PI,0);
+    ctx.arc(170,330,30,0,Math.PI*2); ctx.arc(330,330,30,0,Math.PI*2);
+    ctx.rect(180,180,140,70);
+  } else if(name==='flower'){
+    for(let i=0;i<5;i++){ let a=i*72*Math.PI/180; ctx.moveTo(250,200); ctx.ellipse(250+Math.cos(a)*50,200+Math.sin(a)*50,25,40,a,0,Math.PI*2); }
+    ctx.moveTo(250,200); ctx.arc(250,200,20,0,Math.PI*2);
+    ctx.moveTo(250,220); ctx.lineTo(250,400);
+    ctx.moveTo(250,320); ctx.quadraticCurveTo(200,300,180,260);
+    ctx.moveTo(250,340); ctx.quadraticCurveTo(300,320,320,280);
+  } else if(name==='dino'){
+    ctx.moveTo(100,350); ctx.lineTo(100,200); ctx.quadraticCurveTo(150,150,250,180); ctx.quadraticCurveTo(350,200,380,250); ctx.lineTo(350,350); ctx.lineTo(300,300); ctx.lineTo(250,350); ctx.lineTo(200,300); ctx.lineTo(150,350); ctx.closePath();
+    ctx.moveTo(300,200); ctx.arc(310,190,8,0,Math.PI*2);
+  } else if(name==='rainbow'){
+    ctx.arc(250,400,150,Math.PI,0); ctx.arc(250,400,120,Math.PI,0); ctx.arc(250,400,90,Math.PI,0);
+  } else if(name==='fish'){
+    ctx.ellipse(250,250,100,60,0,0,Math.PI*2); ctx.moveTo(350,250); ctx.lineTo(400,200); ctx.lineTo(400,300); ctx.closePath();
+    ctx.moveTo(200,230); ctx.arc(200,230,10,0,Math.PI*2);
+  }
+  ctx.stroke();
+}
+
+function clearCanvas(){
+  saveState();
+  ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // reload sketsa aktif biar garisnya balik
+  let active=document.querySelector('.sketsa.active');
+  if(active && active.innerText.includes('Kosong')===false){
+    active.click();
+  }
+}
+function saveImg(){
+  let a=document.createElement('a'); a.download='gambar-ku.png'; a.href=canvas.toDataURL(); a.click();
+}
+
+// init
+ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+</script>
+</body>
+</html>

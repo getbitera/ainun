@@ -295,7 +295,7 @@ div.feed-action{
         <button class="btn-sm btn-menu" onclick="window.location.href='musik.html'">🎵 Musik</button>
    <button class="btn-sm btn-menu" onclick="showPage('feedPage',this)">📜</button>
    <button class="btn-sm btn-menu" onclick="showPage('groupsPage',this)">👥 GRUP</button>
-<button onclick="showPage('gamesPage')" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
+<button onclick="bukaGame()" style="padding:12px 20px;border:2px solid #000;border-radius:12px;font-weight:900;background:#004d40;color:#fff;cursor:pointer">🎮 PILIH GAME</button>
       <button class="btn-sm btn-menu" onclick="showPage('videosPage',this)">📹</button>
       <button class="btn-sm btn-menu" onclick="showPage('friendsPage',this)">👥<span id="badgeTeman" class="notif-badge">0</span></button>
       <button class="btn-sm btn-menu" onclick="showPage('chatPage',this)">💬<span id="badgeChat" class="notif-badge">0</span></button>
@@ -309,48 +309,19 @@ div.feed-action{
 </div>
 </header>
 
-<div id="gamesPage" class="container" style="display:none">
-  <h2>🎮 PILIH GAME - <span id="jumlahGame">0</span> GAME</h2>
-  <div class="card">
+<div id="popupGame" style="display:none; position:fixed; inset:0; background:#E8F0F4; z-index:100000; overflow-y:auto; padding:0;">
+  <div style="background:#fff; padding:15px; border-bottom:3px solid #000; position:sticky; top:0; z-index:2; display:flex; justify-content:space-between; align-items:center;">
+    <b>🎮 Pilih Game - <span id="jumlahGame">0</span> Game</b>
+    <button onclick="tutupGame()" style="border:none;background:#000;color:#fff;border-radius:50%;width:35px;height:35px;font-weight:900;cursor:pointer">X</button>
+  </div>
+  <div style="padding:15px;">
     <div style="display:flex; gap:10px;">
-      <input class="input" id="cariGameInput" placeholder="Cari game..." style="margin:0" onkeydown="if(event.key==='Enter') filterGame()">
-      <button class="btn" onclick="filterGame()">CARI</button>
+      <input id="cariGameInput" class="input" placeholder="Cari game..." style="margin:0" onkeydown="if(event.key==='Enter') filterGameList()">
+      <button class="btn" onclick="filterGameList()">CARI</button>
     </div>
   </div>
-  <div id="daftarSemuaGame" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:12px;"></div>
+  <div id="gridGameList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:12px; padding:15px;"></div>
 </div>
-
-<!-- CARD POPUP 5 GAME (awal sembunyi) -->
-<div id="popupGame" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100000;align-items:center;justify-content:center;padding:15px">
-  <div style="background:#fff;width:100%;max-width:350px;border-radius:20px;border:3px solid #000;padding:15px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <b>🎮 Pilih Game</b>
-      <button onclick="tutupGame()" style="border:none;background:#000;color:#fff;border-radius:50%;width:30px;height:30px;font-weight:900;cursor:pointer">X</button>
-    </div>
-    
-    <div style="display:grid;gap:10px;margin-top:15px">
-      <div onclick="location.href='game.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
-  <span style="font-size:24px">📝</span><div><b>game SAINS 1-10</b><br><small>soal jawaban dan waktu</small></div>
-</div>
-      <div onclick="location.href='karaoke.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
-        <span style="font-size:24px">🧠</span><div><b>karaoke</b><br><small>nyanyi karaoke</small></div>
-      </div>
-      <div onclick="location.href='/aritmatika.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
-        <span style="font-size:24px">🔢</span><div><b>Runut Fokus</b><br><small>Logika cepat</small></div>
-      </div>
-      <div onclick="location.href='/imajinasi.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center">
-        <span style="font-size:24px">🎨</span><div><b>Imajinasi Lucu</b><br><small>Gambar buatan sendiri</small></div>
-      </div>
-      <div onclick="location.href='find.html'" style="padding:12px;border:2px solid #000;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center;background:#E8F5E9">
-        <span style="font-size:24px">💚</span><div><b>find the spot</b><br><small>temukan gambar </small></div>
-      </div>
-    </div>
-
-<small style="display:block;text-align:center;margin-top:12px;opacity:0.6">*Semua hanya game , bukan tes psikologi</small>
-  </div>
-</div>
-
-
 
 <div id="groupsPage" class="container" style="display:none">
   <h2>👥 GRUP AINUN - 5 GRUP</h2>
@@ -599,7 +570,6 @@ async function getSignedUrl(bucket, filePath, expires = 3600) {
   if (error) { console.error(error); return null; }
   return data.signedUrl;
 }
-
 
 // CUMA 1X DI SINI
 
@@ -1030,6 +1000,46 @@ async function loadTemanDiProfil(){
   document.getElementById('myJumlahTeman').innerText = `${jumlah} Teman`;
   document.getElementById('myJumlahTeman2').innerText = jumlah;
 }
+
+// === DAFTAR SEMUA GAME - EDIT DISINI AJA BUAT 1000 GAME ===
+const DAFTAR_GAME = [
+  { nama: 'game SAINS 1-10', desc: 'soal jawaban dan waktu', icon: '📝', link: 'game.html' },
+  { nama: 'karaoke', desc: 'nyanyi karaoke', icon: '🎤', link: 'karaoke.html' },
+  { nama: 'Runut Fokus', desc: 'Logika cepat', icon: '🔢', link: '/aritmatika.html' },
+  { nama: 'Imajinasi Lucu', desc: 'Gambar buatan sendiri', icon: '🎨', link: '/imajinasi.html' },
+  { nama: 'find the spot', desc: 'temukan gambar', icon: '💚', link: 'find.html' },
+  { nama: 'drawing game', desc: 'gambar bebas sesuka kamu', icon: '✏️', link: 'drawinggame.html' },
+  { nama: 'labirin game', desc: 'keluar dari labirin', icon: '🧩', link: 'labiringame.html' },
+];
+
+function renderGameList(list = DAFTAR_GAME){
+  const c = document.getElementById('gridGameList');
+  const j = document.getElementById('jumlahGame');
+  if(!c) return;
+  if(j) j.innerText = list.length;
+  c.innerHTML = '';
+  list.forEach(g=>{
+    c.innerHTML += `
+      <div onclick="location.href='${g.link}'" style="padding:14px;border:2px solid #000;border-radius:16px;cursor:pointer;background:#fff;display:flex;gap:10px;align-items:center">
+        <span style="font-size:24px">${g.icon}</span>
+        <div><b style="font-size:13px">${g.nama}</b><br><small style="font-size:11px;opacity:0.7">${g.desc}</small></div>
+      </div>`;
+  });
+}
+function filterGameList(){
+  const k = document.getElementById('cariGameInput').value.toLowerCase();
+  if(!k) return renderGameList();
+  renderGameList(DAFTAR_GAME.filter(g=> g.nama.toLowerCase().includes(k) || g.desc.toLowerCase().includes(k)));
+}
+window.bukaGame = function(){
+  const p = document.getElementById('popupGame');
+  if(p){ p.style.display='block'; document.body.style.overflow='hidden'; renderGameList(); }
+}
+window.tutupGame = function(){
+  const p = document.getElementById('popupGame');
+  if(p){ p.style.display='none'; document.body.style.overflow=''; }
+}
+
 
 window.lihatProfilOrang = async function(idOrang){
   if(!userLogin) return alert('Login dulu');
@@ -1819,60 +1829,41 @@ window.loadPermintaan = loadPermintaan;
 window.loadDaftarTeman = loadDaftarTeman;
 
 
-// FIX FINAL - HARUS PAKAI window. BIAR TOMBOL HEADER BISA PANGGIL
-
-// === DAFTAR 1000 GAME - TINGGAL TAMBAHIN DI SINI ===
-const ALL_GAMES = [
-  { nama: 'game SAINS 1-10', desc: 'soal jawaban dan waktu', icon: '📝', link: 'game.html' },
-  { nama: 'karaoke', desc: 'nyanyi karaoke', icon: '🎤', link: 'karaoke.html' },
-  { nama: 'Runut Fokus', desc: 'Logika cepat', icon: '🔢', link: '/aritmatika.html' },
-  { nama: 'Imajinasi Lucu', desc: 'Gambar buatan sendiri', icon: '🎨', link: '/imajinasi.html' },
-  { nama: 'find the spot', desc: 'temukan gambar', icon: '💚', link: 'find.html' },
-  // tambah terus sampai 1000 -> contoh:
-  // { nama: 'Game 6', desc: 'deskripsi', icon: '🎮', link: 'game6.html' },
-];
-
-window.renderGameList = function(list = ALL_GAMES){
-  const c = document.getElementById('daftarSemuaGame');
-  if(!c) return;
-  document.getElementById('jumlahGame').innerText = list.length;
-  c.innerHTML = '';
-  list.forEach(g=>{
-    c.innerHTML += `
-      <div onclick="location.href='${g.link}'" style="padding:14px;border:2px solid #000;border-radius:16px;cursor:pointer;background:#fff;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center">
-        <span style="font-size:32px">${g.icon}</span>
-        <b style="font-size:14px">${g.nama}</b>
-        <small style="opacity:0.6;font-size:11px">${g.desc}</small>
-      </div>`;
-  });
-}
-window.filterGame = function(){
-  const k = document.getElementById('cariGameInput').value.toLowerCase();
-  if(!k) return renderGameList();
-  renderGameList(ALL_GAMES.filter(g=> g.nama.toLowerCase().includes(k) || g.desc.toLowerCase().includes(k)));
-}
-
-// update showPage biar kenal gamesPage
-const originalShowPage = window.showPage;
+// === FIX FINAL GAME - HAPUS ALL_GAMES, PAKAI DAFTAR_GAME SAJA ===
 window.showPage = async function(pageId, el){
-  const allPages = ['feedPage','groupsPage','videosPage','friendsPage','myProfilePage','chatPage','gamesPage'];
+  const clickedEl = el;
   document.querySelectorAll('.btn-menu').forEach(i=>i.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if(clickedEl) clickedEl.classList.add('active');
+
+  // sembunyikan popup game juga kalau pindah halaman
+  const popupGame = document.getElementById('popupGame');
+  if(popupGame) popupGame.style.display='none';
+  document.body.style.overflow='';
+
+  const allPages = ['feedPage','groupsPage','videosPage','friendsPage','myProfilePage','chatPage'];
   allPages.forEach(id=>{
     const page = document.getElementById(id);
     if(page) page.style.display='none';
   }); 
-  const target = document.getElementById(pageId);
-  if(!target) return;
-  target.style.display='block';
+  
+  const targetPage = document.getElementById(pageId);
+  if(!targetPage){
+    console.error("Page tidak ketemu:", pageId);
+    return;
+  }
+  targetPage.style.display='block';
   window.scrollTo(0,0);
-  if(pageId==='gamesPage') renderGameList();
-  if(pageId==='feedPage') loadFeed('semua');
-  if(pageId==='groupsPage') loadGroups();
-  if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
-  if(pageId==='myProfilePage'){ loadMyProfile(); loadTemanDiProfil(); }
-  if(pageId==='videosPage') loadVideos();
-  if(pageId==='chatPage') loadDaftarChat();
+
+  try{
+    if(pageId==='feedPage') loadFeed('semua');
+    if(pageId==='groupsPage') loadGroups();
+    if(pageId==='friendsPage'){ loadPermintaan(); loadDaftarTeman(); loadDaftarChat(); }
+    if(pageId==='myProfilePage'){ loadMyProfile(); loadTemanDiProfil(); }
+    if(pageId==='videosPage') loadVideos();
+    if(pageId==='chatPage') loadDaftarChat();
+  }catch(err){
+    console.error("Gagal load page", pageId, err);
+  }
 }
 
 // === FINAL CHAT + HAPUS V2 - 100% MUNCUL ===
