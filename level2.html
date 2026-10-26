@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEVEL 2 - 32 SOAL - FULL RANDOM 100%</title>
+<title>LEVEL 2 - 32 QUESTIONS - FULL RANDOM 100%</title>
 <style>
 body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
 .container{max-width:650px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
@@ -21,50 +21,50 @@ body{font-family:Arial;background:linear-gradient(135deg,#00695C,#26A69A);margin
 </head>
 <body>
 <div class="container">
-<h2 style="color:#004D40">🔵 LEVEL 2 - 32 SOAL - FULL RANDOM 100%</h2>
-<div class="info"><span id="noSoal">Soal 1/32</span><span id="benar">BENAR: 0/32</span><span id="totalTimer">96.0s</span></div>
+<h2 style="color:#004D40">🔵 LEVEL 2 - 32 QUESTIONS - FULL RANDOM 100%</h2>
+<div class="info"><span id="noSoal">Question 1/32</span><span id="benar">CORRECT: 0/32</span><span id="totalTimer">96.0s</span></div>
 <div class="timer"><div id="timerBar"></div></div>
 <div class="soal" id="soalText"></div>
 <div id="pilihan"></div>
 <div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px"></div>
-<button id="btnNext" class="btn-next" onclick="lanjutKeLevel3()">➡️ LANJUT KE LEVEL 3 (100% BENAR) ➡️</button>
-<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 ULANGI LEVEL 2 (SOAL ACAK LAGI)</button>
-<div style="margin-top:10px"><a href="level1.html" style="color:#00796B;font-weight:900;text-decoration:none">⬅️ Kembali ke Level 1</a></div>
+<button id="btnNext" class="btn-next" onclick="lanjutKeLevel3()">➡️ CONTINUE TO LEVEL 3 (100% CORRECT) ➡️</button>
+<button id="btnUlang" class="btn-ulang" onclick="location.reload()">🔁 REPLAY LEVEL 2 (SHUFFLE AGAIN)</button>
+<div style="margin-top:10px"><a href="level1.html" style="color:#00796B;font-weight:900;text-decoration:none">⬅️ Back to Level 1</a></div>
 </div>
 <script>
 const SOAL_ORIG=[
-{q:"Enzim pemecah protein di lambung?",a:["Amilase","Pepsin","Lipase","Tripsin"],k:1},
-{q:"Hormon pengatur gula darah?",a:["Adrenalin","Insulin","Tiroksin","Estrogen"],k:1},
-{q:"Bagian otak untuk keseimbangan?",a:["Cerebrum","Cerebellum","Medula","Hipotalamus"],k:1},
-{q:"Pembuluh darah terkecil?",a:["Arteri","Vena","Kapiler","Aorta"],k:2},
-{q:"Proses pembuatan makanan pada tumbuhan?",a:["Respirasi","Fotosintesis","Transpirasi","Fermentasi"],k:1},
-{q:"Unsur terbanyak di alam semesta?",a:["Oksigen","Hidrogen","Karbon","Helium"],k:1},
-{q:"Kecepatan cahaya?",a:["300.000 km/s","150.000 km/s","500.000 km/s","100.000 km/s"],k:0},
-{q:"Planet terbesar?",a:["Bumi","Mars","Jupiter","Saturnus"],k:2},
-{q:"Asam kuat di lambung?",a:["H2SO4","HCl","HNO3","CH3COOH"],k:1},
-{q:"Golongan darah universal donor?",a:["A","B","AB","O"],k:3},
-{q:"Alat ukur tekanan darah?",a:["Termometer","Sfigmomanometer","Barometer","Stetoskop"],k:1},
-{q:"Vitamin untuk pembekuan darah?",a:["A","K","C","D"],k:1},
-{q:"Jumlah kromosom manusia?",a:["44","46","48","23"],k:1},
-{q:"Bakteri penyebab TBC?",a:["E.coli","Mycobacterium","Streptococcus","Salmonella"],k:1},
-{q:"Lapisan bumi paling luar?",a:["Inti","Mantel","Kerak","Astenosfer"],k:2},
-{q:"Gas rumah kaca utama?",a:["O2","CO2","N2","H2"],k:1},
-{q:"pH darah normal?",a:["6,8","7,4","8,0","7,0"],k:1},
-{q:"Otot jantung termasuk otot?",a:["Lurik","Polos","Jantung","Rangka"],k:2},
-{q:"Hewan berdarah dingin?",a:["Mamalia","Reptil","Burung","Mamalia"],k:1},
-{q:"Rumus kimia air?",a:["H2O","CO2","O2","H2O2"],k:0},
-{q:"Organ penyaring darah?",a:["Hati","Ginjal","Jantung","Paru"],k:1},
-{q:"Hormon kebahagiaan?",a:["Kortisol","Serotonin","Adrenalin","Tiroksin"],k:1},
-{q:"Bagian mata untuk melihat warna?",a:["Kornea","Retina","Lensa","Iris"],k:1},
-{q:"Proses pembelahan sel?",a:["Mitosis","Meiosis","Keduanya","Fusi"],k:2},
-{q:"Unsur dengan simbol Fe?",a:["Fluor","Besi","Tembaga","Perak"],k:1},
-{q:"Kecepatan suara di udara?",a:["340 m/s","540 m/s","240 m/s","1000 m/s"],k:0},
-{q:"Penyakit kekurangan yodium?",a:["Anemia","Gondok","Rakhitis","Scurvy"],k:1},
-{q:"Alat pernapasan serangga?",a:["Paru","Insang","Trakea","Kulit"],k:2},
-{q:"Bagian sel penghasil energi?",a:["Nukleus","Mitokondria","Ribosom","Kloroplas"],k:1},
-{q:"Hukum Newton 1 tentang?",a:["Aksi-reaksi","Kelembaman","Gaya","Momentum"],k:1},
-{q:"Unsur gas mulia?",a:["Oksigen","Helium","Nitrogen","Hidrogen"],k:1},
-{q:"Penyakit autoimun?",a:["Lupus","Flu","TBC","Demam"],k:0}
+{q:"Which enzyme breaks down protein in the stomach?",a:["Amylase","Pepsin","Lipase","Trypsin"],k:1},
+{q:"Which hormone regulates blood sugar?",a:["Adrenaline","Insulin","Thyroxine","Estrogen"],k:1},
+{q:"Which part of the brain is for balance?",a:["Cerebrum","Cerebellum","Medulla","Hypothalamus"],k:1},
+{q:"What is the smallest blood vessel?",a:["Artery","Vein","Capillary","Aorta"],k:2},
+{q:"What is the process of making food in plants?",a:["Respiration","Photosynthesis","Transpiration","Fermentation"],k:1},
+{q:"What is the most abundant element in the universe?",a:["Oxygen","Hydrogen","Carbon","Helium"],k:1},
+{q:"What is the speed of light?",a:["300,000 km/s","150,000 km/s","500,000 km/s","100,000 km/s"],k:0},
+{q:"What is the largest planet?",a:["Earth","Mars","Jupiter","Saturn"],k:2},
+{q:"What is the strong acid in the stomach?",a:["H2SO4","HCl","HNO3","CH3COOH"],k:1},
+{q:"What is the universal donor blood type?",a:["A","B","AB","O"],k:3},
+{q:"What is the blood pressure measuring tool?",a:["Thermometer","Sphygmomanometer","Barometer","Stethoscope"],k:1},
+{q:"Which vitamin is for blood clotting?",a:["A","K","C","D"],k:1},
+{q:"How many chromosomes do humans have?",a:["44","46","48","23"],k:1},
+{q:"Which bacteria causes TB?",a:["E.coli","Mycobacterium","Streptococcus","Salmonella"],k:1},
+{q:"What is the outermost layer of the earth?",a:["Core","Mantle","Crust","Asthenosphere"],k:2},
+{q:"What is the main greenhouse gas?",a:["O2","CO2","N2","H2"],k:1},
+{q:"What is normal blood pH?",a:["6.8","7.4","8.0","7.0"],k:1},
+{q:"The heart muscle is what type of muscle?",a:["Striated","Smooth","Cardiac","Skeletal"],k:2},
+{q:"Which animal is cold-blooded?",a:["Mammal","Reptile","Bird","Mammal"],k:1},
+{q:"What is the chemical formula for water?",a:["H2O","CO2","O2","H2O2"],k:0},
+{q:"Which organ filters blood?",a:["Liver","Kidney","Heart","Lung"],k:1},
+{q:"What is the happiness hormone?",a:["Cortisol","Serotonin","Adrenaline","Thyroxine"],k:1},
+{q:"Which part of the eye sees color?",a:["Cornea","Retina","Lens","Iris"],k:1},
+{q:"What is the process of cell division?",a:["Mitosis","Meiosis","Both","Fusion"],k:2},
+{q:"Which element has the symbol Fe?",a:["Fluorine","Iron","Copper","Silver"],k:1},
+{q:"What is the speed of sound in air?",a:["340 m/s","540 m/s","240 m/s","1000 m/s"],k:0},
+{q:"What disease is caused by iodine deficiency?",a:["Anemia","Goiter","Rickets","Scurvy"],k:1},
+{q:"What is the breathing apparatus of insects?",a:["Lung","Gill","Trachea","Skin"],k:2},
+{q:"Which part of the cell produces energy?",a:["Nucleus","Mitochondria","Ribosome","Chloroplast"],k:1},
+{q:"What is Newton's 1st Law about?",a:["Action-reaction","Inertia","Force","Momentum"],k:1},
+{q:"Which is a noble gas element?",a:["Oxygen","Helium","Nitrogen","Hydrogen"],k:1},
+{q:"Which is an autoimmune disease?",a:["Lupus","Flu","TB","Fever"],k:0}
 ];
 
 function shuffle(arr){
@@ -80,13 +80,12 @@ function acakJawaban(soal){
   list = shuffle(list);
   return {q: soal.q, a: list.map(x=>x.txt), k: list.findIndex(x=>x.isBenar)};
 }
-// 2X ACAK: soal + jawaban
 const SOAL = shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
 
 let idx=0,benar=0,totalTime=96,sisaTotal=96,timer,salahList=[];
 function render(){
 if(idx>=SOAL.length){end();return;}
-document.getElementById('noSoal').innerText=`Soal ${idx+1}/32`;
+document.getElementById('noSoal').innerText=`Question ${idx+1}/32`;
 document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;
 let div=document.getElementById('pilihan');div.innerHTML='';
 SOAL[idx].a.forEach((t,i)=>{
@@ -101,8 +100,8 @@ el.style.pointerEvents='none';
 if(i===k) el.classList.add('bener');
 if(i===pilih && i!==k) el.classList.add('salah');
 });
-if(pilih===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Jawab: ${SOAL[idx].a[k]}`);}
-document.getElementById('benar').innerText=`BENAR: ${benar}/32`;
+if(pilih===k){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Answer: ${SOAL[idx].a[k]}`);}
+document.getElementById('benar').innerText=`CORRECT: ${benar}/32`;
 setTimeout(()=>{idx++;render();},400);
 }
 function start(){
@@ -121,10 +120,10 @@ function lanjutKeLevel3(){
 }
 function end(){
 clearInterval(timer);
-document.getElementById('soalText').innerText='LEVEL 2 SELESAI!';
+document.getElementById('soalText').innerText='LEVEL 2 COMPLETE!';
 document.getElementById('pilihan').innerHTML='';
-let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:13px;color:#B71C1C"><b>GAGAL - SALAH ${salahList.length} SOAL:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 SEMPURNA 32/32!</div>`;
-document.getElementById('hasil').innerHTML=`<div style="font-size:22px">BENAR: ${benar} dari 32</div><div style="font-size:13px;color:#555">${benar===32? '100%! Lanjut Level 3 kebuka!' : 'Wajib 100% (32/32) untuk lanjut! Soal akan acak lagi kalau ulangi!'}<br>Waktu sisa: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
+let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:15px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:13px;color:#B71C1C"><b>FAILED - WRONG ${salahList.length} QUESTIONS:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 PERFECT 32/32!</div>`;
+document.getElementById('hasil').innerHTML=`<div style="font-size:22px">CORRECT: ${benar} of 32</div><div style="font-size:13px;color:#555">${benar===32? '100%! Level 3 unlocked!' : 'You need 100% (32/32) to continue! Questions will shuffle if you replay!'}<br>Time left: ${sisaTotal.toFixed(1)}s</div>${listSalah}`;
 document.getElementById('btnUlang').style.display='block';
 if(benar===32){
   document.getElementById('btnNext').style.display='block';
