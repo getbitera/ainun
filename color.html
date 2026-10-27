@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXTREME - Color Blind Test</title>
+<title>WELCOME TO MY AINUN - Color Puzzle</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{background:#050505;color:#fff;display:flex;flex-direction:column;align-items:center;padding:8px}
-.header{width:100%;max-width:430px;background:#ff0040;color:#fff;padding:10px;border-radius:12px;text-align:center;font-weight:900;letter-spacing:1px}
-#gameBox{width:100%;max-width:430px;background:#111;border-radius:20px;margin-top:10px;padding:10px;text-align:center;border:2px solid #ff0040}
+.header{width:100%;max-width:430px;background:linear-gradient(90deg,#ff6b6b,#ffcc00);color:#000;padding:12px;border-radius:14px;text-align:center;font-weight:900;letter-spacing:0.5px;font-size:13px;border:3px solid #fff}
+#gameBox{width:100%;max-width:430px;background:#111;border-radius:20px;margin-top:10px;padding:10px;text-align:center;border:2px solid #ffcc00}
 canvas{width:100%;max-width:380px;aspect-ratio:1;background:#fff;border-radius:50%;margin:6px auto;display:block;box-shadow:0 0 0 5px #fff}
 #q{font-size:14px;font-weight:900;color:#ffcc00}#timerWrap{width:100%;height:10px;background:#333;border-radius:10px;margin:6px 0;overflow:hidden}
-#timerBar{height:100%;width:100%;background:linear-gradient(90deg,#ff0040,#ffcc00);transition:width .1s linear}
+#timerBar{height:100%;width:100%;background:linear-gradient(90deg,#ff6b6b,#ffcc00);transition:width .1s linear}
 .inputRow{display:flex;gap:6px;justify-content:center}
 input{width:70px;padding:12px;border-radius:10px;border:none;text-align:center;font-size:20px;font-weight:900}
 .btn{padding:12px 14px;border:none;border-radius:10px;font-weight:900;cursor:pointer}
 .btn-ok{background:#00ff88;color:#000}.btn-skip{background:#333;color:#fff}
 #result{display:none;width:100%;max-width:430px;background:#fff;color:#000;border-radius:20px;padding:16px;margin-top:12px;text-align:center}
+.disclaimer{font-size:9px;color:#888;margin-top:8px;background:#000;color:#aaa;padding:6px;border-radius:8px}
 </style>
 </head>
 <body>
-<div class="header">☠️ EXTREME MODE ☠️<br><small style="font-weight:400;font-size:10px">2% DIFFERENCE - FOR PILOTS - INCLUDES EMPTY TRAPS</small></div>
+<div class="header">💛 WELCOME TO MY AINUN 💛<br><small style="font-weight:700;font-size:11px;color:#000">COLOR PUZZLE GAME - FOR FUN ONLY</small></div>
 <div id="gameBox">
 <div id="timerWrap"><div id="timerBar"></div></div>
 <div id="q">LV <span id="lv">1</span>/12 - <span id="hint"></span></div>
@@ -29,37 +30,39 @@ input{width:70px;padding:12px;border-radius:10px;border:none;text-align:center;f
 <button class="btn btn-ok" onclick="check()">OK</button>
 <button class="btn btn-skip" onclick="skip()">EMPTY</button>
 </div>
-<div style="font-size:9px;color:#666;margin-top:4px">Level 7 & 11 are TRAPS - really empty, answer EMPTY</div>
+<div style="font-size:10px;color:#aaa;margin-top:6px">💛 Welcome to My Ainun - Guess the hidden number!</div>
+<div class="disclaimer">⚠️ This is just a fun color puzzle game. NOT a medical test. For eye concerns, please see a real eye doctor.</div>
 </div>
 <div id="result">
 <h2 id="resTitle"></h2>
 <p id="resDesc" style="margin:8px 0;font-size:13px"></p>
 <div id="detail" style="text-align:left;background:#eee;padding:10px;border-radius:10px;font-size:11px"></div>
-<button class="btn" style="background:#ff0040;color:#fff;width:100%;margin-top:10px;padding:14px" onclick="location.reload()">RESTART EXTREME 🔥</button>
+<div class="disclaimer" style="color:#000;background:#ffeb3b">FOR ENTERTAINMENT ONLY - WELCOME TO MY AINUN - Not a medical diagnosis tool</div>
+<button class="btn" style="background:linear-gradient(90deg,#ff6b6b,#ffcc00);color:#000;width:100%;margin-top:10px;padding:14px;font-weight:900" onclick="location.reload()">PLAY AGAIN - MY AINUN 💛</button>
 </div>
 <script>
 const levels=[
- {num:12, fg:[255,110,50], bg:[80,175,85], type:'normal', diff:'8%'},
- {num:8, fg:[215,75,75], bg:[85,160,85], type:'normal', diff:'7%'},
- {num:6, fg:[125,175,95], bg:[165,145,75], type:'deutan', diff:'4% - EXTREME'},
- {num:29, fg:[185,90,80], bg:[95,125,85], type:'protan', diff:'3% - EXTREME'},
- {num:5, fg:[120,168,92], bg:[160,142,78], type:'deutan', diff:'3% - EXTREME'},
- {num:74, fg:[180,95,85], bg:[90,122,88], type:'protan', diff:'3% - EXTREME'},
- {num:0, fg:[0,0,0], bg:[0,0,0], type:'trap', diff:'EMPTY TRAP!'},
- {num:3, fg:[75,150,195], bg:[75,180,160], type:'tritan', diff:'2% - INSANE'},
- {num:16, fg:[195,95,80], bg:[85,160,90], type:'normal', diff:'6%'},
- {num:2, fg:[78,145,200], bg:[78,175,160], type:'tritan', diff:'2% - INSANE'},
- {num:0, fg:[0,0,0], bg:[0,0,0], type:'trap', diff:'EMPTY TRAP #2'},
- {num:9, fg:[180,90,85], bg:[90,150,88], type:'normal', diff:'5%'},
+ {num:12, fg:[255,110,50], bg:[80,175,85], type:'red', diff:'Level 1'},
+ {num:8, fg:[215,75,75], bg:[85,160,85], type:'red', diff:'Level 2'},
+ {num:6, fg:[125,175,95], bg:[165,145,75], type:'green', diff:'Level 3'},
+ {num:29, fg:[185,90,80], bg:[95,125,85], type:'red', diff:'Level 4'},
+ {num:5, fg:[120,168,92], bg:[160,142,78], type:'green', diff:'Level 5'},
+ {num:74, fg:[180,95,85], bg:[90,122,88], type:'red', diff:'Level 6'},
+ {num:0, fg:[0,0,0], bg:[0,0,0], type:'empty', diff:'Level 7'},
+ {num:3, fg:[75,150,195], bg:[75,180,160], type:'blue', diff:'Level 8'},
+ {num:16, fg:[195,95,80], bg:[85,160,90], type:'red', diff:'Level 9'},
+ {num:2, fg:[78,145,200], bg:[78,175,160], type:'blue', diff:'Level 10'},
+ {num:0, fg:[0,0,0], bg:[0,0,0], type:'empty', diff:'Level 11'},
+ {num:9, fg:[180,90,85], bg:[90,150,88], type:'red', diff:'Level 12'},
 ];
-let cur=0, score=0, misses={protan:0,deutan:0,tritan:0,normal:0,trap:0}, timeLeft=8, timer=null;
+let cur=0, score=0, misses={red:0,green:0,blue:0,normal:0,empty:0}, timeLeft=10, timer=null;
 
 function drawPlate(num, fg, bg, type){
  const c=document.getElementById('plate');
  const ctx=c.getContext('2d');
  const W=700,H=700;
  ctx.clearRect(0,0,W,H);
- if(type==='trap'){
+ if(type==='empty'){
    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
    for(let i=0;i<8000;i++){
      let x=Math.random()*W,y=Math.random()*H;
@@ -90,34 +93,31 @@ function drawPlate(num, fg, bg, type){
    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
  }
 }
-
 function startTimer(){
- timeLeft=8; 
+ timeLeft=10; 
  if(timer) clearInterval(timer);
  timer=setInterval(()=>{
    timeLeft-=0.1;
-   document.getElementById('timerBar').style.width=(timeLeft/8*100)+'%';
+   document.getElementById('timerBar').style.width=(timeLeft/10*100)+'%';
    if(timeLeft<=0){ clearInterval(timer); skip(); }
  },100);
 }
-
 function loadLevel(){
  if(cur>=levels.length){showResult();return;}
  let l=levels[cur];
  document.getElementById('lv').innerText=cur+1;
- document.getElementById('hint').innerText=l.diff + (l.type!=='trap' ? ` [${l.type}]`:'');
+ document.getElementById('hint').innerText=l.diff;
  document.getElementById('ans').value='';
  drawPlate(l.num,l.fg,l.bg,l.type);
  startTimer();
 }
-
 function check(){
  clearInterval(timer);
  let v=document.getElementById('ans').value.trim();
  let l=levels[cur];
  let ansNum = v==='' ? -1 : parseInt(v);
- if(l.type==='trap'){
-   misses.trap++;
+ if(l.type==='empty'){
+   misses.empty++;
  }else{
    if(ansNum===l.num) score++; else misses[l.type]++;
  }
@@ -126,7 +126,7 @@ function check(){
 function skip(){
  clearInterval(timer);
  let l=levels[cur];
- if(l.type==='trap'){
+ if(l.type==='empty'){
    score++;
  }else{
    misses[l.type]++;
@@ -137,28 +137,25 @@ function showResult(){
  document.getElementById('gameBox').style.display='none';
  document.getElementById('result').style.display='block';
  let title='',desc='';
- if(misses.trap>0) title=`TRAPPED! Score ${score}/12`;
- else if(score>=10) title=`GOD EYE! ${score}/12 👁️🔥`;
- else if(score>=7) title=`Not bad ${score}/12 - Extreme is brutal`;
- else if(score>=4) title=`Normal in Extreme = Great - ${score}/12`;
- else title=`It's normal to miss many - Extreme ${score}/12`;
+ if(misses.empty>0) title=`Score ${score}/12 - WELCOME TO MY AINUN`;
+ else if(score>=10) title=`AMAZING! ${score}/12 👁️💛 - MY AINUN`;
+ else if(score>=7) title=`Good job! ${score}/12 - MY AINUN`;
+ else if(score>=4) title=`Keep trying ${score}/12 - MY AINUN`;
+ else title=`Score ${score}/12 - MY AINUN`;
 
- if(score<=3 && misses.deutan+misses.protan>=5) desc='You missed many red-green plates. In extreme mode even normal people miss 4-5, but if you miss 5+ on deutan/protan, you might have color deficiency.';
- else if(score>=9) desc='Insane, you can see 2% difference. You are not color blind, you might be super normal (possible tetrachromat).';
- else desc='Extreme mode difference is only 2-4%. Even normal vision often scores only 6-8. Don\'t panic if you miss many.';
+ desc='Thanks for playing WELCOME TO MY AINUN Color Puzzle! This is just for fun!';
 
  document.getElementById('resTitle').innerText=title;
  document.getElementById('resDesc').innerText=desc;
  document.getElementById('detail').innerHTML=`
+   💛 WELCOME TO MY AINUN - Result (For Fun)<br>
    Score: ${score}/12<br>
-   Miss Protan: ${misses.protan}/3, Deutan: ${misses.deutan}/3, Tritan: ${misses.tritan}/2<br>
-   Empty traps: ${misses.trap===0?'Passed ✅':'Failed ❌ - You answered a number but it was empty'}<br>
-   Normal miss: ${misses.normal}/4<br><br>
-   <b>Extreme Notes:</b><br>
-   - RGB difference only 10-15 points (normal needs 30+ points)<br>
-   - 8500 dots + tiny 1.5px<br>
-   - Level 7 & 11 are intentionally EMPTY<br>
-   - For normal test, use hard mode
+   Tebakan Merah meleset: ${misses.red}<br>
+   Tebakan Hijau meleset: ${misses.green}<br>
+   Tebakan Biru meleset: ${misses.blue}<br>
+   Level kosong: ${misses.empty===0?'Lolos ✅':'Meleset'}<br><br>
+   ⚠️ Bukan alat tes medis, hanya game hiburan MY AINUN!
+   Untuk masalah mata, silakan ke dokter mata.
  `;
 }
 loadLevel();
