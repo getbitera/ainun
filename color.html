@@ -2,104 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NIGHTMARE - Color Blind Test</title>
+<title>EXTREME - Color Blind Test</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:6px}
-.header{width:100%;max-width:430px;background:linear-gradient(90deg,#ff0000,#000);color:#fff;padding:8px;border-radius:10px;text-align:center;font-weight:900;font-size:14px}
-#gameBox{width:100%;max-width:430px;background:#0a0a0a;border-radius:18px;margin-top:8px;padding:8px;text-align:center;border:2px solid #ff0000;animation:shake .2s infinite}
-@keyframes shake{0%{transform:translate(0)}25%{transform:translate(0.5px,0.5px)}50%{transform:translate(-0.5px,0)}75%{transform:translate(0.5px,-0.5px)}}
-canvas{width:100%;max-width:380px;aspect-ratio:1;background:#fff;border-radius:50%;margin:5px auto;display:block}
-#q{font-size:12px;font-weight:900;color:#ff4444}
-#timerWrap{width:100%;height:12px;background:#222;border-radius:10px;margin:4px 0;overflow:hidden}
-#timerBar{height:100%;width:100%;background:linear-gradient(90deg,#ff0000,#ffff00);transition:width .05s linear}
-.inputRow{display:flex;gap:4px;justify-content:center}
-input{width:60px;padding:10px;border-radius:8px;border:none;text-align:center;font-size:18px;font-weight:900}
-.btn{padding:10px 12px;border:none;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px}
-.btn-ok{background:#ff0000;color:#fff}.btn-skip{background:#222;color:#fff;border:1px solid #444}
-#result{display:none;width:100%;max-width:430px;background:#fff;color:#000;border-radius:18px;padding:14px;margin-top:10px;text-align:center}
+body{background:#050505;color:#fff;display:flex;flex-direction:column;align-items:center;padding:8px}
+.header{width:100%;max-width:430px;background:#ff0040;color:#fff;padding:10px;border-radius:12px;text-align:center;font-weight:900;letter-spacing:1px}
+#gameBox{width:100%;max-width:430px;background:#111;border-radius:20px;margin-top:10px;padding:10px;text-align:center;border:2px solid #ff0040}
+canvas{width:100%;max-width:380px;aspect-ratio:1;background:#fff;border-radius:50%;margin:6px auto;display:block;box-shadow:0 0 0 5px #fff}
+#q{font-size:14px;font-weight:900;color:#ffcc00}#timerWrap{width:100%;height:10px;background:#333;border-radius:10px;margin:6px 0;overflow:hidden}
+#timerBar{height:100%;width:100%;background:linear-gradient(90deg,#ff0040,#ffcc00);transition:width .1s linear}
+.inputRow{display:flex;gap:6px;justify-content:center}
+input{width:70px;padding:12px;border-radius:10px;border:none;text-align:center;font-size:20px;font-weight:900}
+.btn{padding:12px 14px;border:none;border-radius:10px;font-weight:900;cursor:pointer}
+.btn-ok{background:#00ff88;color:#000}.btn-skip{background:#333;color:#fff}
+#result{display:none;width:100%;max-width:430px;background:#fff;color:#000;border-radius:20px;padding:16px;margin-top:12px;text-align:center}
 </style>
 </head>
 <body>
-<div class="header">💀 NIGHTMARE MODE 💀<br><small style="font-size:9px;font-weight:400">1-2 RGB DIFF | 10,000 DOTS | 5 SEC | 3 TRAPS</small></div>
+<div class="header">☠️ EXTREME MODE ☠️<br><small style="font-weight:400;font-size:10px">2% DIFFERENCE - FOR PILOTS - INCLUDES EMPTY TRAPS</small></div>
 <div id="gameBox">
 <div id="timerWrap"><div id="timerBar"></div></div>
-<div id="q">LV <span id="lv">1</span>/12 <span id="hint"></span></div>
-<canvas id="plate" width="800" height="800"></canvas>
+<div id="q">LV <span id="lv">1</span>/12 - <span id="hint"></span></div>
+<canvas id="plate" width="700" height="700"></canvas>
 <div class="inputRow">
-<input id="ans" type="tel" placeholder="?">
+<input id="ans" type="tel" placeholder="?" inputmode="numeric">
 <button class="btn btn-ok" onclick="check()">OK</button>
 <button class="btn btn-skip" onclick="skip()">EMPTY</button>
 </div>
-<div style="font-size:8px;color:#666;margin-top:3px">⚠️ Level 4,8,12 are EMPTY - Don't guess!</div>
+<div style="font-size:9px;color:#666;margin-top:4px">Level 7 & 11 are TRAPS - really empty, answer EMPTY</div>
 </div>
 <div id="result">
-<h3 id="resTitle"></h3>
-<p id="resDesc" style="font-size:12px;margin:6px 0"></p>
-<div id="detail" style="text-align:left;background:#eee;padding:8px;border-radius:8px;font-size:10px"></div>
-<button class="btn" style="background:#ff0000;color:#fff;width:100%;margin-top:8px;padding:12px" onclick="location.reload()">TRY AGAIN 💀</button>
+<h2 id="resTitle"></h2>
+<p id="resDesc" style="margin:8px 0;font-size:13px"></p>
+<div id="detail" style="text-align:left;background:#eee;padding:10px;border-radius:10px;font-size:11px"></div>
+<button class="btn" style="background:#ff0040;color:#fff;width:100%;margin-top:10px;padding:14px" onclick="location.reload()">RESTART EXTREME 🔥</button>
 </div>
 <script>
-function hslToRgb(h,s,l){
- let r,g,b;
- if(s==0){r=g=b=l;}else{
-  const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
-  let q=l<0.5?l*(1+s):l+s-l*s;
-  let p=2*l-q;
-  r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
- }
- return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
-}
-// NIGHTMARE: hue difference only 2 degrees, lightness identical
 const levels=[
- {num:12, h1:0.10, h2:0.28, type:'normal', note:'8%'},
- {num:8, h1:0.0, h2:0.25, type:'normal', note:'7%'},
- {num:6, h1:0.25, h2:0.12, type:'deutan', note:'2% NIGHTMARE'},
- {num:0, h1:0, h2:0, type:'trap', note:'TRAP!'},
- {num:5, h1:0.26, h2:0.13, type:'deutan', note:'1.5% INSANE'},
- {num:29, h1:0.02, h2:0.26, type:'protan', note:'2% NIGHTMARE'},
- {num:3, h1:0.58, h2:0.45, type:'tritan', note:'1% IMPOSSIBLE'},
- {num:0, h1:0, h2:0, type:'trap', note:'TRAP 2!'},
- {num:16, h1:0.05, h2:0.27, type:'normal', note:'5%'},
- {num:2, h1:0.59, h2:0.46, type:'tritan', note:'1% IMPOSSIBLE'},
- {num:74, h1:0.03, h2:0.28, type:'protan', note:'2%'},
- {num:0, h1:0, h2:0, type:'trap', note:'TRAP 3!'},
+ {num:12, fg:[255,110,50], bg:[80,175,85], type:'normal', diff:'8%'},
+ {num:8, fg:[215,75,75], bg:[85,160,85], type:'normal', diff:'7%'},
+ {num:6, fg:[125,175,95], bg:[165,145,75], type:'deutan', diff:'4% - EXTREME'},
+ {num:29, fg:[185,90,80], bg:[95,125,85], type:'protan', diff:'3% - EXTREME'},
+ {num:5, fg:[120,168,92], bg:[160,142,78], type:'deutan', diff:'3% - EXTREME'},
+ {num:74, fg:[180,95,85], bg:[90,122,88], type:'protan', diff:'3% - EXTREME'},
+ {num:0, fg:[0,0,0], bg:[0,0,0], type:'trap', diff:'EMPTY TRAP!'},
+ {num:3, fg:[75,150,195], bg:[75,180,160], type:'tritan', diff:'2% - INSANE'},
+ {num:16, fg:[195,95,80], bg:[85,160,90], type:'normal', diff:'6%'},
+ {num:2, fg:[78,145,200], bg:[78,175,160], type:'tritan', diff:'2% - INSANE'},
+ {num:0, fg:[0,0,0], bg:[0,0,0], type:'trap', diff:'EMPTY TRAP #2'},
+ {num:9, fg:[180,90,85], bg:[90,150,88], type:'normal', diff:'5%'},
 ];
-let cur=0, score=0, misses={protan:0,deutan:0,tritan:0,normal:0,trap:0}, timeLeft=5, timer=null;
+let cur=0, score=0, misses={protan:0,deutan:0,tritan:0,normal:0,trap:0}, timeLeft=8, timer=null;
 
-function drawPlate(num,h1,h2,type){
+function drawPlate(num, fg, bg, type){
  const c=document.getElementById('plate');
  const ctx=c.getContext('2d');
- const W=800,H=800;
+ const W=700,H=700;
  ctx.clearRect(0,0,W,H);
  if(type==='trap'){
    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-   for(let i=0;i<10000;i++){
+   for(let i=0;i<8000;i++){
      let x=Math.random()*W,y=Math.random()*H;
-     if(Math.hypot(x-W/2,y-H/2)>310) continue;
-     let r=1+Math.random()*4;
-     let col=`rgb(${130+Math.random()*30},${145+Math.random()*30},${110+Math.random()*30})`;
+     if(Math.hypot(x-W/2,y-H/2)>295) continue;
+     let r=2+Math.random()*7;
+     let col=`rgb(${120+Math.random()*40},${140+Math.random()*40},${90+Math.random()*40})`;
      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
    }
    return;
  }
  ctx.fillStyle='#000';
- ctx.font='bold 180px Arial Black';
+ ctx.font='bold 240px Arial Black';
  ctx.textAlign='center'; ctx.textBaseline='middle';
  ctx.fillText(String(num),W/2,H/2+10);
  const mask=ctx.getImageData(0,0,W,H).data;
  ctx.clearRect(0,0,W,H);
  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
- let fg=hslToRgb(h1,0.65,0.55);
- let bg=hslToRgb(h2,0.65,0.55);
- for(let i=0;i<10000;i++){
+ for(let i=0;i<8500;i++){
    let x=Math.random()*W,y=Math.random()*H;
-   if(Math.hypot(x-W/2,y-H/2)>315) continue;
-   let r=0.8+Math.random()*3.2;
+   if(Math.hypot(x-W/2,y-H/2)>298) continue;
+   let r=1.5+Math.random()*5.5;
    let idx=(Math.floor(y)*W+Math.floor(x))*4;
-   let isNum=mask[idx+3]>20;
+   let isNum=mask[idx+3]>30;
    let base=isNum?fg:bg;
-   let v=(Math.random()-0.5)*6;
+   let v=(Math.random()-0.5)*10;
    let col=`rgb(${Math.max(0,Math.min(255,base[0]+v))},${Math.max(0,Math.min(255,base[1]+v))},${Math.max(0,Math.min(255,base[2]+v))})`;
    ctx.fillStyle=col;
    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
@@ -107,60 +92,73 @@ function drawPlate(num,h1,h2,type){
 }
 
 function startTimer(){
- timeLeft=5; if(timer) clearInterval(timer);
+ timeLeft=8; 
+ if(timer) clearInterval(timer);
  timer=setInterval(()=>{
-   timeLeft-=0.05;
-   document.getElementById('timerBar').style.width=(timeLeft/5*100)+'%';
+   timeLeft-=0.1;
+   document.getElementById('timerBar').style.width=(timeLeft/8*100)+'%';
    if(timeLeft<=0){ clearInterval(timer); skip(); }
- },50);
+ },100);
 }
+
 function loadLevel(){
  if(cur>=levels.length){showResult();return;}
  let l=levels[cur];
  document.getElementById('lv').innerText=cur+1;
- document.getElementById('hint').innerText=l.note;
+ document.getElementById('hint').innerText=l.diff + (l.type!=='trap' ? ` [${l.type}]`:'');
  document.getElementById('ans').value='';
- drawPlate(l.num,l.h1,l.h2,l.type);
+ drawPlate(l.num,l.fg,l.bg,l.type);
  startTimer();
 }
+
 function check(){
  clearInterval(timer);
  let v=document.getElementById('ans').value.trim();
  let l=levels[cur];
+ let ansNum = v==='' ? -1 : parseInt(v);
  if(l.type==='trap'){
-   if(v!==''){ misses.trap++; }
-   else score++;
+   misses.trap++;
  }else{
-   if(parseInt(v)===l.num) score++; else misses[l.type]++;
+   if(ansNum===l.num) score++; else misses[l.type]++;
  }
  cur++; loadLevel();
 }
 function skip(){
  clearInterval(timer);
  let l=levels[cur];
- if(l.type==='trap') score++; else misses[l.type]++;
+ if(l.type==='trap'){
+   score++;
+ }else{
+   misses[l.type]++;
+ }
  cur++; loadLevel();
 }
 function showResult(){
  document.getElementById('gameBox').style.display='none';
  document.getElementById('result').style.display='block';
- let t=`SCORE ${score}/12`;
- if(score>=9) t=`INSANE! ${score}/12 - ROBOT EYES 🤖`;
- else if(score>=6) t=`GG! ${score}/12 - Above average`;
- else if(score<=2) t=`Normal - ${score}/12 - Nightmare is torture`;
- else t=`Score ${score}/12 - Nightmare`;
+ let title='',desc='';
+ if(misses.trap>0) title=`TRAPPED! Score ${score}/12`;
+ else if(score>=10) title=`GOD EYE! ${score}/12 👁️🔥`;
+ else if(score>=7) title=`Not bad ${score}/12 - Extreme is brutal`;
+ else if(score>=4) title=`Normal in Extreme = Great - ${score}/12`;
+ else title=`It's normal to miss many - Extreme ${score}/12`;
 
- document.getElementById('resTitle').innerText=t;
- document.getElementById('resDesc').innerText=`Nightmare hue diff is only 2 degrees, RGB diff 2 points. Average normal person gets only 4-5. If you get 7+ your eyes are superhuman.`;
+ if(score<=3 && misses.deutan+misses.protan>=5) desc='You missed many red-green plates. In extreme mode even normal people miss 4-5, but if you miss 5+ on deutan/protan, you might have color deficiency.';
+ else if(score>=9) desc='Insane, you can see 2% difference. You are not color blind, you might be super normal (possible tetrachromat).';
+ else desc='Extreme mode difference is only 2-4%. Even normal vision often scores only 6-8. Don\'t panic if you miss many.';
+
+ document.getElementById('resTitle').innerText=title;
+ document.getElementById('resDesc').innerText=desc;
  document.getElementById('detail').innerHTML=`
- Miss Protan:${misses.protan} Deutan:${misses.deutan} Tritan:${misses.tritan} Normal:${misses.normal}<br>
- Traps: ${misses.trap===0?'All passed ✅':'Failed '+misses.trap+' trap(s) ❌'}<br>
- <b>Why it's hard:</b><br>
- - Color diff only 1-2 RGB (eye needs 15+ for easy)<br>
- - Lightness identical 0.55, can't use brightness<br>
- - 10,000 dots size 1px<br>
- - Number 180px super thin<br>
- - Timer 5 seconds
+   Score: ${score}/12<br>
+   Miss Protan: ${misses.protan}/3, Deutan: ${misses.deutan}/3, Tritan: ${misses.tritan}/2<br>
+   Empty traps: ${misses.trap===0?'Passed ✅':'Failed ❌ - You answered a number but it was empty'}<br>
+   Normal miss: ${misses.normal}/4<br><br>
+   <b>Extreme Notes:</b><br>
+   - RGB difference only 10-15 points (normal needs 30+ points)<br>
+   - 8500 dots + tiny 1.5px<br>
+   - Level 7 & 11 are intentionally EMPTY<br>
+   - For normal test, use hard mode
  `;
 }
 loadLevel();
