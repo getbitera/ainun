@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Game Gambar & Mewarnai</title>
+<title>WELCOME TO MY AINUN DRAWING AND COLORING</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#FFF8E1;font-family:Arial;display:flex;flex-direction:column;height:100vh;overflow:hidden}
-.header{background:#FF6F00;color:white;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:900}
+.header{background:linear-gradient(90deg,#ff6b6b,#ffcc00);color:#000;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:900;border-bottom:3px solid #000}
 #app{display:flex;flex:1;overflow:hidden}
 #tools{width:72px;background:white;border-right:3px solid #FFE0B2;padding:6px;display:flex;flex-direction:column;gap:6px;align-items:center;overflow-y:auto}
 .tool{width:52px;height:52px;border-radius:12px;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;background:#FFF3E0}
@@ -28,7 +28,7 @@ canvas{background:white;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);t
 </head>
 <body>
 <div class="header">
-<span>🎨 GAMBAR & MEWARNAI 🎨</span>
+<span>🎨 WELCOME TO MY AINUN DRAWING AND COLORING 🎨</span>
 <span style="font-size:11px"><button onclick="clearCanvas()" style="background:white;color:#FF6F00;border:none;padding:4px 8px;border-radius:10px;font-weight:900">🗑️ Hapus</button> <button onclick="saveImg()" style="background:#2E7D32;color:white;border:none;padding:4px 8px;border-radius:10px;font-weight:900">💾 Simpan</button></span>
 </div>
 <div id="app">
@@ -55,7 +55,7 @@ canvas{background:white;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);t
 <div id="canvasWrap">
 <canvas id="c" width="500" height="500"></canvas>
 <div id="sketsaBar">
-<div class="sketsa active" onclick="loadSketch('blank',this)">⬜<br><small style="font-size:8px">Kosong</small></div>
+<div class="sketsa active" onclick="loadSketch('blank',this)">⬜</div>
 <div class="sketsa" onclick="loadSketch('cat',this)">🐱</div>
 <div class="sketsa" onclick="loadSketch('dog',this)">🐶</div>
 <div class="sketsa" onclick="loadSketch('house',this)">🏠</div>
@@ -64,6 +64,7 @@ canvas{background:white;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);t
 <div class="sketsa" onclick="loadSketch('dino',this)">🦖</div>
 <div class="sketsa" onclick="loadSketch('rainbow',this)">🌈</div>
 <div class="sketsa" onclick="loadSketch('fish',this)">🐟</div>
+<div class="sketsa" onclick="loadSketch('ainun',this)">💛</div>
 </div>
 </div>
 </div>
@@ -114,14 +115,11 @@ function undo(){
   let img=history.pop();
   ctx.putImageData(img,0,0);
 }
-
 function getPos(e){
   let r=canvas.getBoundingClientRect();
   let t=e.touches?e.touches[0]:e;
   return {x:(t.clientX-r.left)*(canvas.width/r.width), y:(t.clientY-r.top)*(canvas.height/r.height)};
 }
-
-// DRAWING
 canvas.addEventListener('pointerdown',e=>{
   let p=getPos(e);
   if(tool==='bucket'){ saveState(); bucketFill(Math.floor(p.x),Math.floor(p.y), color); return; }
@@ -143,7 +141,6 @@ canvas.addEventListener('pointermove',e=>{
 });
 canvas.addEventListener('pointerup',()=>{drawing=false; ctx.globalCompositeOperation='source-over';});
 
-// BUCKET FILL
 function bucketFill(x,y, fillColor){
   let imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
   let data=imgData.data;
@@ -159,7 +156,6 @@ function bucketFill(x,y, fillColor){
     let [cx,cy]=stack.pop();
     let pos=(cy*canvas.width+cx)*4;
     if(cy<0||cy>=canvas.height||cx<0||cx>=canvas.width||!match(pos)) continue;
-    // scanline fill
     let left=cx, right=cx;
     while(left>=0 && match((cy*canvas.width+left)*4)) left--;
     while(right<canvas.width && match((cy*canvas.width+right)*4)) right++;
@@ -174,7 +170,6 @@ function bucketFill(x,y, fillColor){
   ctx.putImageData(imgData,0,0);
 }
 
-// SKETSA
 function loadSketch(name, el){
   document.querySelectorAll('.sketsa').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
@@ -184,13 +179,13 @@ function loadSketch(name, el){
   if(name==='blank') return;
   ctx.beginPath();
   if(name==='cat'){
-    ctx.arc(250,280,80,0,Math.PI*2); // kepala
-    ctx.moveTo(190,230); ctx.lineTo(170,160); ctx.lineTo(210,200); // telinga kiri
-    ctx.moveTo(310,230); ctx.lineTo(330,160); ctx.lineTo(290,200); // kanan
-    ctx.moveTo(220,270); ctx.arc(220,270,8,0,Math.PI*2); // mata
+    ctx.arc(250,280,80,0,Math.PI*2);
+    ctx.moveTo(190,230); ctx.lineTo(170,160); ctx.lineTo(210,200);
+    ctx.moveTo(310,230); ctx.lineTo(330,160); ctx.lineTo(290,200);
+    ctx.moveTo(220,270); ctx.arc(220,270,8,0,Math.PI*2);
     ctx.moveTo(280,270); ctx.arc(280,270,8,0,Math.PI*2);
-    ctx.moveTo(250,285); ctx.lineTo(240,295); ctx.lineTo(260,295); ctx.closePath(); // hidung
-    ctx.moveTo(200,320); ctx.quadraticCurveTo(250,360,300,320); // mulut
+    ctx.moveTo(250,285); ctx.lineTo(240,295); ctx.lineTo(260,295); ctx.closePath();
+    ctx.moveTo(200,320); ctx.quadraticCurveTo(250,360,300,320);
   } else if(name==='dog'){
     ctx.arc(250,250,90,0,Math.PI*2);
     ctx.moveTo(160,240); ctx.ellipse(150,240,20,40,0,0,Math.PI*2);
@@ -219,24 +214,23 @@ function loadSketch(name, el){
   } else if(name==='fish'){
     ctx.ellipse(250,250,100,60,0,0,Math.PI*2); ctx.moveTo(350,250); ctx.lineTo(400,200); ctx.lineTo(400,300); ctx.closePath();
     ctx.moveTo(200,230); ctx.arc(200,230,10,0,Math.PI*2);
+  } else if(name==='ainun'){
+    ctx.font='bold 40px Arial'; ctx.strokeStyle='#ff6b6b'; ctx.lineWidth=2; ctx.strokeText('MY AINUN',120,250);
+    ctx.beginPath(); ctx.arc(250,320,50,0,Math.PI*2); ctx.stroke();
+    ctx.moveTo(230,310); ctx.arc(230,310,5,0,Math.PI*2); ctx.moveTo(270,310); ctx.arc(270,310,5,0,Math.PI*2);
+    ctx.moveTo(230,340); ctx.quadraticCurveTo(250,360,270,340); ctx.stroke();
   }
   ctx.stroke();
 }
-
 function clearCanvas(){
   saveState();
   ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  // reload sketsa aktif biar garisnya balik
   let active=document.querySelector('.sketsa.active');
-  if(active && active.innerText.includes('Kosong')===false){
-    active.click();
-  }
+  if(active){ active.click(); }
 }
 function saveImg(){
-  let a=document.createElement('a'); a.download='gambar-ku.png'; a.href=canvas.toDataURL(); a.click();
+  let a=document.createElement('a'); a.download='my-ainun-drawing.png'; a.href=canvas.toDataURL(); a.click();
 }
-
-// init
 ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
 </script>
 </body>
