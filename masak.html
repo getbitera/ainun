@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Masak Nusantara - Fix</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#fef9e8;display:flex;justify-content:center}
+.wrap{width:100%;max-width:440px;min-height:100vh;background:#fef9e8;display:flex;flex-direction:column;position:relative}
+.header{background:#1e2a3a;border-radius:0 0 20px 20px;padding:12px 14px;display:flex;justify-content:space-between;color:#fff;border-bottom:4px solid #000;position:sticky;top:0;z-index:10}
+.phase{display:none;flex:1;flex-direction:column} .phase.active{display:flex}
+.grid8{margin:10px 14px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.dish{background:#fff;border:3px solid #000;border-radius:18px;padding:14px;text-align:center;cursor:pointer}
+.dish.selected{border-color:#22c55e;background:#dcfce7;box-shadow:0 0 0 3px #22c55e}
+.dishEmoji{font-size:52px} .dishName{font-weight:900;font-size:14px} .dishDesc{font-size:10px;color:#666}
+.grid{margin:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.item{background:#fff;border:3px solid #000;border-radius:16px;padding:12px;text-align:center;cursor:pointer;position:relative}
+.item.selected{border-color:#22c55e;background:#dcfce7;box-shadow:0 0 0 3px #22c55e}
+.item.selected::after{content:'✓';position:absolute;top:4px;right:6px;background:#22c55e;color:#fff;width:18px;height:18px;border-radius:50%;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.itemIcon{font-size:44px} .itemName{font-size:11px;font-weight:900}
+.bigBtn{margin:12px 14px;background:#22c55e;border:3px solid #000;border-bottom:7px solid #000;border-radius:18px;padding:16px;font-weight:900;color:#fff;font-size:17px;cursor:pointer;text-align:center}
+.bigBtn:active{transform:translateY(3px);border-bottom:3px solid #000} .bigBtn:disabled{opacity:0.4}
+.stage{margin:0 14px;background:#fff;border:3px solid #000;border-radius:18px;padding:14px;flex:1;display:flex;flex-direction:column;align-items:center;min-height:380px}
+.board{width:100%;height:240px;background:linear-gradient(#f5d6a0,#e8b86d);border:3px solid #000;border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative}
+.pan{width:280px;height:140px;background:radial-gradient(ellipse at 50% 20%,#555,#1a1a1a 60%);border:4px solid #000;border-radius:50%/100%;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+#panFood span{font-size:36px;animation:pop .3s} @keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.tool{border:3px solid #000;border-radius:14px;padding:10px 14px;background:#fff;font-weight:900;min-width:80px;text-align:center;cursor:pointer}
+.stepBar{display:flex;gap:4px;margin:10px 14px} .s{flex:1;height:10px;background:#ddd;border-radius:10px} .s.done{background:#22c55e} .s.active{background:#ffcc00}
+.vol{position:absolute;top:60px;right:14px;background:#fff;border:2px solid #000;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:900;z-index:5;cursor:pointer}
+#result{position:absolute;inset:0;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;z-index:20;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header"><div><b style="color:#5ec46a">DAPUR</b> NUSANTARA 🍛</div><div id="phaseLabel" style="background:#a8e6a3;color:#000;padding:6px 12px;border-radius:20px;font-weight:900;font-size:11px">PILIH MASAKAN</div></div>
+<div class="vol" id="volBtn" onclick="toggleSound()">🔊 ON</div>
+
+<div class="phase active" id="phaseDish">
+<div style="margin:10px 14px;background:#1e2a3a;color:#fff;border:3px solid #000;border-radius:14px;padding:12px"><b style="color:#5ec46a">MAU MASAK APA?</b><br><small style="color:#a8e6a3">Pilih 1 dari 8 masakan</small></div>
+<div class="grid8" id="dishGrid"></div>
+<button class="bigBtn" id="toBahanBtn" onclick="goToBahan()" disabled>PILIH BAHAN →</button>
+</div>
+
+<div class="phase" id="phase0">
+<div id="bahanHeader" style="margin:10px 14px;background:#fff;border:3px solid #000;border-radius:14px;padding:10px;font-weight:900;display:flex;justify-content:space-between"><span id="bahanTitle">🛒</span><span id="bahanNeed" style="font-size:11px;background:#fef08a;padding:4px 8px;border-radius:10px">0/0 wajib</span></div>
+<div class="grid" id="bahanGrid"></div>
+<div style="margin:10px 14px;background:#1e2a3a;color:#fff;border-radius:14px;padding:10px;border:3px solid #000"><div id="cartCount">Keranjang kosong</div><div id="cartItems" style="font-size:22px">-</div></div>
+<button class="bigBtn" id="toCookBtn" onclick="goToCook()" disabled>PILIH DULU BAHAN WAJIB</button>
+</div>
+
+<div class="phase" id="phase1">
+<div class="stepBar" id="stepBar"></div>
+<div class="stage"><div id="stepTitle" style="font-weight:900;font-size:18px;text-align:center">STEP</div><div id="stepHint" style="background:#fef08a;padding:4px 10px;border-radius:20px;font-size:11px;margin:6px;text-align:center">hint</div><div class="board" id="board"></div><div class="tools" id="tools"></div></div>
+<button class="bigBtn" id="nextBtn" onclick="nextStep()" disabled>LANJUT →</button>
+</div>
+
+<div id="result"><div id="resEmoji" style="font-size:90px">🍛</div><h1 id="resTitle">JADI!</h1><p id="resDesc" style="color:#a8e6a3;margin:10px"></p><button class="bigBtn" onclick="location.reload()">MASAK LAIN 🔄</button></div>
+</div>
+
+<script>
+let soundOn=true, audioCtx=null;
+function getCtx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function toggleSound(){ soundOn=!soundOn; document.getElementById('volBtn').innerText=soundOn?'🔊 ON':'🔇 OFF'; }
+
+// === SUARA BARU - LEBIH ENAK ===
+const sPick = new Audio('https://cdn.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'); // milih bahan - pop shop keranjang
+sPick.volume=0.9;
+const sPickDel = new Audio('https://cdn.mixkit.co/active_storage/sfx/2955/2955-preview.mp3'); // hapus bahan
+sPickDel.volume=0.6;
+const sCut = new Audio('https://cdn.mixkit.co/active_storage/sfx/2214/2214-preview.mp3'); // iris sayur - chop vegetable real beda
+sCut.volume=1;
+const sCut2 = new Audio('https://cdn.mixkit.co/active_storage/sfx/2657/2657-preview.mp3'); // iris kedua - biar gak monoton
+sCut2.volume=0.9;
+
+function playPick(add=true){
+ if(!soundOn) return;
+ let a = add ? sPick : sPickDel;
+ a.currentTime=0; a.play().catch(()=>{});
+}
+function playCut(){
+ if(!soundOn) return;
+ // ganti-ganti biar natural
+ let a = Math.random()>0.5 ? sCut : sCut2;
+ a.currentTime=0; a.play().catch(()=>{});
+}
+
+function playOil(){ if(!soundOn) return; let ctx=getCtx(); let b=ctx.createBuffer(1,ctx.sampleRate*0.8,ctx.sampleRate); let d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); let s=ctx.createBufferSource(); s.buffer=b; let f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=3000; let g=ctx.createGain(); g.gain.setValueAtTime(0.5,ctx.currentTime); g.gain.linearRampToValueAtTime(0,ctx.currentTime+0.8); s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(); }
+function playFry(){ if(!soundOn) return; let ctx=getCtx(); let o=ctx.createOscillator(); o.frequency.value=1200; let g=ctx.createGain(); g.gain.setValueAtTime(0.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.6); let f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=2000; o.connect(f); f.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6); }
+function playStir(){ if(!soundOn) return; let ctx=getCtx(); let o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(150,ctx.currentTime); o.frequency.linearRampToValueAtTime(300,ctx.currentTime+0.3); let g=ctx.createGain(); g.gain.setValueAtTime(0.4,ctx.currentTime); g.gain.linearRampToValueAtTime(0,ctx.currentTime+0.3); let fl=ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=800; o.connect(fl); fl.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.3); }
+function playKecap(){ if(!soundOn) return; let ctx=getCtx(); for(let i=0;i<2;i++) setTimeout(()=>{ let o=ctx.createOscillator(); o.frequency.value=120; o.type='sine'; let g=ctx.createGain(); g.gain.setValueAtTime(0.6,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.2); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.2); }, i*150); }
+function playWin(){ if(!soundOn) return; let ctx=getCtx(); [0,4,7,12].forEach((n,i)=>{ setTimeout(()=>{ let o=ctx.createOscillator(); let g=ctx.createGain(); o.frequency.value=300+n*40; g.gain.setValueAtTime(0.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.4); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.4); }, i*150); }); }
+
+const DISHES=[
+ {id:'nasgor', name:'Nasi Goreng', emoji:'🍛', desc:'Wok wangi', wajib:['rice','egg','oil','bawang','kecap'], all:['rice','mie','egg','oil','bawang','kecap','cabe','ayam','sosis']},
+ {id:'rendang', name:'Rendang', emoji:'🥘', desc:'Empuk santan', wajib:['daging','santan','cabe','bawang','rempah'], all:['daging','santan','cabe','bawang','rempah','kunyit','sereh','daun','oil']},
+ {id:'soto', name:'Soto Ayam', emoji:'🍲', desc:'Kuah kuning', wajib:['ayam','kunyit','bawang','sereh','mie'], all:['ayam','kunyit','bawang','sereh','santan','telur','mie','daun','oil']},
+ {id:'gado', name:'Gado-gado', emoji:'🥗', desc:'Bumbu kacang', wajib:['kacang','kangkung','tahu','bawang','cabe'], all:['kacang','kangkung','tahu','bawang','cabe','timun','telur','kerupuk','oil']},
+ // BAKSO DAN SATE DIBEDAIN TOTAL
+ {id:'sate', name:'Sate Ayam', emoji:'🍢', desc:'Bakar arang', wajib:['ayam','bawang','kecap','kacang','tusuk'], all:['ayam','bawang','kecap','kacang','tusuk','cabe','sereh','oil']},
+ {id:'bakso', name:'Bakso', emoji:'🍥', desc:'Kuah kaldu kenyal', wajib:['daging','tepung','bawang','mie','daun'], all:['daging','tepung','bawang','mie','daun','telur','cabe','santan','oil']},
+ {id:'rawon', name:'Rawon', emoji:'🥣', desc:'Hitam kluwek', wajib:['daging','kluwek','bawang','sereh','cabe'], all:['daging','kluwek','bawang','sereh','cabe','kunyit','tauge','telur','oil']},
+ {id:'lodeh', name:'Sayur Lodeh', emoji:'🍲', desc:'Santan sayur', wajib:['santan','kangkung','tahu','bawang','cabe'], all:['santan','kangkung','tahu','bawang','cabe','tempe','daun','kunyit','oil']},
+];
+
+const BAHAN_MAP={
+ rice:{n:'Nasi',e:'🍚'}, mie:{n:'Mie',e:'🍜'}, egg:{n:'Telur',e:'🥚'}, oil:{n:'Minyak',e:'🫙'}, bawang:{n:'Bawang',e:'🧅'}, kecap:{n:'Kecap',e:'🧴'}, cabe:{n:'Cabe',e:'🌶️'}, ayam:{n:'Ayam',e:'🍗'}, sosis:{n:'Sosis',e:'🌭'},
+ daging:{n:'Daging Sapi',e:'🥩'}, santan:{n:'Santan',e:'🥥'}, rempah:{n:'Rempah',e:'🌿'}, kunyit:{n:'Kunyit',e:'🟨'}, sereh:{n:'Sereh',e:'🎋'}, daun:{n:'Daun Jeruk',e:'🍃'}, kacang:{n:'Kacang',e:'🥜'}, kangkung:{n:'Kangkung',e:'🥬'}, tahu:{n:'Tahu',e:'⬜'}, timun:{n:'Timun',e:'🥒'}, telur:{n:'Telur',e:'🥚'}, kerupuk:{n:'Kerupuk',e:'🍘'}, tusuk:{n:'Tusuk Sate',e:'🍢'}, tepung:{n:'Tepung',e:'🌾'}, tauge:{n:'Tauge',e:'🌱'}, kluwek:{n:'Kluwek',e:'⚫'}, tempe:{n:'Tempe',e:'🟫'},
+};
+
+// STEP MASAK BEDA TIAP MASAKAN
+const STEPS_MAP={
+ nasgor:[{t:'IRIS BAWANG & CABE',h:'Pisau tok tok',tools:['knife','bawang','cabe'],snd:'cut'},{t:'TUANG MINYAK',h:'Srrr',tools:['oil'],snd:'oil'},{t:'GORENG TELUR',h:'Cesss',tools:['egg'],snd:'fry'},{t:'MASAK NASI / MIE',h:'Wook',tools:['rice','mie'],snd:'stir'},{t:'KECAP & SAJIKAN',h:'Plating',tools:['kecap','plate'],snd:'kecap'}],
+ rendang:[{t:'IRIS BUMBU RENDANG',h:'Bawang cabe rempah',tools:['knife','bawang','cabe','rempah'],snd:'cut'},{t:'TUMIS BUMBU',h:'Wangi',tools:['oil','bawang'],snd:'oil'},{t:'MASUKKAN DAGING',h:'Sapi',tools:['daging'],snd:'fry'},{t:'TUANG SANTAN',h:'Gurih',tools:['santan'],snd:'kecap'},{t:'MASAK 4 JAM',h:'Aduk sampai kering',tools:['stir','plate'],snd:'stir'}],
+ soto:[{t:'IRIS BUMBU KUNING',h:'Kunyit bawang',tools:['knife','kunyit','bawang'],snd:'cut'},{t:'TUMIS BUMBU',h:'Kuning',tools:['oil','bawang'],snd:'oil'},{t:'REBUS AYAM',h:'Ayam',tools:['ayam'],snd:'fry'},{t:'TUANG KUAH SANTAN',h:'Sereh',tools:['santan','sereh'],snd:'kecap'},{t:'SAJIKAN SOTO + MIE',h:'Plating',tools:['mie','telur','plate'],snd:'stir'}],
+ gado:[{t:'IRIS SAYUR',h:'Kangkung timun',tools:['knife','kangkung','timun'],snd:'cut'},{t:'REBUS SAYUR',h:'Air panas',tools:['kangkung'],snd:'oil'},{t:'GORENG TAHU TELUR',h:'Cesss',tools:['tahu','telur'],snd:'fry'},{t:'ULEK KACANG',h:'Kacang cabe',tools:['kacang','cabe','bawang'],snd:'stir'},{t:'SIRAM & SAJIKAN',h:'Gado jadi',tools:['plate'],snd:'kecap'}],
+ sate:[{t:'IRIS & MARINASI',h:'Bawang kecap',tools:['knife','bawang','kecap'],snd:'cut'},{t:'TUSUK SATE',h:'Tusuk ayam',tools:['ayam','tusuk'],snd:'stir'},{t:'BAKAR SATE',h:'Arang srrr',tools:['oil'],snd:'fry'},{t:'BUMBU KACANG',h:'Kacang cabe',tools:['kacang','cabe'],snd:'stir'},{t:'SAJIKAN SATE',h:'Plating 🍢',tools:['plate'],snd:'kecap'}],
+ bakso:[{t:'GILING DAGING',h:'Daging bawang',tools:['knife','daging','bawang'],snd:'cut'},{t:'ADONAN + TEPUNG',h:'Bulat',tools:['daging','tepung'],snd:'stir'},{t:'REBUS BAKSO 🍥',h:'Bulat mengapung',tools:['daging'],snd:'oil'},{t:'RACIK KUAH KALDU',h:'Bawang daun',tools:['bawang','daun'],snd:'fry'},{t:'SAJIKAN BAKSO + MIE',h:'Plating 🍥 beda dari sate',tools:['mie','plate'],snd:'kecap'}],
+ rawon:[{t:'IRIS BUMBU HITAM',h:'Kluwek bawang',tools:['knife','kluwek','bawang'],snd:'cut'},{t:'TUMIS BUMBU HITAM',h:'Hitam wangi',tools:['oil','bawang'],snd:'oil'},{t:'MASUKKAN DAGING',h:'Sapi',tools:['daging'],snd:'fry'},{t:'TUANG KUAH RAWON',h:'Hitam pekat',tools:['kluwek','sereh'],snd:'kecap'},{t:'SAJIKAN + TAUGE',h:'Rawon hitam',tools:['tauge','telur','plate'],snd:'stir'}],
+ lodeh:[{t:'IRIS SAYUR LODEH',h:'Kangkung tahu',tools:['knife','kangkung','tahu'],snd:'cut'},{t:'TUMIS BUMBU',h:'Bawang cabe',tools:['oil','bawang','cabe'],snd:'oil'},{t:'MASUK SAYUR',h:'Kangkung tempe',tools:['kangkung','tahu'],snd:'fry'},{t:'TUANG SANTAN',h:'Gurih',tools:['santan'],snd:'kecap'},{t:'SAJIKAN LODEH',h:'Jadi',tools:['plate'],snd:'stir'}],
+};
+
+let selectedDish=null, selectedBahan=new Set(), step=0, currentSteps=[];
+
+function renderDish(){
+ let g=document.getElementById('dishGrid'); g.innerHTML='';
+ DISHES.forEach(d=>{
+  let el=document.createElement('div'); el.className='dish'+(selectedDish===d.id?' selected':'');
+  // BAKSO PAKAI 🍥 BEDA DARI SATE 🍢
+  el.innerHTML=`<div class="dishEmoji">${d.emoji}</div><div class="dishName">${d.name}</div><div class="dishDesc">${d.desc}</div>`;
+  el.onclick=()=>{ selectedDish=d.id; playPick(true); renderDish(); document.getElementById('toBahanBtn').disabled=false; if(navigator.vibrate) navigator.vibrate(20); };
+  g.appendChild(el);
+ });
+}
+function goToBahan(){
+ let dish=DISHES.find(x=>x.id===selectedDish);
+ document.getElementById('phaseDish').classList.remove('active');
+ document.getElementById('phase0').classList.add('active');
+ document.getElementById('phaseLabel').innerText=`BAHAN ${dish.name.toUpperCase()}`;
+ document.getElementById('bahanTitle').innerText=`🛒 Bahan ${dish.emoji} ${dish.name}`;
+ selectedBahan=new Set(); // <-- KOSONG! HARUS MILIH SENDIRI, TIDAK AUTO
+ renderBahan();
+}
+function renderBahan(){
+ let dish=DISHES.find(x=>x.id===selectedDish);
+ let g=document.getElementById('bahanGrid'); g.innerHTML='';
+ dish.all.forEach(id=>{
+  let b=BAHAN_MAP[id]||{n:id,e:'✨'};
+  let wajib=dish.wajib.includes(id);
+  let el=document.createElement('div'); el.className='item'+(selectedBahan.has(id)?' selected':'');
+  el.innerHTML=`<div class="itemIcon">${b.e}</div><div class="itemName">${b.n}</div><div style="font-size:9px;color:${wajib?'#16a34a':'#999'};font-weight:900">${wajib?'WAJIB':'OPTIONAL'}</div>`;
+  el.onclick=()=>{
+   let adding=!selectedBahan.has(id);
+   if(selectedBahan.has(id)) selectedBahan.delete(id); else selectedBahan.add(id);
+   playPick(adding); // <-- SUARA BARU MILIH BAHAN
+   renderBahan(); updateCart();
+   if(navigator.vibrate) navigator.vibrate(20);
+  };
+  g.appendChild(el);
+ });
+ updateCart();
+}
+function updateCart(){
+ let dish=DISHES.find(x=>x.id===selectedDish);
+ let wajibCount=dish.wajib.filter(x=>selectedBahan.has(x)).length;
+ document.getElementById('bahanNeed').innerText=`${wajibCount}/${dish.wajib.length} wajib`;
+ document.getElementById('cartCount').innerText=wajibCount>=dish.wajib.length?`Siap masak! ${selectedBahan.size} bahan`:`Pilih ${dish.wajib.length-wajibCount} wajib lagi`;
+ document.getElementById('cartItems').innerText=[...selectedBahan].map(id=>BAHAN_MAP[id]?.e||'✨').join(' ')||'Belum milih...';
+ let btn=document.getElementById('toCookBtn');
+ if(wajibCount>=dish.wajib.length){ btn.disabled=false; btn.innerText=`LANJUT MASAK ${dish.name.toUpperCase()} →`; }
+ else { btn.disabled=true; btn.innerText=`PILIH ${dish.wajib.length-wajibCount} WAJIB LAGI`; }
+}
+function goToCook(){
+ document.getElementById('phase0').classList.remove('active');
+ document.getElementById('phase1').classList.add('active');
+ currentSteps=STEPS_MAP[selectedDish];
+ initSteps();
+}
+function initSteps(){ let bar=document.getElementById('stepBar'); bar.innerHTML=''; currentSteps.forEach((_,i)=>{ let d=document.createElement('div'); d.className='s'+(i===0?' active':''); bar.appendChild(d); }); step=0; renderStep(); }
+function renderStep(){
+ let s=currentSteps[step]; document.getElementById('stepTitle').innerText=s.t; document.getElementById('stepHint').innerText=s.h; document.getElementById('phaseLabel').innerText=`MASAK ${step+1}/${currentSteps.length}`;
+ document.getElementById('nextBtn').disabled=true;
+ let board=document.getElementById('board'); 
+ // BEDAIN TAMPILAN BAKSO VS SATE
+ let isSate=selectedDish==='sate';
+ let isBakso=selectedDish==='bakso';
+ if(step===currentSteps.length-1){
+  if(isBakso) board.innerHTML=`<div style="width:220px;height:140px;background:#fff;border:4px solid #000;border-radius:30%;display:flex;align-items:center;justify-content:center;font-size:40px;flex-direction:column" id="plateEl"><span style="font-size:36px">🍥🍜</span><small style="font-size:10px">BAKSO</small></div>`;
+  else if(isSate) board.innerHTML=`<div style="width:220px;height:140px;background:#fff;border:4px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;flex-direction:column" id="plateEl"><span style="font-size:36px">🍢🔥</span><small style="font-size:10px">SATE</small></div>`;
+  else board.innerHTML=`<div style="width:220px;height:140px;background:#fff;border:4px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:42px" id="plateEl">🍽️</div>`;
+ } else {
+  board.innerHTML=`<div class="pan"><div id="panFood"></div></div>`;
+ }
+ let tools=document.getElementById('tools'); tools.innerHTML='';
+ s.tools.forEach(id=>{
+  let info=BAHAN_MAP[id]||{n:id,e:id==='knife'?'🔪':id==='plate'?'🍽️':id==='stir'?'🥄':'✨'};
+  if(id==='knife') info={n:'Pisau',e:'🔪'};
+  let d=document.createElement('div'); d.className='tool'; d.innerHTML=`<div style="font-size:32px">${info.e}</div><div style="font-size:11px">${info.n}</div>`;
+  d.onclick=()=>{
+   if(s.snd==='cut') playCut(); else if(s.snd==='oil') playOil(); else if(s.snd==='fry') playFry(); else if(s.snd==='stir') playStir(); else if(s.snd==='kecap') playKecap();
+   let pf=document.getElementById('panFood'); if(pf){ let f=BAHAN_MAP[id]; if(f) pf.innerHTML+=`<span>${f.e}</span>`; }
+   if(id==='plate'){ let pe=document.getElementById('plateEl'); if(pe) pe.innerHTML=`${DISHES.find(x=>x.id===selectedDish).emoji} JADI!`; }
+   document.getElementById('nextBtn').disabled=false;
+   if(navigator.vibrate) navigator.vibrate(30);
+  };
+  tools.appendChild(d);
+ });
+ document.querySelectorAll('.s').forEach((el,i)=>el.className='s'+(i<step?' done':i===step?' active':''));
+}
+function nextStep(){ if(step<currentSteps.length-1){ step++; renderStep(); } else { let dish=DISHES.find(x=>x.id===selectedDish); document.getElementById('result').style.display='flex'; document.getElementById('resEmoji').innerText=dish.emoji; document.getElementById('resTitle').innerText=`${dish.name} JADI!`; document.getElementById('resDesc').innerText=`Kamu pakai: ${[...selectedBahan].map(id=>BAHAN_MAP[id]?.n).join(', ')}`; playWin(); } }
+
+renderDish();
+</script>
+</body>
+</html>
