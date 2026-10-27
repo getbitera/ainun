@@ -66,6 +66,50 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 .soundPanel{display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap}
 .soundBtn{padding:6px 10px;border-radius:12px;border:1px solid #a020f0;background:#000;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
 .soundBtn.active{background:#a020f0;color:#fff}
+#potCoinStack{
+  position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);
+  z-index:8;display:flex;flex-direction:column-reverse;align-items:center;
+  pointer-events:none; width:80px; height:90px;
+}
+.coin{
+  width:38px;height:12px;
+  background: radial-gradient(ellipse at center, #ffec8b 0%, #ffcc00 20%, #d4a017 60%, #8a6d00 100%);
+  border:1px solid #5a4500;
+  border-radius:50% / 50%;
+  box-shadow: 0 1px 0 #000, 0 2px 2px rgba(0,0,0,.6), inset 0 1px 2px rgba(255,255,255,.8);
+  margin-top:-7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:900;color:#5a4500;
+  position:relative;
+}
+.coin.top{
+  height:18px;
+  border-radius:50%;
+  z-index:2;
+}
+.coin.top::after{
+  content:'$';
+  font-size:12px;
+}
+#coinLayer{
+  position:absolute;inset:0;pointer-events:none;z-index:9;
+}
+.flyingCoin{
+  position:absolute;
+  width:32px;height:32px;
+  background: radial-gradient(circle, #ffec8b, #ffcc00 40%, #d4a017 80%);
+  border:2px solid #5a4500;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:#5a4500;font-size:14px;
+  box-shadow:0 2px 5px rgba(0,0,0,.5);
+  animation: flyToPot 0.6s ease-out forwards;
+}
+@keyframes flyToPot{
+  0%{ transform: translate(0,0) scale(1); opacity:1; }
+  50%{ transform: translate(var(--tx), -40px) scale(1.2); }
+  100%{ transform: translate(var(--tx), var(--ty)) scale(0.5); opacity:0; }
+}
 </style>
 </head>
 <body>
@@ -105,7 +149,6 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 <div class="controls">
   <div class="rowBtn">
     <button class="btn btn-fold" onclick="playerAct('fold')">FOLD</button>
-    <button class="btn btn-check" id="btnCheck" onclick="playerAct('check')">CHECK</button>
     <button class="btn btn-call" id="btnCall" onclick="playerAct('call')">CALL</button>
     <button class="btn btn-raise" id="btnRaise" onclick="playerAct('raise')">RAISE</button>
     <button class="btn btn-allin" onclick="playerAct('allin')">ALL-IN</button>
@@ -262,10 +305,20 @@ const MAX_RAISES=2;
 function updateRaiseInfo(){
   let el=document.getElementById('raiseInfo');
   if(!el) return;
-  if(stage>=1){ el.style.display='block'; el.innerText=`RAISE ${raiseCount}/${MAX_RAISES}`; }
+  // Tampilkan cuma setelah flop, biar preflop gak rame
+  if(stage>=1){ 
+    el.style.display='block'; 
+    el.innerText=`RAISE ${raiseCount}/${MAX_RAISES}`;
+    el.style.background = raiseCount>=MAX_RAISES ? '#666' : '#ff4444';
+  }
   else el.style.display='none';
+  
   let btnRaise=document.getElementById('btnRaise');
-  if(btnRaise){ btnRaise.disabled = raiseCount>=MAX_RAISES; btnRaise.innerText = raiseCount>=MAX_RAISES?'RAISE MAX':'RAISE'; }
+  if(btnRaise){ 
+    btnRaise.disabled = raiseCount>=MAX_RAISES; 
+    btnRaise.innerText = raiseCount>=MAX_RAISES ? 'MAX RAISE' : 'RAISE';
+    btnRaise.style.opacity = raiseCount>=MAX_RAISES ? '0.3' : '1';
+  }
 }
 function clearAllTimers(){ 
   if(heartTimer){ 
@@ -359,7 +412,6 @@ function render(){
     
     let toCall=(currentBet||0) - (players[0]?.bet||0);
     document.getElementById('btnCall').innerText=toCall<=0?'CHECK':`CALL $${toCall}`;
-    document.getElementById('btnCheck').disabled=toCall>0;
     let isBotTurn=turn!=0;
     document.querySelectorAll('.controls .btn').forEach(b=>{ if(b.id!=='btnRaise') b.disabled=isBotTurn; });
     updateRaiseInfo();
