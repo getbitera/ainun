@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Typing - Green + Black Keyboard</title>
+<title>WELCOME TO MY AINUN KEYBOARD</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Consolas','Courier New',monospace}
 body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%,#c8f7c5 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px}
 .header{width:100%;max-width:850px;display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#1a1a1a;border-radius:14px;color:#fff}
-.logo{font-weight:900;letter-spacing:2px}.logo span{color:#a8e6a3}
+.logo{font-weight:900;letter-spacing:1px;font-size:11px;line-height:1.2;text-align:center}.logo span{color:#a8e6a3}
 .modes{display:flex;gap:6px}
 .modeBtn{background:#2a2a2a;color:#888;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer}
 .modeBtn.active{background:#a8e6a3;color:#000}
@@ -24,8 +24,6 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 .char.extra{color:#fff;background:#ff4757;opacity:.8}
 #input{position:absolute;opacity:0}
 #focusMsg{position:absolute;inset:0;background:rgba(255,255,255,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;font-weight:900;font-size:18px;cursor:pointer;z-index:5;gap:6px;color:#1a1a1a}
-
-/* BLACK KEYBOARD */
 #keyboard{width:100%;max-width:850px;margin-top:14px;background:#1a1a1a;border-radius:18px;padding:12px;border:2px solid #000;box-shadow:8px 8px 0 rgba(0,0,0,0.2)}
 .kb-row{display:flex;justify-content:center;gap:4px;margin-bottom:6px}
 .key{background:#2a2a2a;color:#a8a8a8;border:1px solid #333;border-bottom:3px solid #000;padding:10px 0;min-width:32px;flex:1;max-width:52px;text-align:center;border-radius:8px;font-size:12px;font-weight:700;transition:all .08s;user-select:none}
@@ -36,7 +34,6 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 @keyframes hit{50%{transform:scale(0.92)}}
 .key.correct-hit{background:#00c853;color:#fff}
 .key.wrong-hit{background:#ff4757;color:#fff}
-
 #result{display:none;width:100%;max-width:850px;background:#1a1a1a;color:#fff;border-radius:20px;padding:20px;margin-top:14px;text-align:center;border:2px solid #000}
 .wpmBig{font-size:64px;font-weight:900;color:#a8e6a3}
 .badge{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:900;margin:3px;display:inline-block}
@@ -46,7 +43,7 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 </head>
 <body>
 <div class="header">
-<div class="logo">TYPE<span>GREEN</span></div>
+<div class="logo">WELCOME TO<br><span>MY AINUN KEYBOARD</span></div>
 <div class="modes">
 <button class="modeBtn active" onclick="setMode('time',15)">15s</button>
 <button class="modeBtn" onclick="setMode('time',30)">30s</button>
@@ -65,7 +62,7 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 <div id="gameBox" style="position:relative" onclick="document.getElementById('input').focus()">
 <div id="words"></div>
 <input id="input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-<div id="focusMsg">👆 CLICK TO START<div style="font-size:12px;font-weight:400;color:#666">Green background + Black keyboard</div></div>
+<div id="focusMsg">💛 WELCOME TO MY AINUN KEYBOARD<div style="font-size:12px;font-weight:400;color:#666">Tap to start typing!</div></div>
 </div>
 
 <div id="keyboard">
@@ -81,7 +78,7 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 <div class="key wide" data-k="Backspace">⌫</div>
 </div>
 <div class="kb-row">
-<div class="key space" data-k=" ">SPACE</div>
+<div class="key space" data-k=" ">SPACE - MY AINUN</div>
 </div>
 </div>
 
@@ -91,11 +88,11 @@ body{background:#a8e6a3;background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 50%
 <div id="resBadges"></div>
 <div id="chart"></div>
 <div id="resDetail" style="text-align:left;background:#222;padding:12px;border-radius:10px;margin-top:12px;font-size:11px;color:#aaa"></div>
-<button style="width:100%;margin-top:12px;padding:14px;background:#a8e6a3;border:none;border-radius:12px;font-weight:900;cursor:pointer;color:#000" onclick="restart()">RESTART ↻</button>
+<button style="width:100%;margin-top:12px;padding:14px;background:#a8e6a3;border:none;border-radius:12px;font-weight:900;cursor:pointer;color:#000" onclick="restart()">RESTART - MY AINUN KEYBOARD ↻</button>
 </div>
 
 <script>
-const wordList=["the","be","to","of","and","a","in","that","have","I","it","for","not","on","with","he","as","you","do","at","this","but","his","by","from","they","we","say","her","she","or","an","will","my","one","all","would","there","their","what","so","up","out","if","about","who","get","which","go","me","when","make","can","like","time","no","just","him","know","take","people","into","year","your","good","some","could","them","see","other","than","then","now","look","only","come","its","over","think","also","back","after","use","two","how","our","work","first","well","way","even","new","want","because","any","these","give","day","most","us","is","was","are","has","been","green","black","keyboard","color","fast","type","speed","test","monkey","focus","game","challenge","pro"];
+const wordList=["welcome","to","my","ainun","keyboard","green","black","fast","type","love","ainun","game","cute","happy","typing","speed","pro","challenge","keyboard","my","ainun","welcome","the","be","to","of","and","a","in","that","have","it","for","not","on","with","he","as","you","do","at","this","but","his","by","from","they","we","say","her","she","or","an","will","my","one","all","would","there","their","what","so","up","out","if","about","who","get","which","go","me","when","make","can","like","time","no","just","him","know","take","people","into","year","your","good","some","could","them","see","other","than","then","now","look","only","come","its","over","think","also","back","after","use","two","how","our","work","first","well","way","even","new","want","because","any","these","give","day","most","us"];
 let mode={type:'time',value:15}, timeLeft=15, timer=null, started=false, words=[], currentWord=0, currentChar=0, correct=0, incorrect=0, history=[], wpmHistory=[];
 
 function generateWords(n=100){ words=[]; for(let i=0;i<n;i++) words.push(wordList[Math.floor(Math.random()*wordList.length)]); return words; }
@@ -147,9 +144,7 @@ function restart(){
 const input=document.getElementById('input');
 input.addEventListener('keydown',e=>{
   if(e.key==='Tab'){ e.preventDefault(); restart(); }
-  // highlight keyboard
   if(e.key.length===1 || e.key===' ' || e.key==='Backspace' || e.key==='Shift'){
-    // check if correct
     let expected='';
     if(words[currentWord]) expected=words[currentWord][currentChar] || ' ';
     let isCorrect = e.key.toLowerCase()===expected.toLowerCase() || (e.key===' ' && expected===' ');
@@ -174,13 +169,13 @@ function finish(){
   document.getElementById('gameBox').style.display='none'; document.getElementById('result').style.display='block';
   let timeSpent= mode.type==='time' ? mode.value : (Date.now()-startTime)/1000;
   let wpm=Math.round((correct/5)/(timeSpent/60)); let acc=Math.round(correct/(correct+incorrect||1)*100);
-  document.getElementById('resWpm').innerText=wpm+' WPM';
-  let level=wpm<20?'Beginner 🐢':wpm<40?'Average 🐰':wpm<60?'Fast ⚡':wpm<80?'Pro 🚀':wpm<100?'Master 🔥':'Godlike 👑';
+  document.getElementById('resWpm').innerText=wpm+' WPM - MY AINUN';
+  let level=wpm<20?'Beginner 🐢 - MY AINUN':wpm<40?'Average 🐰 - MY AINUN':wpm<60?'Fast ⚡ - MY AINUN':wpm<80?'Pro 🚀 - MY AINUN':wpm<100?'Master 🔥 - MY AINUN':'Godlike 👑 - MY AINUN KEYBOARD';
   document.getElementById('resTitle').innerText=level;
-  document.getElementById('resBadges').innerHTML=`<span class="badge" style="background:#a8e6a3;color:#000">WPM ${wpm}</span><span class="badge" style="background:#fff;color:#000">ACC ${acc}%</span><span class="badge" style="background:#ff4757;color:#fff">ERR ${incorrect}</span>`;
+  document.getElementById('resBadges').innerHTML=`<span class="badge" style="background:#a8e6a3;color:#000">WPM ${wpm} MY AINUN</span><span class="badge" style="background:#fff;color:#000">ACC ${acc}%</span><span class="badge" style="background:#ff4757;color:#fff">ERR ${incorrect}</span>`;
   let chart=document.getElementById('chart'); chart.innerHTML=''; let max=Math.max(...wpmHistory,1);
   wpmHistory.slice(-50).forEach(v=>{ let bar=document.createElement('div'); bar.className='bar'; bar.style.height=(v/max*100)+'%'; chart.appendChild(bar); });
-  document.getElementById('resDetail').innerHTML=`Time: ${timeSpent.toFixed(1)}s | Correct: ${correct} | Total: ${correct+incorrect} | Net WPM: ${wpm}`;
+  document.getElementById('resDetail').innerHTML=`WELCOME TO MY AINUN KEYBOARD | Time: ${timeSpent.toFixed(1)}s | Correct: ${correct} | Total: ${correct+incorrect} | Net WPM: ${wpm}`;
 }
 document.addEventListener('click',()=>{ document.getElementById('input').focus(); });
 restart();
