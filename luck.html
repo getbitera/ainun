@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUCK TEST 50:50 - 9 OBSTACLES @myainunsukamto</title>
+<title>MY AINUN LUCK GAME - 9 OBSTACLES</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
 body{margin:0;background:#0f0f14;color:white;font-family:'Segoe UI',Arial;text-align:center;overflow-x:hidden}
-.header{background:linear-gradient(90deg,#ff00ff,#00ffff);padding:12px;font-weight:900;letter-spacing:1px}
+.header{background:linear-gradient(90deg,#ff00ff,#00ffff);padding:12px;font-weight:900;letter-spacing:1px;font-size:13px}
 #game{max-width:420px;margin:0 auto;padding:10px;position:relative}
 #levelInfo{font-size:14px;margin:8px 0;color:#ffcc80;font-weight:800}
 #progress{display:flex;gap:4px;justify-content:center;margin:10px 0}
@@ -30,7 +30,6 @@ body{margin:0;background:#0f0f14;color:white;font-family:'Segoe UI',Arial;text-a
 #trapView.show{display:flex} #trapIcon{font-size:80px}
 .btn{padding:14px 28px;border:none;border-radius:30px;font-weight:900;font-size:16px;cursor:pointer;background:linear-gradient(90deg,#ff00ff,#ff4081);color:white;margin:10px;transition:0.2s}
 .btn:active{transform:scale(0.95)} #log{font-size:12px;color:#aaa;min-height:40px;margin-top:8px;background:#111;border-radius:10px;padding:8px}
-/* INTRO SCREEN NAMA */
 #intro{position:fixed;inset:0;background:linear-gradient(135deg,#0f0f14,#1a1a2e);z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
 #intro.hide{display:none}
 #introBox{background:#212121;border:3px solid #ff00ff;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 0 30px rgba(255,0,255,0.3)}
@@ -41,17 +40,16 @@ body{margin:0;background:#0f0f14;color:white;font-family:'Segoe UI',Arial;text-a
 </style>
 </head>
 <body>
-<div class="header">🍀 LUCK TEST 50:50 - 9 OBSTACLES 🍀</div>
+<div class="header">✨ WELCOME TO MY AINUN LUCK GAME ✨</div>
 
-<!-- INTRO INPUT NAMA -->
 <div id="intro">
   <div id="introBox">
     <div id="aiAvatar">👩‍🦰</div>
-    <div style="font-weight:900;font-size:18px">WELCOME TO LUCK TEST!</div>
+    <div style="font-weight:900;font-size:20px;line-height:1.2;color:#ffcc00">WELCOME TO<br>MY AINUN LUCK GAME</div>
     <div id="aiText">Hi! Enter your name first, and I will explain the game!</div>
-    <input id="nameInput" placeholder="Enter your name..." maxlength="12" oninput="previewName()">
+    <input id="nameInput" placeholder="Your Name" maxlength="12" oninput="previewName()">
     <button class="btn" style="width:100%" onclick="startGame()">▶️ START GAME</button>
-    <div style="font-size:10px;color:#666;margin-top:8px"><label><input type="checkbox" id="voiceCheck" checked> 🔊 Girl AI Voice</label></div>
+    <div style="font-size:10px;color:#666;margin-top:8px"><label><input type="checkbox" id="voiceCheck" checked> 🔊 Girl AI Voice</label><br><span style="color:#ff00ff">myainun.vercel.app</span></div>
   </div>
 </div>
 
@@ -102,30 +100,23 @@ function speak(text){
   synth.speak(u);
   document.getElementById('aiText').innerText=text;
 }
-
 function previewName(){
   let n=document.getElementById('nameInput').value.trim();
-  if(n.length>=2){ document.getElementById('aiText').innerText=`Hi ${n}! Ready to test your luck?`; }
+  if(n.length>=2){ document.getElementById('aiText').innerText=`Hi ${n}! Welcome to My Ainun Luck Game! Ready?`; }
 }
-
 function startGame(){
   let input=document.getElementById('nameInput').value.trim();
-  if(!input){ alert("Please enter your name first!"); document.getElementById('nameInput').focus(); return; }
+  if(!input){ alert("Please enter Your Name first!"); document.getElementById('nameInput').focus(); return; }
   playerName=input;
-  
-  // HIDE INTRO + START
   document.getElementById('intro').classList.add('hide');
   genAnswer(); initProgress(); renderLevel();
-  
-  // AI JELASKAN ATURAN PAKAI NAMA
   setTimeout(async()=>{
     await Tone.start();
-    let welcomeMsg=`Hi ${playerName}! Welcome to Luck Test! Listen carefully. You will face 9 levels. Each level has two platforms, A and B. Only one is safe, one is a trap. You have 50 50 chance. If you choose wrong, you will fall! If you survive all 9, you are 1 in 512 luckiest person! Now choose A or B, good luck ${playerName}!`;
-    document.getElementById('log').innerText=`Welcome ${playerName}! ${welcomeMsg}`;
+    let welcomeMsg=`Hi ${playerName}! Welcome to My Ainun Luck Game! Listen carefully. You will face 9 levels. Each level has two platforms, A and B. Only one is safe, one is a trap. You have 50 50 chance. If you choose wrong, you will fall! If you survive all 9, you are 1 in 512 luckiest person in My Ainun Luck Game! Now choose A or B, good luck ${playerName}!`;
+    document.getElementById('log').innerText=`Welcome ${playerName} to MY AINUN LUCK GAME!`;
     speak(welcomeMsg);
   },300);
 }
-
 async function playSuccessSound(){ await Tone.start(); let s=new Tone.Synth().toDestination(); s.triggerAttackRelease("C5","0.2"); setTimeout(()=>s.triggerAttackRelease("E5","0.2"),150); setTimeout(()=>s.triggerAttackRelease("G5","0.4"),300); }
 async function playFailSound(){ await Tone.start(); let s=new Tone.MembraneSynth().toDestination(); s.triggerAttackRelease("C2","0.8"); }
 
@@ -133,12 +124,12 @@ let progressEl=document.getElementById('progress'), char=document.getElementById
 function initProgress(){ progressEl.innerHTML=''; for(let i=0;i<9;i++){let d=document.createElement('div'); d.className='dot'; d.id='dot'+i; d.innerText=i+1; if(i==0) d.classList.add('active'); progressEl.appendChild(d);} }
 function genAnswer(){answer=[]; for(let i=0;i<9;i++) answer.push(Math.random()<0.5?'A':'B');}
 function renderLevel(){
-  document.getElementById('levelInfo').innerText=`${playerName} - LEVEL ${level+1} / 9`;
+  document.getElementById('levelInfo').innerText=`${playerName} - LEVEL ${level+1} / 9 - MY AINUN LUCK GAME`;
   document.getElementById('platA').className='platform'; document.getElementById('platB').className='platform';
   char.className=''; char.innerText='🧍'; char.style.bottom='20px'; char.style.left='50%';
   document.getElementById('trapView').classList.remove('show');
   document.getElementById('nextBtn').style.display='none';
-  log.innerText=`Level ${level+1}: ${playerName}, choose A or B!`;
+  log.innerText=`Level ${level+1}: ${playerName}, choose A or B in My Ainun Luck Game!`;
   document.querySelectorAll('.dot').forEach((d,i)=>{d.classList.remove('active'); if(i<level) d.classList.add('pass'); if(i==level) d.classList.add('active');});
 }
 function choose(pick){
@@ -150,13 +141,13 @@ function choose(pick){
       document.getElementById('plat'+pick).classList.add('safe');
       document.getElementById('dot'+level).classList.add('pass'); document.getElementById('dot'+level).classList.remove('active');
       char.innerText='😎'; char.style.bottom='100px';
-      log.innerHTML=`✅ SAFE! ${playerName}, you chose ${pick} correctly!`;
+      log.innerHTML=`✅ SAFE! ${playerName}, you chose ${pick} correctly in MY AINUN LUCK GAME!`;
       playSuccessSound();
       speak(`${LEVELS[level].successVoice} Good job ${playerName}!`);
       if(level==8){
-        log.innerHTML=`🎉 INSANE! ${playerName} is 1 in 512 luckiest!`;
+        log.innerHTML=`🎉 INSANE! ${playerName} is 1 in 512 luckiest in MY AINUN LUCK GAME!`;
         char.innerText='👑';
-        setTimeout(()=>{speak(`Oh my god ${playerName}! You are the luckiest person ever! You won all 9 levels!`);},800);
+        setTimeout(()=>{speak(`Oh my god ${playerName}! You are the luckiest person ever in My Ainun Luck Game! You won all 9 levels!`);},800);
       } else {
         document.getElementById('nextBtn').style.display='inline-block';
         document.getElementById('nextL').innerText=level+2;
@@ -167,17 +158,17 @@ function choose(pick){
       let L=LEVELS[level];
       document.getElementById('trapIcon').innerText=L.trapIcon;
       document.getElementById('trapTitle').innerText=L.title;
-      document.getElementById('trapDesc').innerText=`${playerName}, you chose ${pick}, correct was ${correct}. ${L.desc}`;
+      document.getElementById('trapDesc').innerText=`${playerName}, you chose ${pick}, correct was ${correct}. ${L.desc} - MY AINUN LUCK GAME`;
       document.getElementById('trapView').classList.add('show');
-      char.innerText=L.char;
-      log.innerHTML=`❌ GAME OVER ${playerName}! Trap at level ${level+1}`;
+      char.innerText='💀';
+      log.innerHTML=`❌ GAME OVER ${playerName}! Trap at level ${level+1} in MY AINUN LUCK GAME`;
       playFailSound();
-      speak(`${L.failVoice} Sorry ${playerName}, try again!`);
+      speak(`${L.failVoice} Sorry ${playerName}, try again in My Ainun Luck Game!`);
     }
   },600);
 }
-function nextLevel(){level++; renderLevel(); speak(`Level ${level+1} ${playerName}, choose carefully!`);}
-function restart(){level=0; genAnswer(); initProgress(); renderLevel(); speak(`Let's try again ${playerName}! You can do it!`);}
+function nextLevel(){level++; renderLevel(); speak(`Level ${level+1} ${playerName}, choose carefully in My Ainun Luck Game!`);}
+function restart(){level=0; genAnswer(); initProgress(); renderLevel(); speak(`Let's try again ${playerName} in My Ainun Luck Game! You can do it!`);}
 </script>
 </body>
 </html>
