@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title> WELCOME TO MY AINUN POKER</title>
+<title> WELCOME TO MY AINUN POKER - FIXED</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:#fff;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
@@ -74,7 +74,7 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 </head>
 <body>
 <div class="header">
-  <span>♠️ WELCOME TO MY AINUN POKER</span>
+  <span>♠️ WELCOME TO MY AINUN POKER - FIXED</span>
   <div style="display:flex;gap:6px;align-items:center">
     <div id="raiseInfo">RAISE 0/2</div>
     <div id="handBox">HAND #1</div>
@@ -230,13 +230,13 @@ function playCheerReal(){ if(!CHEER_ON) return; try{ if(cheerAudio){ cheerAudio.
 function playCoin(){ try{ if(coinAudio){ coinAudio.currentTime=0; coinAudio.play().catch(()=>{}); } }catch(e){} }
 
 let heartTimer=null, timeLeft=5;
-let raiseCount=0; // NEW: count raises per street
-const MAX_RAISES=2; // MAX 2 RAISES
+let raiseCount=0;
+const MAX_RAISES=2;
 
 function updateRaiseInfo(){
   let el=document.getElementById('raiseInfo');
   if(!el) return;
-  if(stage>=1){ // only show after flop
+  if(stage>=1){
     el.style.display='block';
     el.innerText=`RAISE ${raiseCount}/${MAX_RAISES}`;
     el.style.background = raiseCount>=MAX_RAISES ? '#ff0000' : '#ff4444';
@@ -277,11 +277,27 @@ function render(){
     let stageEl=document.getElementById('stageTxt'); if(stageEl) stageEl.innerText=['PREFLOP','FLOP','TURN','RIVER'][stage]||'SHOW';
     let commEl=document.getElementById('community'); if(commEl){ commEl.innerHTML=''; for(let i=0;i<5;i++){ let c=community[i]; if(!c){commEl.innerHTML+=`<div class="cardP" style="background:#0008;border:1px dashed #ffcc00;color:#666">?</div>`; continue;} commEl.innerHTML+=`<div class="cardP big ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}<span style="font-size:14px">${c.s}</span></div>`; } }
     let pEl=document.getElementById('players'); if(!pEl) return; pEl.innerHTML='';
+    let winnerBoxEl = document.getElementById('winnerBox');
+    let isShowdown = winnerBoxEl && winnerBoxEl.style.display === 'flex';
+
     (players||[]).forEach((p,i)=>{
       try{
         if(!p||p.empty){ pEl.innerHTML+=`<div class="pSeat s4 empty"><div style="font-size:22px">🪑</div><b style="color:#666;font-size:9px">EMPTY</b></div>`; return; }
-        let posClass=i==0?'you':`s${i}`; let show=p.isUser||stage==3||p.fold||(document.getElementById('winnerBox')&&document.getElementById('winnerBox').style.display=='flex'); let cardsHtml=''; if(p.fold) cardsHtml='<small style="color:#ff4444;font-size:10px">FOLD</small>'; else if(show) cardsHtml=(p.hand||[]).map(c=>c?`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}${c.s}</div>`:'<div class="cardP">?</div>').join(''); else cardsHtml='<div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div><div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div>'; let isTurn=i==turn&&!p.fold; let timerHtml=isTurn?`<div class="timerWrap"><div class="timerBar" style="width:100%"></div><div class="timerText">5.0s</div></div>`:'';
-        pEl.innerHTML+=`<div class="pSeat ${posClass} ${isTurn?'thinking':''} ${p.fold?'fold':''}"><div class="playerMain"><img class="avatar" src="${p.avatar||''}"><div class="playerCards">${cardsHtml}</div></div><div style="margin-top:3px;text-align:center"><b style="font-size:10px">${p.name||'Player'}</b>${p.id==dealer?'🎩':''}<br><span style="font-size:9px">💰$${p.chips||0} BET $${p.bet||0}</span></div>${timerHtml}</div>`;
+        // === FIX UTAMA DI SINI ===
+        // Kartu lawan HANYA kebuka pas showdown (winnerBox muncul)
+        // Sebelum itu, semua tertutup kecuali punya kamu
+        let show = false;
+        if(p.isUser) show = true; // kartu kamu selalu kebuka
+        else if(isShowdown && !p.fold) show = true; // lawan kebuka HANYA pas showdown dan dia tidak fold
+        // kalau fold, tetap tertutup / tulisan FOLD
+
+        let cardsHtml=''; 
+        if(p.fold) cardsHtml='<small style="color:#ff4444;font-size:10px">FOLD</small>'; 
+        else if(show) cardsHtml=(p.hand||[]).map(c=>c?`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}${c.s}</div>`:'<div class="cardP">?</div>').join(''); 
+        else cardsHtml='<div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div><div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div>'; 
+        
+        let isTurn=i==turn&&!p.fold; let timerHtml=isTurn?`<div class="timerWrap"><div class="timerBar" style="width:100%"></div><div class="timerText">5.0s</div></div>`:'';
+        pEl.innerHTML+=`<div class="pSeat ${i==0?'you':`s${i}`} ${isTurn?'thinking':''} ${p.fold?'fold':''}"><div class="playerMain"><img class="avatar" src="${p.avatar||''}"><div class="playerCards">${cardsHtml}</div></div><div style="margin-top:3px;text-align:center"><b style="font-size:10px">${p.name||'Player'}</b>${p.id==dealer?'🎩':''}<br><span style="font-size:9px">💰$${p.chips||0} BET $${p.bet||0}</span></div>${timerHtml}</div>`;
       }catch(e){}
     });
     let toCall=(currentBet||0) - (players[0]?.bet||0); let btnCall=document.getElementById('btnCall'); if(btnCall) btnCall.innerText=toCall<=0?'CHECK':`CALL $${toCall}`; let btnCheck=document.getElementById('btnCheck'); if(btnCheck) btnCheck.disabled=toCall>0; let isBotTurn=turn!=0; document.querySelectorAll('.controls .btn').forEach(b=>{ try{ if(b.id!=='btnRaise') b.disabled=isBotTurn; }catch(e){} });
@@ -387,7 +403,6 @@ function playerAct(act){
     }
     else if(act=='allin'){
       pay=me.chips||0; let prevBet = me.bet||0; me.chips=0; me.bet=prevBet+pay; pot+=pay; if(me.bet>(currentBet||0)) currentBet=me.bet; me.allin=true;
-      // All-in counts as raise if it increases bet
       if(me.bet>(currentBet||0) || pay>toCall) raiseCount++;
       log(`${me.name} ALL-IN $${pay}!!!`); showActionFX(me.name,'allin'); addBetCoins(0,pay); addCoinsToPot(pot);
       actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[0]=true;
@@ -412,7 +427,6 @@ function botTurn(){
           if(bot.bet>(currentBet||0)){ currentBet=bot.bet; raiseCount++; actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[bot.id]=true; }
           if(bot.chips<=0) bot.allin=true; log(`${bot.name} RAISES $${tot} [${best.name}] [${raiseCount}/${MAX_RAISES}]`); showActionFX(bot.name, bot.allin?'allin':'raise'); addBetCoins(turn,tot); addCoinsToPot(pot);
         } else {
-          // If max raises reached, bots can only call/check/fold
           pay=Math.min(toCall,bot.chips||0); bot.chips-=pay; bot.bet=(bot.bet||0)+pay; pot+=pay; if(bot.chips<=0) bot.allin=true;
           log(`${bot.name} ${toCall==0?'CHECKS':'CALLS $'+pay} [${best.name}] ${!canRaise?'[MAX RAISE]':''}`); showActionFX(bot.name, toCall==0?'check':(bot.allin?'allin':'call')); if(pay>0){ addBetCoins(turn,pay); addCoinsToPot(pot); }
         }
