@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title> WELCOME TO MY AINUN POKER - FIXED</title>
+<title> MY AINUN POKER </title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:#fff;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
@@ -26,7 +26,6 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 .cardP.big{width:52px;height:74px;font-size:18px}
 .players{position:absolute;inset:0;pointer-events:none}
 .pSeat{position:absolute;width:26%;background:rgba(20,0,40,.92);border:2px solid #a020f0;border-radius:14px;padding:5px;font-size:9px;pointer-events:auto;display:flex;flex-direction:column;align-items:center;text-align:center}
-.pSeat.active{border-color:#00ff88;box-shadow:0 0 16px #00ff88;transform:scale(1.04)}
 .pSeat.thinking{border-color:#ffcc00;box-shadow:0 0 20px #ffcc00}
 .pSeat.fold{opacity:.35}
 .pSeat.empty{border-style:dashed;border-color:#444;opacity:.3;background:rgba(0,0,0,.2)}
@@ -41,9 +40,6 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 .timerWrap{width:100%;height:8px;background:#222;border-radius:10px;overflow:hidden;margin-top:4px;position:relative;border:1px solid #444}
 .timerBar{height:100%;width:100%;background:linear-gradient(90deg,#00ff88,#ffcc00,#ff0000);transition:width .1s linear}
 .timerText{position:absolute;top:-13px;right:0;font-size:10px;font-weight:900;color:#ffcc00;background:#000;padding:1px 4px;border-radius:6px}
-.coinStack{position:absolute;z-index:10;pointer-events:none;display:flex;flex-direction:column-reverse;align-items:center}
-.coinChip{width:28px;height:10px;background:linear-gradient(180deg,#ffec80 0%,#ffcc00 45%,#b89600 100%);border:2px solid #7a6000;border-radius:50% / 40%;box-shadow:0 1px 0 #5a4000, 0 2px 3px rgba(0,0,0,.6);margin-top:-6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#5a4000}
-.potStack{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;display:flex;flex-direction:column-reverse;align-items:center;margin-top:22px}
 #actionFX{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;opacity:0;text-align:center}
 #actionFX.show{opacity:1;animation:fxPop .6s ease}
 @keyframes fxPop{0%{transform:translate(-50%,-50%) scale(0.3);opacity:0}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
@@ -74,7 +70,7 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 </head>
 <body>
 <div class="header">
-  <span>♠️ WELCOME TO MY AINUN POKER - FIXED</span>
+  <span>♠️ MY AINUN</span>
   <div style="display:flex;gap:6px;align-items:center">
     <div id="raiseInfo">RAISE 0/2</div>
     <div id="handBox">HAND #1</div>
@@ -93,7 +89,7 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
     <div class="community" id="community"></div>
     <div class="players" id="players"></div>
     <div id="coinLayer"></div>
-    <div id="potCoinStack" class="potStack"></div>
+    <div id="potCoinStack" class="potStack" style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:6;display:flex;flex-direction:column-reverse;align-items:center;margin-top:22px"></div>
     <div id="actionFX"><div class="fxText" id="fxText">YOU ALL-IN!</div></div>
     <div class="winner" id="winnerBox">
       <h2 id="winText" style="font-size:20px"></h2>
@@ -116,9 +112,10 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
   </div>
   <div id="sliderWrap"><span>BET</span><input type="range" id="raiseSlider" min="20" max="800" value="120" style="flex:1"><b id="raiseVal">$120</b><span>⏱️ 5s</span></div>
   <div class="soundPanel">
-    <button class="soundBtn active" id="btnVoice" onclick="toggleVoice()">🎙️ FEMALE VOICE ON</button>
+    <button class="soundBtn active" id="btnVoice" onclick="toggleVoice()">🎙️ VOICE ON</button>
     <button class="soundBtn active" id="btnCheer" onclick="toggleCheer()">👏 CHEER ON</button>
     <button class="soundBtn" onclick="logout()" style="background:#444">LOGOUT</button>
+    <button class="soundBtn" onclick="forceNewHand()" style="background:#ff0000">🔧 FIX STUCK</button>
   </div>
 </div>
 
@@ -146,201 +143,244 @@ body{background:radial-gradient(ellipse at center,#2a0a4a 0%,#0a0214 80%);color:
 <div class="modalInfo" id="modalDaily"><div class="box"><h2>🎁 Daily Bonus!</h2><p>You received <b>$2000</b> free!</p><button class="btn btn-call" onclick="closeDaily()" style="width:100%;margin-top:10px">CLAIM & PLAY</button></div></div>
 
 <script>
+// GLOBAL ERROR CATCHER - BIAR GAK BERHENTI TOTAL
+window.onerror = function(msg, url, line){
+  console.log('Caught error:', msg, line);
+  let logEl = document.getElementById('log');
+  if(logEl) logEl.innerText = '> ERROR: ' + msg + ' - auto recovering...';
+  setTimeout(()=>{ try{ forceNewHand(); }catch(e){} }, 1500);
+  return true;
+};
+
 let VOICE_ON=true, CHEER_ON=true, FEMALE_VOICE=null;
-function toggleVoice(){ VOICE_ON=!VOICE_ON; document.getElementById('btnVoice').innerText=VOICE_ON?'🎙️ FEMALE VOICE ON':'🔇 VOICE OFF'; document.getElementById('btnVoice').classList.toggle('active',VOICE_ON); if(VOICE_ON) dealerSay("Hi! I'm Ji-yeon!",2000); }
-function toggleCheer(){ CHEER_ON=!CHEER_ON; document.getElementById('btnCheer').innerText=CHEER_ON?'👏 CHEER ON':'🔇 CHEER OFF'; document.getElementById('btnCheer').classList.toggle('active',CHEER_ON); }
+function toggleVoice(){ VOICE_ON=!VOICE_ON; document.getElementById('btnVoice').innerText=VOICE_ON?'🎙️ VOICE ON':'🔇 OFF'; document.getElementById('btnVoice').classList.toggle('active',VOICE_ON); }
+function toggleCheer(){ CHEER_ON=!CHEER_ON; document.getElementById('btnCheer').innerText=CHEER_ON?'👏 CHEER ON':'🔇 OFF'; document.getElementById('btnCheer').classList.toggle('active',CHEER_ON); }
 function loadFemaleVoice(){
   try{
     let voices = speechSynthesis.getVoices();
     if(!voices || !voices.length) return null;
-    let female = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
-    if(!female) female = voices.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Zira'));
-    if(!female) female = voices.find(v => v.lang==='en-US');
-    FEMALE_VOICE = female || null;
+    
+    // URUTAN PRIORITAS CEWEK MUDA
+    let female = 
+      voices.find(v => v.name.includes('Google') && v.name.toLowerCase().includes('female')) ||
+      voices.find(v => v.name === 'Samantha') || // iPhone cewek muda paling natural
+      voices.find(v => v.name === 'Karen') ||
+      voices.find(v => v.name === 'Moira') ||
+      voices.find(v => v.name === 'Tessa') ||
+      voices.find(v => v.name.toLowerCase().includes('zira')) || // Windows cewek
+      voices.find(v => v.name.toLowerCase().includes('female')) ||
+      voices.find(v => v.name.includes('Google UK English Female')) ||
+      voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('female')) ||
+      voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+    
+    FEMALE_VOICE = female || voices[0];
+    console.log('Female voice selected:', FEMALE_VOICE ? FEMALE_VOICE.name : 'none');
     return FEMALE_VOICE;
   }catch(e){ return null; }
 }
-if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = () => { loadFemaleVoice(); }; setTimeout(()=>loadFemaleVoice(),800); }
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>loadFemaleVoice(); setTimeout(loadFemaleVoice,800); }
 
 const DAILY_AMOUNT=2000;
 let currentUser=null, authMode='login';
-const AVATARS=['https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=3','https://i.pravatar.cc/150?img=5','https://i.pravatar.cc/150?img=8','https://i.pravatar.cc/150?img=12','https://i.pravatar.cc/150?img=15','https://i.pravatar.cc/150?img=20','https://i.pravatar.cc/150?img=33'];
+const AVATARS=['https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=3','https://i.pravatar.cc/150?img=5','https://i.pravatar.cc/150?img=8'];
 let selectedAvatar=AVATARS[0];
 function getUsers(){ try{ return JSON.parse(localStorage.getItem('poker_users')||'{}'); }catch(e){ return {}; } }
-function saveUsers(u){ try{ localStorage.setItem('poker_users', JSON.stringify(u)); }catch(e){} }
+function saveUsers(u){ localStorage.setItem('poker_users', JSON.stringify(u)); }
 function getToday(){ return new Date().toISOString().split('T')[0]; }
-function switchTab(mode){ authMode=mode; document.getElementById('tabLogin').classList.toggle('active',mode=='login'); document.getElementById('tabReg').classList.toggle('active',mode=='reg'); document.getElementById('regExtra').style.display=mode=='reg'?'block':'none'; document.getElementById('mainBtn').innerText=mode=='reg'?'REGISTER 🚀':'LOGIN 🚀'; document.getElementById('authMsg').innerText=''; }
-function renderAvatarGrid(){ let g=document.getElementById('avatarGrid'); if(!g) return; g.innerHTML=''; AVATARS.forEach(url=>{ let img=document.createElement('img'); img.src=url; img.className='avatarOpt'+(url===selectedAvatar?' selected':''); img.onclick=()=>{selectedAvatar=url; renderAvatarGrid();}; g.appendChild(img); }); }
+function switchTab(m){ authMode=m; document.getElementById('tabLogin').classList.toggle('active',m=='login'); document.getElementById('tabReg').classList.toggle('active',m=='reg'); document.getElementById('regExtra').style.display=m=='reg'?'block':'none'; document.getElementById('mainBtn').innerText=m=='reg'?'REGISTER 🚀':'LOGIN 🚀'; }
+function renderAvatarGrid(){ let g=document.getElementById('avatarGrid'); g.innerHTML=''; AVATARS.forEach(url=>{ let img=document.createElement('img'); img.src=url; img.className='avatarOpt'+(url===selectedAvatar?' selected':''); img.onclick=()=>{selectedAvatar=url; renderAvatarGrid();}; g.appendChild(img); }); }
 renderAvatarGrid();
 function handleAuth(){
   let user=document.getElementById('userInput').value.trim();
   let pass=document.getElementById('passInput').value.trim();
   let name=document.getElementById('nameInput').value.trim();
   let msg=document.getElementById('authMsg');
-  if(user.length<3){ msg.innerText='Username min 3 chars'; return; }
-  if(pass.length<3){ msg.innerText='Password min 3 chars'; return; }
+  if(user.length<3){ msg.innerText='Username min 3'; return; }
+  if(pass.length<3){ msg.innerText='Password min 3'; return; }
   let users=getUsers();
   if(authMode=='reg'){
-    if(users[user]){ msg.innerText='Username already exists!'; return; }
-    if(name.length<2){ msg.innerText='Display name min 2 chars'; return; }
+    if(users[user]){ msg.innerText='Exists!'; return; }
+    if(name.length<2){ msg.innerText='Display name min 2'; return; }
     users[user]={password:pass, displayName:name, avatar:selectedAvatar, chips:DAILY_AMOUNT, lastDaily:getToday(), totalHands:0};
     saveUsers(users); loginUser(user);
   } else {
-    if(!users[user]||users[user].password!==pass){ msg.innerText='Wrong username or password!'; return; }
+    if(!users[user]||users[user].password!==pass){ msg.innerText='Wrong!'; return; }
     loginUser(user);
   }
 }
 function loginUser(username){
-  try{
-    let users=getUsers(); let u=users[username]; if(!u) return;
-    currentUser=username; localStorage.setItem('poker_current', username);
-    let today=getToday(); let gotDaily=false;
-    if(u.lastDaily!==today){ u.chips=(parseInt(u.chips)||0)+DAILY_AMOUNT; u.lastDaily=today; gotDaily=true; saveUsers(users); }
-    if((u.chips||0)<=0){ document.getElementById('loginModal').style.display='none'; document.getElementById('modalNoChip').style.display='flex'; startCountdown(); return; }
-    document.getElementById('loginModal').style.display='none'; myName=u.displayName||username; selectedAvatar=u.avatar||AVATARS[0]; setChips(u.chips);
-    document.getElementById('handBox').innerText=`HAND #${(u.totalHands||0)+1}`;
-    if(gotDaily){ document.getElementById('modalDaily').style.display='flex'; } else { dealerSay(`Welcome back, ${myName}! You have $${u.chips}.`,3500); setTimeout(()=>newHand(),600); }
-  }catch(e){ document.getElementById('authMsg').innerText='Login error: '+e.message; }
+  let users=getUsers(); let u=users[username];
+  currentUser=username; localStorage.setItem('poker_current', username);
+  let today=getToday();
+  if(u.lastDaily!==today){ u.chips=(parseInt(u.chips)||0)+DAILY_AMOUNT; u.lastDaily=today; saveUsers(users); document.getElementById('modalDaily').style.display='flex'; }
+  else { document.getElementById('loginModal').style.display='none'; }
+  myName=u.displayName||username; selectedAvatar=u.avatar||AVATARS[0]; setChips(u.chips);
+  document.getElementById('handBox').innerText=`HAND #${(u.totalHands||0)+1}`;
+  if(u.lastDaily===today){ setTimeout(()=>newHand(),600); }
 }
-function closeDaily(){ document.getElementById('modalDaily').style.display='none'; dealerSay(`Welcome, ${myName}! Daily $${DAILY_AMOUNT} added!`,4000); setTimeout(()=>newHand(),600); }
-function logout(){ try{ localStorage.removeItem('poker_current'); }catch(e){} location.reload(); }
-function startCountdown(){ let el=document.getElementById('countdownText'); let interval=setInterval(()=>{ try{ let now=new Date(); let tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0); let diff=tomorrow-now; let h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000); if(el) el.innerText=`Next free chips in ${h}h ${m}m ${s}s`; if(diff<=0) clearInterval(interval); }catch(e){ clearInterval(interval); } },1000); }
-window.addEventListener('load',()=>{ try{ let cur=localStorage.getItem('poker_current'); if(cur){ let users=getUsers(); if(users[cur]) loginUser(cur); } loadFemaleVoice(); }catch(e){} });
-function getChips(){ try{ if(!currentUser) return 0; return (getUsers()[currentUser]&&getUsers()[currentUser].chips)||0; }catch(e){ return 0; } }
-function setChips(v){ try{ let display=document.getElementById('chipDisplay'); if(display) display.innerText=(v||0).toLocaleString('en-US'); if(currentUser){ let users=getUsers(); if(users[currentUser]){ users[currentUser].chips=v; saveUsers(users); } } }catch(e){} }
-function incHandCount(){ try{ if(!currentUser) return; let users=getUsers(); if(users[currentUser]){ users[currentUser].totalHands=(users[currentUser].totalHands||0)+1; saveUsers(users); let el=document.getElementById('handBox'); if(el) el.innerText=`HAND #${(users[currentUser].totalHands||0)+1}`; } }catch(e){} }
+function closeDaily(){ document.getElementById('modalDaily').style.display='none'; document.getElementById('loginModal').style.display='none'; setTimeout(()=>newHand(),600); }
+function logout(){ localStorage.removeItem('poker_current'); location.reload(); }
+window.addEventListener('load',()=>{ let cur=localStorage.getItem('poker_current'); if(cur){ let users=getUsers(); if(users[cur]) loginUser(cur); } });
+function getChips(){ try{ return (getUsers()[currentUser]&&getUsers()[currentUser].chips)||0; }catch(e){ return 0; } }
+function setChips(v){ let display=document.getElementById('chipDisplay'); if(display) display.innerText=(v||0).toLocaleString('en-US'); if(currentUser){ let users=getUsers(); if(users[currentUser]){ users[currentUser].chips=v; saveUsers(users); } } }
+function incHandCount(){ try{ let users=getUsers(); if(users[currentUser]){ users[currentUser].totalHands=(users[currentUser].totalHands||0)+1; saveUsers(users); document.getElementById('handBox').innerText=`HAND #${users[currentUser].totalHands+1}`; } }catch(e){} }
 
 const ENEMY_POOL=[
- {name:'Brian',img:'https://i.pravatar.cc/150?img=11'},{name:'Edward',img:'https://i.pravatar.cc/150?img=14'},{name:'Johnson',img:'https://i.pravatar.cc/150?img=18'},{name:'Michael',img:'https://i.pravatar.cc/150?img=22'},
- {name:'David',img:'https://i.pravatar.cc/150?img=25'},{name:'Alex',img:'https://i.pravatar.cc/150?img=32'},{name:'Chris',img:'https://i.pravatar.cc/150?img=35'},{name:'Daniel',img:'https://i.pravatar.cc/150?img=38'}
+ {name:'Brian',img:'https://i.pravatar.cc/150?img=11'},{name:'Edward',img:'https://i.pravatar.cc/150?img=14'},{name:'Johnson',img:'https://i.pravatar.cc/150?img=18'},
 ];
 let myName='YOU';
-function dealerSay(text, duration=3500){
+function dealerSay(t,d=3000){ let b=document.getElementById('dealerBubble'); if(!b) return; b.innerText=t; b.classList.add('show'); setTimeout(()=>b.classList.remove('show'),d); if(VOICE_ON&&'speechSynthesis' in window){ try{ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; function dealerSay(text, duration=3500){
   try{
-    let bubble=document.getElementById('dealerBubble'); if(!bubble) return;
-    bubble.innerText=text; bubble.classList.add('show');
-    if(!VOICE_ON){ setTimeout(()=>bubble.classList.remove('show'), duration); return; }
-    if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=0.95; u.pitch=1.25; u.volume=1.0; if(FEMALE_VOICE) u.voice=FEMALE_VOICE; speechSynthesis.speak(u); }
+    let bubble=document.getElementById('dealerBubble'); 
+    if(!bubble) return;
+    bubble.innerText=text; 
+    bubble.classList.add('show');
+    
+    if(!VOICE_ON){ 
+      setTimeout(()=>bubble.classList.remove('show'), duration); 
+      return; 
+    }
+    
+    if('speechSynthesis' in window){ 
+      speechSynthesis.cancel(); 
+      let u=new SpeechSynthesisUtterance(text); 
+      u.lang='en-US'; 
+      // === INI KUNCI SUARA CEWEK MUDA ===
+      u.rate=1.05;  // agak cepat = muda
+      u.pitch=1.45; // pitch tinggi = cewek muda (1.0 = normal, 2.0 = super tinggi)
+      u.volume=1.0; 
+      if(FEMALE_VOICE) u.voice=FEMALE_VOICE; 
+      speechSynthesis.speak(u); 
+    }
+    
     setTimeout(()=>{ try{ bubble.classList.remove('show'); }catch(e){} }, duration);
   }catch(e){}
-}
-let cheerAudio, clapAudio, coinAudio;
-try{ cheerAudio=new Audio('https://cdn.mixkit.co/active_storage/sfx/1498/1498-preview.mp3'); cheerAudio.volume=0.9; clapAudio=new Audio('https://cdn.mixkit.co/active_storage/sfx/1432/1432-preview.mp3'); clapAudio.volume=0.8; coinAudio=new Audio('https://cdn.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'); coinAudio.volume=0.7; }catch(e){}
-function playCheerReal(){ if(!CHEER_ON) return; try{ if(cheerAudio){ cheerAudio.currentTime=0; cheerAudio.play().catch(()=>{}); } if(clapAudio) setTimeout(()=>{clapAudio.currentTime=0; clapAudio.play().catch(()=>{});},200); }catch(e){} }
-function playCoin(){ try{ if(coinAudio){ coinAudio.currentTime=0; coinAudio.play().catch(()=>{}); } }catch(e){} }
+}; if(FEMALE_VOICE) u.voice=FEMALE_VOICE; speechSynthesis.speak(u); }catch(e){} } }
 
-let heartTimer=null, timeLeft=5;
-let raiseCount=0;
+let heartTimer=null, timeLeft=5, raiseCount=0;
 const MAX_RAISES=2;
-
 function updateRaiseInfo(){
   let el=document.getElementById('raiseInfo');
   if(!el) return;
-  if(stage>=1){
-    el.style.display='block';
-    el.innerText=`RAISE ${raiseCount}/${MAX_RAISES}`;
-    el.style.background = raiseCount>=MAX_RAISES ? '#ff0000' : '#ff4444';
-  } else {
-    el.style.display='none';
-  }
+  if(stage>=1){ el.style.display='block'; el.innerText=`RAISE ${raiseCount}/${MAX_RAISES}`; }
+  else el.style.display='none';
   let btnRaise=document.getElementById('btnRaise');
-  if(btnRaise){
-    if(raiseCount>=MAX_RAISES){
-      btnRaise.disabled=true;
-      btnRaise.innerText='RAISE MAX';
-      btnRaise.style.opacity='0.3';
-    } else {
-      btnRaise.disabled=false;
-      btnRaise.innerText='RAISE';
-      btnRaise.style.opacity='1';
-    }
-  }
+  if(btnRaise){ btnRaise.disabled = raiseCount>=MAX_RAISES; btnRaise.innerText = raiseCount>=MAX_RAISES?'RAISE MAX':'RAISE'; }
 }
+function clearAllTimers(){ 
+  if(heartTimer){ 
+    clearInterval(heartTimer); 
+    heartTimer=null; 
+  } 
+  timeLeft=5;
+}
+function startHeartbeat(){ clearAllTimers(); timeLeft=5; heartTimer=setInterval(()=>{ timeLeft-=0.1; if(timeLeft<0) timeLeft=0; let bar=document.querySelector('.timerBar'); if(bar) bar.style.width=(timeLeft/5*100)+'%'; let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML=`⏱️ ${timeLeft.toFixed(1)}s`; let tEl=document.querySelector('.timerText'); if(tEl) tEl.innerText=`${timeLeft.toFixed(1)}s`; if(timeLeft<=0){ clearAllTimers(); if(turn===0) playerAct('fold'); } },100); }
+function startBotThinking(name){ clearAllTimers(); timeLeft=5; heartTimer=setInterval(()=>{ timeLeft-=0.1; if(timeLeft<0) timeLeft=0; let bar=document.querySelector('.timerBar'); if(bar) bar.style.width=(timeLeft/5*100)+'%'; let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML=`⏱️ ${name} ${timeLeft.toFixed(1)}s`; if(timeLeft<=0) clearAllTimers(); },100); }
+function stopHeartbeat(){ clearAllTimers(); let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML='⏱️ -'; }
+function showActionFX(n,a){ let fx=document.getElementById('actionFX'); let txt=document.getElementById('fxText'); if(!fx||!txt) return; txt.innerText=`${(n||'').toUpperCase()} ${(a||'').toUpperCase()}!`; fx.classList.remove('show'); void fx.offsetWidth; fx.classList.add('show'); setTimeout(()=>fx.classList.remove('show'),1000); }
 
-function startHeartbeat(){ try{ timeLeft=5; if(heartTimer) clearInterval(heartTimer); heartTimer=setInterval(()=>{ try{ timeLeft-=0.1; if(timeLeft<0) timeLeft=0; let pct=(timeLeft/5)*100; let bar=document.querySelector('.timerBar'); if(bar) bar.style.width=pct+'%'; let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML=`⏱️ ${timeLeft.toFixed(1)}s`; let tEl=document.querySelector('.timerText'); if(tEl) tEl.innerText=`${timeLeft.toFixed(1)}s`; if(timeLeft<=0){ clearInterval(heartTimer); if(turn===0) playerAct('fold'); } }catch(e){} },100); }catch(e){} }
-function startBotThinking(botName){ try{ timeLeft=5; if(heartTimer) clearInterval(heartTimer); heartTimer=setInterval(()=>{ try{ timeLeft-=0.1; if(timeLeft<0) timeLeft=0; let pct=(timeLeft/5)*100; let bar=document.querySelector('.timerBar'); if(bar) bar.style.width=pct+'%'; let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML=`⏱️ ${botName} thinking ${timeLeft.toFixed(1)}s`; let tEl=document.querySelector('.timerText'); if(tEl) tEl.innerText=`${timeLeft.toFixed(1)}s`; if(timeLeft<=0) clearInterval(heartTimer); }catch(e){} },100); }catch(e){} }
-function stopHeartbeat(){ try{ if(heartTimer) clearInterval(heartTimer); let tg=document.getElementById('timerGlobal'); if(tg) tg.innerHTML='⏱️ -'; }catch(e){} }
-function showActionFX(name,act){ try{ let fx=document.getElementById('actionFX'); let txt=document.getElementById('fxText'); if(!fx||!txt) return; txt.innerText=`${(name||'').toUpperCase()} ${(act||'').toUpperCase()}!`; txt.style.background=name===myName?'linear-gradient(90deg,#00ff88,#00ccff)':'linear-gradient(90deg,#a020f0,#ff00ff)'; fx.classList.remove('show'); void fx.offsetWidth; fx.classList.add('show'); setTimeout(()=>{ try{ fx.classList.remove('show'); }catch(e){} },1000); }catch(e){} }
-function createStackCoins(count){ try{ let stack=document.createElement('div'); stack.className='coinStack'; for(let i=0;i<count;i++){ let chip=document.createElement('div'); chip.className='coinChip'; chip.innerText=i==count-1?'$':''; stack.appendChild(chip); } return stack; }catch(e){ let d=document.createElement('div'); return d; } }
-function addBetCoins(playerIndex, amount){ try{ let layer=document.getElementById('coinLayer'); if(!layer) return; layer.querySelectorAll(`.bet-${playerIndex}`).forEach(e=>{ try{ e.remove(); }catch(e2){} }); let count=Math.min(8, Math.floor((amount||0)/20)+2); if(count<1) count=1; let positions=[{l:'50%',t:'72%'},{l:'20%',t:'38%'},{l:'80%',t:'38%'},{l:'20%',t:'66%'},{l:'80%',t:'66%'}]; let pos=positions[playerIndex]||{l:'50%',t:'50%'}; let stack=createStackCoins(count); stack.classList.add(`bet-${playerIndex}`); stack.style.left=pos.l; stack.style.top=pos.t; stack.style.transform='translate(-50%,-50%)'; layer.appendChild(stack); playCoin(); }catch(e){} }
-function addCoinsToPot(amount){ try{ let potStack=document.getElementById('potCoinStack'); if(!potStack) return; let count=Math.min(14, Math.floor((amount||0)/25)+3); if(count<1) count=1; potStack.innerHTML=''; let stack=createStackCoins(count); potStack.appendChild(stack); }catch(e){} }
 const SUITS=['♠','♥','♦','♣'], RANKS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 function makeDeck(){let d=[]; for(let s of SUITS) for(let r of RANKS) d.push({r,s,val:{'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14}[r]}); return d;}
 function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
-function eval5(cards){ if(!cards||cards.length<5) return {rank:0,name:'High Card'}; try{ let vals=cards.map(c=>c.val).sort((a,b)=>b-a); let suits=cards.map(c=>c.s); let isFlush=suits.every(s=>s===suits[0]); let uniq=[...new Set(vals)].sort((a,b)=>b-a); let isStraight=false; for(let i=0;i<=uniq.length-5;i++){if(uniq[i]-uniq[i+4]==4){isStraight=true;break;}} if(!isStraight&&uniq.includes(14)&&uniq.includes(5)&&uniq.includes(4)&&uniq.includes(3)&&uniq.includes(2)) isStraight=true; let counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1); let groups=Object.values(counts).sort((a,b)=>b-a); let rank=0; if(isStraight&&isFlush)rank=8; else if(groups[0]==4)rank=7; else if(groups[0]==3&&groups[1]==2)rank=6; else if(isFlush)rank=5; else if(isStraight)rank=4; else if(groups[0]==3)rank=3; else if(groups[0]==2&&groups[1]==2)rank=2; else if(groups[0]==2)rank=1; else rank=0; return{rank,name:['High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'][rank]} }catch(e){ return {rank:0,name:'High Card'}; } }
-function bestOf7(cards7){ if(!cards7||cards7.length<5) return {rank:0,name:'High Card'}; try{ let best={rank:0,name:'High Card'}; for(let i=0;i<cards7.length;i++)for(let j=i+1;j<cards7.length;j++)for(let k=j+1;k<cards7.length;k++)for(let l=k+1;l<cards7.length;l++)for(let m=l+1;m<cards7.length;m++){ let comb=[cards7[i],cards7[j],cards7[k],cards7[l],cards7[m]]; if(!comb||comb.some(c=>!c||!c.val)) continue; let e=eval5(comb); if(e.rank>best.rank) best=e; } return best; }catch(e){ return {rank:0,name:'High Card'}; } }
+function eval5(cards){ 
+  if(!cards||cards.length<5) return {rank:0,name:'High Card'};
+  try{
+    let vals=cards.map(c=>c&&c.val?c.val:0).filter(v=>v>0);
+    if(vals.length<5) return {rank:0,name:'High Card'};
+    vals.sort((a,b)=>b-a);
+    let suits=cards.map(c=>c.s);
+    let isFlush=suits.every(s=>s===suits[0]);
+    let uniq=[...new Set(vals)].sort((a,b)=>b-a);
+    let isStraight=false;
+    for(let i=0;i<=uniq.length-5;i++){if(uniq[i]-uniq[i+4]==4){isStraight=true;break;}}
+    if(!isStraight&&uniq.includes(14)&&uniq.includes(5)&&uniq.includes(4)&&uniq.includes(3)&&uniq.includes(2)) isStraight=true;
+    let counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
+    let groups=Object.values(counts).sort((a,b)=>b-a);
+    let rank=0;
+    if(isStraight&&isFlush)rank=8; else if(groups[0]==4)rank=7; else if(groups[0]==3&&groups[1]==2)rank=6; else if(isFlush)rank=5; else if(isStraight)rank=4; else if(groups[0]==3)rank=3; else if(groups[0]==2&&groups[1]==2)rank=2; else if(groups[0]==2)rank=1; else rank=0;
+    return{rank,name:['High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'][rank]}
+  }catch(e){ return {rank:0,name:'High Card'}; }
+}
+function bestOf7(cards7){ 
+  if(!cards7||cards7.length<5) return {rank:0,name:'High Card'};
+  try{
+    let best={rank:0,name:'High Card'};
+    for(let i=0;i<cards7.length;i++)for(let j=i+1;j<cards7.length;j++)for(let k=j+1;k<cards7.length;k++)for(let l=k+1;l<cards7.length;l++)for(let m=l+1;m<cards7.length;m++){
+      let comb=[cards7[i],cards7[j],cards7[k],cards7[l],cards7[m]];
+      if(!comb||comb.some(c=>!c||!c.val)) continue;
+      let e=eval5(comb);
+      if(e.rank>best.rank) best=e;
+    }
+    return best;
+  }catch(e){ return {rank:0,name:'High Card'}; }
+}
 let deck=[],community=[],players=[],pot=0,currentBet=0,dealer=0,turn=0,stage=0;
-function log(t){ try{ let el=document.getElementById('log'); if(el) el.innerText='> '+(t||''); }catch(e){} }
+function log(t){ let el=document.getElementById('log'); if(el) el.innerText='> '+(t||''); }
+
+function findNextValidPlayer(from){
+  let tries=0, next=(from+1)%5;
+  while(tries<10){
+    let p=players[next];
+    if(p && !p.empty && !p.fold && !p.allin) return next;
+    next=(next+1)%5;
+    tries++;
+  }
+  return -1;
+}
+
 function render(){
   try{
-    let potEl=document.getElementById('pot'); if(potEl) potEl.innerText=pot||0;
-    let stageEl=document.getElementById('stageTxt'); if(stageEl) stageEl.innerText=['PREFLOP','FLOP','TURN','RIVER'][stage]||'SHOW';
-    let commEl=document.getElementById('community'); if(commEl){ commEl.innerHTML=''; for(let i=0;i<5;i++){ let c=community[i]; if(!c){commEl.innerHTML+=`<div class="cardP" style="background:#0008;border:1px dashed #ffcc00;color:#666">?</div>`; continue;} commEl.innerHTML+=`<div class="cardP big ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}<span style="font-size:14px">${c.s}</span></div>`; } }
-    let pEl=document.getElementById('players'); if(!pEl) return; pEl.innerHTML='';
+    document.getElementById('pot').innerText=pot||0;
+    document.getElementById('stageTxt').innerText=['PREFLOP','FLOP','TURN','RIVER'][stage]||'SHOW';
+    let commEl=document.getElementById('community'); commEl.innerHTML='';
+    for(let i=0;i<5;i++){ let c=community[i]; if(!c){commEl.innerHTML+=`<div class="cardP" style="background:#0008;border:1px dashed #ffcc00;color:#666">?</div>`; continue;} commEl.innerHTML+=`<div class="cardP big ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}<span style="font-size:14px">${c.s}</span></div>`; }
+    
+    let pEl=document.getElementById('players'); pEl.innerHTML='';
     let winnerBoxEl = document.getElementById('winnerBox');
     let isShowdown = winnerBoxEl && winnerBoxEl.style.display === 'flex';
 
-    (players||[]).forEach((p,i)=>{
-      try{
-        if(!p||p.empty){ pEl.innerHTML+=`<div class="pSeat s4 empty"><div style="font-size:22px">🪑</div><b style="color:#666;font-size:9px">EMPTY</b></div>`; return; }
-        // === FIX UTAMA DI SINI ===
-        // Kartu lawan HANYA kebuka pas showdown (winnerBox muncul)
-        // Sebelum itu, semua tertutup kecuali punya kamu
-        let show = false;
-        if(p.isUser) show = true; // kartu kamu selalu kebuka
-        else if(isShowdown && !p.fold) show = true; // lawan kebuka HANYA pas showdown dan dia tidak fold
-        // kalau fold, tetap tertutup / tulisan FOLD
+    players.forEach((p,i)=>{
+      if(!p||p.empty){ 
+        if(i===4) pEl.innerHTML+=`<div class="pSeat s4 empty"><div style="font-size:22px">🪑</div><b style="color:#666;font-size:9px">EMPTY</b></div>`;
+        return;
+      }
+      let show = false;
+      if(p.isUser) show = true;
+      else if(isShowdown && !p.fold) show = true;
 
-        let cardsHtml=''; 
-        if(p.fold) cardsHtml='<small style="color:#ff4444;font-size:10px">FOLD</small>'; 
-        else if(show) cardsHtml=(p.hand||[]).map(c=>c?`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}${c.s}</div>`:'<div class="cardP">?</div>').join(''); 
-        else cardsHtml='<div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div><div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div>'; 
-        
-        let isTurn=i==turn&&!p.fold; let timerHtml=isTurn?`<div class="timerWrap"><div class="timerBar" style="width:100%"></div><div class="timerText">5.0s</div></div>`:'';
-        pEl.innerHTML+=`<div class="pSeat ${i==0?'you':`s${i}`} ${isTurn?'thinking':''} ${p.fold?'fold':''}"><div class="playerMain"><img class="avatar" src="${p.avatar||''}"><div class="playerCards">${cardsHtml}</div></div><div style="margin-top:3px;text-align:center"><b style="font-size:10px">${p.name||'Player'}</b>${p.id==dealer?'🎩':''}<br><span style="font-size:9px">💰$${p.chips||0} BET $${p.bet||0}</span></div>${timerHtml}</div>`;
-      }catch(e){}
+      let cardsHtml=''; 
+      if(p.fold) cardsHtml='<small style="color:#ff4444;font-size:10px">FOLD</small>'; 
+      else if(show) cardsHtml=(p.hand||[]).map(c=>c?`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}${c.s}</div>`:'<div class="cardP">?</div>').join(''); 
+      else cardsHtml='<div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div><div class="cardP" style="background:#222;color:#666;width:30px;height:44px">?</div>'; 
+      
+      let isTurn=i==turn&&!p.fold;
+      pEl.innerHTML+=`<div class="pSeat ${i==0?'you':`s${i}`} ${isTurn?'thinking':''} ${p.fold?'fold':''}"><div class="playerMain"><img class="avatar" src="${p.avatar||''}"><div class="playerCards">${cardsHtml}</div></div><div style="margin-top:3px;text-align:center"><b style="font-size:10px">${p.name||'Player'}</b>${p.id==dealer?'🎩':''}<br><span style="font-size:9px">💰$${p.chips||0} BET $${p.bet||0}</span></div>${isTurn?`<div class="timerWrap"><div class="timerBar" style="width:100%"></div><div class="timerText">5.0s</div></div>`:''}</div>`;
     });
-    let toCall=(currentBet||0) - (players[0]?.bet||0); let btnCall=document.getElementById('btnCall'); if(btnCall) btnCall.innerText=toCall<=0?'CHECK':`CALL $${toCall}`; let btnCheck=document.getElementById('btnCheck'); if(btnCheck) btnCheck.disabled=toCall>0; let isBotTurn=turn!=0; document.querySelectorAll('.controls .btn').forEach(b=>{ try{ if(b.id!=='btnRaise') b.disabled=isBotTurn; }catch(e){} });
+    
+    let toCall=(currentBet||0) - (players[0]?.bet||0);
+    document.getElementById('btnCall').innerText=toCall<=0?'CHECK':`CALL $${toCall}`;
+    document.getElementById('btnCheck').disabled=toCall>0;
+    let isBotTurn=turn!=0;
+    document.querySelectorAll('.controls .btn').forEach(b=>{ if(b.id!=='btnRaise') b.disabled=isBotTurn; });
     updateRaiseInfo();
-  }catch(e){}
+  }catch(e){ console.log('render error',e); }
 }
+
 let actedThisRound=[false,false,false,false,false];
 
-function getMaxOpponentCanCall(){
-  let max = 0;
-  (players||[]).forEach(p=>{
-    if(!p||p.empty||p.fold||p.id==0) return;
-    let can = (p.chips||0) + (p.bet||0);
-    if(can > max) max = can;
-  });
-  return max;
-}
-function handleUncalledBet(){
-  let maxCanCall = getMaxOpponentCanCall();
-  if(maxCanCall===0) return 0;
-  if(currentBet > maxCanCall){
-    let uncalled = currentBet - maxCanCall;
-    let me = players[0];
-    if(me){
-      me.chips += uncalled;
-      me.bet -= uncalled;
-      pot -= uncalled;
-      if(pot<0) pot=0;
-      currentBet = maxCanCall;
-      setChips(me.chips);
-      dealerSay(`Uncalled $${uncalled} returned!`,2500);
-      document.getElementById('sidePot').innerText=`Change: $${uncalled} returned`;
-      return uncalled;
-    }
-  }
-  return 0;
+function forceNewHand(){ 
+  clearAllTimers();
+  log('Force new hand...');
+  try{ newHand(); }catch(e){ location.reload(); }
 }
 
 function newHand(){
   try{
+    clearAllTimers();
     let chips=getChips();
-    if(chips<=0){ let m=document.getElementById('modalNoChip'); if(m) m.style.display='flex'; startCountdown(); return; }
-    document.getElementById('winnerBox').style.display='none'; document.getElementById('coinLayer').innerHTML=''; document.getElementById('potCoinStack').innerHTML=''; document.getElementById('sidePot').innerText=''; stopHeartbeat(); deck=makeDeck(); shuffle(deck); community=[]; pot=0; currentBet=0; stage=0; raiseCount=0; actedThisRound=[false,false,false,false,false];
+    if(chips<=0){ document.getElementById('modalNoChip').style.display='flex'; return; }
+    document.getElementById('winnerBox').style.display='none';
+    deck=makeDeck(); shuffle(deck); community=[]; pot=0; currentBet=0; stage=0; raiseCount=0; actedThisRound=[false,false,false,false,false];
     let shuffledPool=[...ENEMY_POOL].sort(()=>0.5-Math.random()); let chosen=shuffledPool.slice(0,3);
     players=[
       {id:0,name:myName,chips:getChips(),hand:[],bet:0,fold:false,allin:false,isUser:true,avatar:selectedAvatar,empty:false},
@@ -349,107 +389,271 @@ function newHand(){
       {id:3,name:chosen[2].name,chips:2500,hand:[],bet:0,fold:false,allin:false,isUser:false,avatar:chosen[2].img,empty:false},
       {id:4,name:'EMPTY',chips:0,hand:[],bet:0,fold:true,allin:false,isUser:false,avatar:'',empty:true}
     ];
-    for(let r=0;r<2;r++){ for(let p of players){ if(p&&!p.empty){ let card=deck.pop(); if(card) p.hand.push(card); } } }
-    let sb=(dealer+1)%5; while(players[sb]&&players[sb].empty) sb=(sb+1)%5;
-    let bb=(dealer+2)%5; while((players[bb]&&players[bb].empty) || bb==sb) bb=(bb+1)%5;
-    if(!players[sb]||!players[bb]){ setTimeout(()=>newHand(),300); return; }
-    players[sb].bet=20; players[sb].chips-=20; players[bb].bet=40; players[bb].chips-=40; pot=60; currentBet=40; actedThisRound[sb]=true; actedThisRound[bb]=true; addBetCoins(sb,20); addBetCoins(bb,40); addCoinsToPot(60);
-    turn=(dealer+3)%5; while(players[turn]&&(players[turn].empty||players[turn].fold)) turn=(turn+1)%5;
-    render(); log(`SB ${players[sb].name} $20, BB ${players[bb].name} $40 - ${players[turn]?.name||'Player'}'s turn`);
+    for(let r=0;r<2;r++){ for(let p of players){ if(p&&!p.empty){ let card=deck.pop(); p.hand.push(card); } } }
+    
+    // SAFE SB/BB FINDER
+    let sb=(dealer+1)%5; let tries=0; while(players[sb]&&players[sb].empty && tries<10){ sb=(sb+1)%5; tries++; }
+    let bb=(dealer+2)%5; tries=0; while(((players[bb]&&players[bb].empty) || bb==sb) && tries<10){ bb=(bb+1)%5; tries++; }
+    
+    players[sb].bet=20; players[sb].chips-=20;
+    players[bb].bet=40; players[bb].chips-=40;
+    pot=60; currentBet=40;
+    actedThisRound[sb]=true; actedThisRound[bb]=true;
+    
+    turn=(dealer+3)%5; tries=0; while(players[turn]&&(players[turn].empty||players[turn].fold) && tries<10){ turn=(turn+1)%5; tries++; }
+    
+    render();
+    log(`SB ${players[sb].name} $20, BB ${players[bb].name} $40`);
     if(turn==0) startHeartbeat(); else botTurn();
-  }catch(e){ console.log('newHand error',e); setTimeout(()=>newHand(),600); }
+  }catch(e){
+    console.log('newHand crash',e);
+    setTimeout(()=>{ try{ newHand(); }catch(e2){} },1000);
+  }
 }
+
 function advance(){
   try{
-    if(turn>=0&&turn<actedThisRound.length) actedThisRound[turn]=true;
-    let start=turn; let tries=0; do{ turn=(turn+1)%5; tries++; if(tries>10) break; }while(players[turn]&&(players[turn].empty||players[turn].fold||players[turn].allin));
-    let active=(players||[]).filter(p=>p&&!p.empty&&!p.fold&&!p.allin); let allActed=active.length===0||active.every(p=>actedThisRound[p.id]); let allMatched=active.length===0||active.every(p=>(p.bet||0)==(currentBet||0));
+    if(turn>=0&&turn<5) actedThisRound[turn]=true;
+    
+    let next = findNextValidPlayer(turn);
+    if(next===-1){
+      let active=players.filter(p=>p&&!p.empty&&!p.fold&&!p.allin);
+      let allActed=active.length===0||active.every(p=>actedThisRound[p.id]);
+      let allMatched=active.length===0||active.every(p=>(p.bet||0)==(currentBet||0));
+      if(allActed && allMatched){
+        stopHeartbeat();
+        setTimeout(()=>nextStage(),1200); // kasih jeda 1.2s biar gak nostop
+      } else {
+        // masih ada yang belum act, cari lagi
+        render();
+      }
+      return;
+    }
+    turn=next;
+    
+    let active=players.filter(p=>p&&!p.empty&&!p.fold&&!p.allin);
+    let allActed=active.length===0||active.every(p=>actedThisRound[p.id]);
+    let allMatched=active.length===0||active.every(p=>(p.bet||0)==(currentBet||0));
+    
     if(allActed && allMatched){
-      handleUncalledBet();
-      stopHeartbeat(); setTimeout(()=>{ try{ nextStage(); }catch(e){} },900);
-    } else { render(); if(turn==0) startHeartbeat(); else botTurn(); } render();
-  }catch(e){ console.log('advance error',e); }
+      stopHeartbeat();
+      setTimeout(()=>nextStage(),1200);
+    } else {
+      render();
+      if(turn==0) startHeartbeat(); else botTurn();
+    }
+  }catch(e){
+    console.log('advance crash',e);
+    stopHeartbeat();
+  }
 }
 function nextStage(){
   try{
-    (players||[]).forEach(p=>{if(p&&!p.empty&&p.bet>0){ addCoinsToPot(pot); } if(p) p.bet=0; });
-    try{ document.querySelectorAll('.coinStack.bet-0,.coinStack.bet-1,.coinStack.bet-2,.coinStack.bet-3').forEach(e=>{ if(e&&!e.closest('#potCoinStack')) e.remove(); }); }catch(e){}
-    currentBet=0; raiseCount=0; actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; });
-    document.getElementById('sidePot').innerText='';
-    if(stage==0){ let c1=deck.pop(), c2=deck.pop(), c3=deck.pop(); if(!c1||!c2||!c3){ showdown(); return; } community=[c1,c2,c3]; stage=1; dealerSay(`Flop! ${community.map(c=>c.r+c.s).join(' ')} - Max 2 raises!`,3000); }
-    else if(stage==1){ let c=deck.pop(); if(!c){ showdown(); return; } community.push(c); stage=2; dealerSay(`Turn: ${c.r}${c.s}! - Max 2 raises!`,2500); }
-    else if(stage==2){ let c=deck.pop(); if(!c){ showdown(); return; } community.push(c); stage=3; dealerSay(`River: ${c.r}${c.s}! Final round - Max 2 raises!`,3000); }
+    players.forEach(p=>{ if(p&&!p.empty) p.bet=0; });
+    currentBet=0; raiseCount=0;
+    actedThisRound=[false,false,false,false,false];
+    players.forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; });
+    
+    if(stage==0){ community=[deck.pop(),deck.pop(),deck.pop()]; stage=1; dealerSay(`Flop! ${community.map(c=>c.r+c.s).join(' ')}`,2500); }
+    else if(stage==1){ community.push(deck.pop()); stage=2; dealerSay(`Turn: ${community[3].r}${community[3].s}!`,2000); }
+    else if(stage==2){ community.push(deck.pop()); stage=3; dealerSay(`River: ${community[4].r}${community[4].s}!`,2500); }
     else {showdown();return;}
-    if((players||[]).filter(p=>p&&!p.empty&&!p.fold).length<=1){showdown();return;}
-    turn=(dealer+1)%5; while(players[turn]&&(players[turn].empty||players[turn].fold||players[turn].allin)) turn=(turn+1)%5;
-    render(); log(`-- ${['FLOP','TURN','RIVER'][stage-1]} -- ${players[turn]?.name||'Player'}'s turn! (Raise ${raiseCount}/${MAX_RAISES})`);
+    
+    if(players.filter(p=>p&&!p.empty&&!p.fold).length<=1){showdown();return;}
+    
+    let tries=0; turn=(dealer+1)%5;
+    while(players[turn]&&(players[turn].empty||players[turn].fold||players[turn].allin) && tries<10){ turn=(turn+1)%5; tries++; }
+    
+    render();
     if(turn==0) startHeartbeat(); else botTurn();
-  }catch(e){ console.log('nextStage error',e); try{ showdown(); }catch(e2){} }
+  }catch(e){
+    console.log('nextStage crash',e);
+    showdown();
+  }
 }
+
 function playerAct(act){
   try{
-    let me=players[0]; if(!me||me.fold||me.allin||turn!=0) return; stopHeartbeat();
+    let me=players[0]; if(!me||me.fold||me.allin||turn!=0) return;
+    stopHeartbeat();
     let toCall=(currentBet||0)-(me.bet||0); let pay=0;
-    if(act=='fold'){me.fold=true; log(`${me.name} FOLDS`); showActionFX(me.name,'fold');}
-    else if(act=='check'){if(toCall>0) return; log(`${me.name} CHECKS`); showActionFX(me.name,'check');}
-    else if(act=='call'){pay=Math.min(toCall,me.chips||0); me.chips-=pay; me.bet=(me.bet||0)+pay; pot+=pay; if(me.chips<=0) me.allin=true; log(`${me.name} CALLS $${pay}`); showActionFX(me.name, me.allin?'allin':'call'); addBetCoins(0,pay); addCoinsToPot(pot);}
+    if(act=='fold'){me.fold=true; showActionFX(me.name,'fold');}
+    else if(act=='check'){if(toCall>0) return; showActionFX(me.name,'check');}
+    else if(act=='call'){pay=Math.min(toCall,me.chips||0); me.chips-=pay; me.bet=(me.bet||0)+pay; pot+=pay; if(me.chips<=0) me.allin=true; showActionFX(me.name, me.allin?'allin':'call');}
     else if(act=='raise'){
-      if(raiseCount>=MAX_RAISES){ dealerSay(`Max ${MAX_RAISES} raises reached! You can only call or fold!`,2500); log(`Max raises (${MAX_RAISES}) reached - cannot raise!`); return; }
+      if(raiseCount>=MAX_RAISES){ dealerSay(`Max ${MAX_RAISES} raises!`,2000); return; }
       let rv=parseInt(document.getElementById('raiseSlider')?.value||'120'); let tot=toCall+rv; if(tot>(me.chips||0)) tot=me.chips||0; pay=tot; me.chips-=tot; me.bet=(me.bet||0)+tot; pot+=tot; currentBet=me.bet; if(me.chips<=0) me.allin=true;
-      raiseCount++;
-      log(`${me.name} RAISES to $${me.bet} [${raiseCount}/${MAX_RAISES}]`); showActionFX(me.name, me.allin?'allin':'raise'); addBetCoins(0,tot); addCoinsToPot(pot);
-      actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[0]=true;
-      handleUncalledBet();
+      raiseCount++; actedThisRound=[false,false,false,false,false]; players.forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[0]=true;
     }
     else if(act=='allin'){
-      pay=me.chips||0; let prevBet = me.bet||0; me.chips=0; me.bet=prevBet+pay; pot+=pay; if(me.bet>(currentBet||0)) currentBet=me.bet; me.allin=true;
-      if(me.bet>(currentBet||0) || pay>toCall) raiseCount++;
-      log(`${me.name} ALL-IN $${pay}!!!`); showActionFX(me.name,'allin'); addBetCoins(0,pay); addCoinsToPot(pot);
-      actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[0]=true;
-      let maxCanCall = getMaxOpponentCanCall();
-      if(maxCanCall>0 && me.bet > maxCanCall){ let uncalled = me.bet - maxCanCall; me.chips += uncalled; me.bet = maxCanCall; pot -= uncalled; currentBet = maxCanCall; dealerSay(`All-in too big! $${uncalled} returned!`,3000); }
+      pay=me.chips||0; me.chips=0; me.bet=(me.bet||0)+pay; pot+=pay; if(me.bet>(currentBet||0)) currentBet=me.bet; me.allin=true;
+      actedThisRound=[false,false,false,false,false]; players.forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[0]=true;
     }
-    setChips(me.chips); advance();
-  }catch(e){ console.log('playerAct error',e); }
+    setChips(me.chips);
+    advance();
+  }catch(e){ console.log('playerAct crash',e); advance(); }
 }
+
 function botTurn(){
   try{
-    if(turn==0||!players[turn]||players[turn].empty||players[turn].fold||players[turn].allin) return;
-    let bot=players[turn]; let botName=bot.name||'Bot'; startBotThinking(botName); render();
+    // Jika bukan giliran bot, jangan langsung advance, kasih jeda biar gak nostop
+    if(turn==0 || !players[turn] || players[turn].empty || players[turn].fold || players[turn].allin){
+      clearAllTimers();
+      setTimeout(()=>advance(), 600);
+      return;
+    }
+
+    let bot = players[turn];
+    if(!bot.hand || bot.hand.length < 2){
+      // kartu belum ada, skip
+      setTimeout(()=>advance(), 600);
+      return;
+    }
+
+    startBotThinking(bot.name);
+    render();
+
     setTimeout(()=>{
       try{
-        clearInterval(heartTimer);
-        let toCall=(currentBet||0)-(bot.bet||0); let best=community.length>=3?bestOf7([...bot.hand,...community]):eval5(bot.hand); let pay=0;
-        let canRaise = raiseCount < MAX_RAISES;
-        if(best.rank<=1 && toCall>80 && Math.random()<0.6){bot.fold=true; log(`${bot.name} FOLDS [${best.name}]`); showActionFX(bot.name,'fold');}
-        else if(best.rank>=2 && canRaise){
-          let raise=60+Math.floor(Math.random()*200); let tot=toCall+raise; if(tot>(bot.chips||0)) tot=bot.chips||0; pay=tot; bot.chips-=tot; bot.bet=(bot.bet||0)+tot; pot+=tot;
-          if(bot.bet>(currentBet||0)){ currentBet=bot.bet; raiseCount++; actedThisRound=[false,false,false,false,false]; (players||[]).forEach(p=>{ if(p&&(p.empty||p.fold||p.allin)) actedThisRound[p.id]=true; }); actedThisRound[bot.id]=true; }
-          if(bot.chips<=0) bot.allin=true; log(`${bot.name} RAISES $${tot} [${best.name}] [${raiseCount}/${MAX_RAISES}]`); showActionFX(bot.name, bot.allin?'allin':'raise'); addBetCoins(turn,tot); addCoinsToPot(pot);
-        } else {
-          pay=Math.min(toCall,bot.chips||0); bot.chips-=pay; bot.bet=(bot.bet||0)+pay; pot+=pay; if(bot.chips<=0) bot.allin=true;
-          log(`${bot.name} ${toCall==0?'CHECKS':'CALLS $'+pay} [${best.name}] ${!canRaise?'[MAX RAISE]':''}`); showActionFX(bot.name, toCall==0?'check':(bot.allin?'allin':'call')); if(pay>0){ addBetCoins(turn,pay); addCoinsToPot(pot); }
+        clearAllTimers(); // penting: matikan timer dulu biar gak numpuk
+
+        let toCall = (currentBet||0) - (bot.bet||0);
+        if(toCall < 0) toCall = 0;
+
+        let best = {rank:0, name:'High Card'};
+        try{
+          if(community.length >= 3){
+            best = bestOf7([...bot.hand, ...community]);
+          } else {
+            // preflop: nilai dari 2 kartu aja, jangan pakai bestOf7 (itu yang bikin crash)
+            let v1 = bot.hand[0]?.val || 0;
+            let v2 = bot.hand[1]?.val || 0;
+            if(v1 === v2) best = {rank:1, name:'Pair'};
+            else if(v1 >= 11 || v2 >= 11) best = {rank:0, name:'High Card'};
+            else best = {rank:0, name:'High Card'};
+          }
+        }catch(e){
+          best = {rank:0, name:'High Card'};
         }
-        handleUncalledBet();
-        advance();
-      }catch(e){ console.log('botTurn inner error',e); try{ players[turn].fold=true; advance(); }catch(e2){} }
-    },5000);
-  }catch(e){ console.log('botTurn error',e); }
+
+        let canRaise = raiseCount < MAX_RAISES;
+
+        // Logic lebih natural, gak asal raise terus
+        if(best.rank <= 0 && toCall > 100 && Math.random() < 0.65){
+          // kartu jelek + bet besar = fold
+          bot.fold = true;
+          log(`${bot.name} FOLDS`);
+          showActionFX(bot.name,'fold');
+        }
+        else if(best.rank >= 2 && canRaise && Math.random() < 0.5){
+          // kartu bagus baru raise
+          let raise = 60 + Math.floor(Math.random()*120);
+          let tot = toCall + raise;
+          if(tot > (bot.chips||0)) tot = bot.chips||0;
+          if(tot <= 0){
+            log(`${bot.name} CHECKS`);
+            showActionFX(bot.name,'check');
+          } else {
+            bot.chips -= tot;
+            bot.bet = (bot.bet||0) + tot;
+            pot += tot;
+            if(bot.bet > (currentBet||0)){
+              currentBet = bot.bet;
+              raiseCount++;
+              // reset acted karena ada raise baru
+              actedThisRound = [false,false,false,false,false];
+              players.forEach(p=>{
+                if(p && (p.empty || p.fold || p.allin)) actedThisRound[p.id]=true;
+              });
+              actedThisRound[bot.id]=true;
+            }
+            if(bot.chips <= 0) bot.allin = true;
+            log(`${bot.name} RAISES $${tot} [${best.name}]`);
+            showActionFX(bot.name,'raise');
+          }
+        } else {
+          // call / check
+          let pay = Math.min(toCall, bot.chips||0);
+          bot.chips -= pay;
+          bot.bet = (bot.bet||0) + pay;
+          pot += pay;
+          if(bot.chips <= 0) bot.allin = true;
+          log(`${bot.name} ${toCall==0?'CHECKS':'CALLS $'+pay} [${best.name}]`);
+          showActionFX(bot.name, toCall==0?'check':'call');
+        }
+
+        // lanjut ke player berikutnya
+        setTimeout(()=>advance(), 400);
+
+      }catch(e){
+        console.log('bot inner crash', e);
+        clearAllTimers();
+        try{
+          // kalau crash, jangan langsung fold biar gak nostop, tapi check aja
+          if(players[turn]) players[turn].bet = players[turn].bet || 0;
+          setTimeout(()=>advance(), 600);
+        }catch(e2){
+          setTimeout(()=>advance(), 600);
+        }
+      }
+    }, 5000); // 5 detik biar keliatan mikir, gak nostop
+
+  }catch(e){
+    console.log('botTurn crash', e);
+    clearAllTimers();
+    setTimeout(()=>advance(), 800);
+  }
 }
+
 function showdown(){
+    clearAllTimers();
   try{
-    stopHeartbeat(); let alive=(players||[]).filter(p=>p&&!p.empty&&!p.fold); if(alive.length==0){ newHand(); return; }
-    handleUncalledBet();
-    let results=alive.map(p=>({ ...p, best:bestOf7([...(p.hand||[]),...community])})).sort((a,b)=>(b.best.rank||0)-(a.best.rank||0)); let top=results[0]; let winners=results.filter(r=>(r.best.rank||0)===(top.best.rank||0));
-    let showDiv=document.getElementById('showAllCards'); if(showDiv){ showDiv.innerHTML=''; results.forEach(r=>{ try{ let div=document.createElement('div'); div.style.cssText='background:rgba(0,0,0,.6);border-radius:8px;padding:4px;display:flex;gap:2px;align-items:center;border:1px solid '+(winners.some(w=>w.id==r.id)?'#00ff88':'#a020f0'); let cards=(r.hand||[]).map(c=>`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}" style="width:28px;height:40px;font-size:10px">${c.r}${c.s}</div>`).join(''); div.innerHTML=`<img src="${r.avatar||''}" style="width:22px;height:22px;border-radius:50%;border:1px solid #fff"> <b style="font-size:9px">${r.name||'Player'}</b> <div style="display:flex;gap:2px">${cards}</div> <small style="font-size:8px;color:#ffcc00">${r.best.name||''}</small> ${winners.some(w=>w.id==r.id)?'🏆':''}`; showDiv.appendChild(div); }catch(e){} }); }
-    let share=Math.floor((pot||0)/(winners.length||1)); winners.forEach(w=>{ try{ if(w.id==0){ setChips(getChips()+share); } else { let pp=(players||[]).find(x=>x&&x.id==w.id); if(pp) pp.chips+=share; } }catch(e){} });
-    if(winners.some(w=>w.id==0)){ playCheerReal(); dealerSay(`Wow! ${myName} wins $${share}!`,4000); let wt=document.getElementById('winText'); if(wt) wt.innerText=`🏆 ${myName} WINS $${share}!`; let wh=document.getElementById('winHand'); if(wh) wh.innerHTML=`${top.best.name}`; }
-    else { let wt=document.getElementById('winText'); if(wt) wt.innerText=`😤 ${winners.map(w=>w.name).join(' & ')} WINS $${pot}`; let wh=document.getElementById('winHand'); if(wh) wh.innerHTML=`${top.best.name}`; dealerSay(`${winners[0]?.name||'Player'} wins $${pot}!`,3000); }
-    let wb=document.getElementById('winnerBox'); if(wb) wb.style.display='flex'; dealer=(dealer+1)%5; incHandCount(); render();
-    let count=6; let interval=setInterval(()=>{ try{ count-=1; let ni=document.getElementById('nextInfo'); if(ni) ni.innerText=`Next hand in ${count}s`; if(count<=0){ clearInterval(interval); newHand(); } }catch(e){ clearInterval(interval); } },1000);
-  }catch(e){ console.log('showdown error',e); setTimeout(()=>{ try{ newHand(); }catch(e2){} },1000); }
+    clearAllTimers();
+    let alive=players.filter(p=>p&&!p.empty&&!p.fold);
+    if(alive.length==0){ newHand(); return; }
+    if(alive.length==1){
+      let w=alive[0];
+      if(w.id==0) setChips(getChips()+pot);
+      else w.chips+=pot;
+      document.getElementById('winText').innerText=`🏆 ${w.name} WINS $${pot} (others fold)`;
+      document.getElementById('winHand').innerText='';
+      document.getElementById('showAllCards').innerHTML='';
+      document.getElementById('winnerBox').style.display='flex';
+      dealer=(dealer+1)%5; incHandCount(); render();
+      setTimeout(()=>newHand(),3000);
+      return;
+    }
+    
+    let results=alive.map(p=>{ let best={rank:0,name:'High Card'}; try{ best=bestOf7([...(p.hand||[]),...community]); }catch(e){} return {...p,best}; }).sort((a,b)=>(b.best.rank||0)-(a.best.rank||0));
+    let top=results[0]; let winners=results.filter(r=>(r.best.rank||0)===(top.best.rank||0));
+    let share=Math.floor((pot||0)/(winners.length||1));
+    winners.forEach(w=>{ if(w.id==0) setChips(getChips()+share); else { let pp=players.find(x=>x&&x.id==w.id); if(pp) pp.chips+=share; } });
+    
+    let showDiv=document.getElementById('showAllCards'); showDiv.innerHTML='';
+    results.forEach(r=>{
+      let div=document.createElement('div');
+      div.style.cssText='background:rgba(0,0,0,.6);border-radius:8px;padding:4px;display:flex;gap:2px;align-items:center;border:1px solid '+(winners.some(w=>w.id==r.id)?'#00ff88':'#a020f0');
+      let cards=(r.hand||[]).map(c=>`<div class="cardP ${c.s=='♥'||c.s=='♦'?'red':''}" style="width:28px;height:40px;font-size:10px">${c.r}${c.s}</div>`).join('');
+      div.innerHTML=`<img src="${r.avatar||''}" style="width:22px;height:22px;border-radius:50%"> <b style="font-size:9px">${r.name}</b> <div style="display:flex;gap:2px">${cards}</div> <small style="font-size:8px;color:#ffcc00">${r.best.name}</small> ${winners.some(w=>w.id==r.id)?'🏆':''}`;
+      showDiv.appendChild(div);
+    });
+    
+    document.getElementById('winText').innerText=`🏆 ${winners.map(w=>w.name).join(' & ')} WINS $${pot}`;
+    document.getElementById('winHand').innerText=`${top.best.name}`;
+    document.getElementById('winnerBox').style.display='flex';
+    dealer=(dealer+1)%5; incHandCount(); render();
+    
+    let count=5;
+    let interval=setInterval(()=>{
+      count--; document.getElementById('nextInfo').innerText=`Next hand in ${count}s`;
+      if(count<=0){ clearInterval(interval); newHand(); }
+    },1000);
+  }catch(e){
+    console.log('showdown crash',e);
+    setTimeout(()=>newHand(),1000);
+  }
 }
-let slider=document.getElementById('raiseSlider'); if(slider) slider.oninput=e=>{ let rv=document.getElementById('raiseVal'); if(rv) rv.innerText='$'+e.target.value; };
+let slider=document.getElementById('raiseSlider'); if(slider) slider.oninput=e=>{ document.getElementById('raiseVal').innerText='$'+e.target.value; };
 </script>
 </body>
 </html>
