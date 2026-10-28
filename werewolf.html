@@ -745,8 +745,18 @@ async function startNight(){
 
  // === JIKA BOT YANG JADI WOLF - OTOMATIS ===
  await new Promise(r=>setTimeout(r,1500));
- let cand=alive.filter(a=>a!==wolfIdx&&players[a].alive); 
- let tgt=cand.filter(a=>a!==protectedIdx)[0]||cand[0]; 
+ let cand=alive.filter(a=>a!==wolfIdx && players[a].alive && a!==protectedIdx);
+if(cand.length==0) return;
+
+// 20% chance kamu kebunuh, 80% bot lain
+let tgt;
+if(Math.random() < 0.2 && cand.includes(playerIdx)){
+  tgt = playerIdx; // kamu apes 20%
+} else {
+  let others = cand.filter(a=>a!==playerIdx);
+  tgt = others.length>0 ? others[Math.floor(Math.random()*others.length)] : playerIdx;
+}
+await wolfKill(tgt);
  if(tgt!==undefined) await wolfKill(tgt);
 }
 
