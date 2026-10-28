@@ -744,21 +744,28 @@ async function startNight(){
  }
 
  // === JIKA BOT YANG JADI WOLF - OTOMATIS ===
- await new Promise(r=>setTimeout(r,1500));
- let cand=alive.filter(a=>a!==wolfIdx && players[a].alive && a!==protectedIdx);
-if(cand.length==0) return;
+await new Promise(r=>setTimeout(r,1500));
+ let cand=alive.filter(a=>a!==wolfIdx&&players[a].alive); 
+ // FIX: chance kamu dibunuh cuma 20%
+ let available=cand.filter(a=>a!==protectedIdx);
+ let pool=available.length>0 ? available : cand;
+ 
+ let tgt;
+ // Kalau ada kamu di list, cuma 20% wolf pilih kamu
+ if(pool.includes(playerIdx)){
+   if(Math.random() < 0.2){
+     tgt = playerIdx; // 20% kena kamu
+   } else {
+     // 80% pilih orang lain
+     let others = pool.filter(a=>a!==playerIdx);
+     tgt = others.length>0 ? others[Math.floor(Math.random()*others.length)] : pool[Math.floor(Math.random()*pool.length)];
+   }
+ } else {
+   // Kamu ga ada di pool (ke protect), random aja
+   tgt = pool[Math.floor(Math.random()*pool.length)];
+ }
 
-// 20% chance kamu kebunuh, 80% bot lain
-let tgt;
-if(Math.random() < 0.2 && cand.includes(playerIdx)){
-  tgt = playerIdx; // kamu apes 20%
-} else {
-  let others = cand.filter(a=>a!==playerIdx);
-  tgt = others.length>0 ? others[Math.floor(Math.random()*others.length)] : playerIdx;
-}
-await wolfKill(tgt);
- if(tgt!==undefined) await wolfKill(tgt);
-}
+ if(tgt!==undefined) await wolfKill(tgt); }
 
 async function wolfKill(targetIdx){
  let wolfIdx=players.findIndex(p=>p.role=='wolf'&&p.alive);
@@ -789,4 +796,4 @@ async function wolfKill(targetIdx){
 function startNextMorning(){ renderChairs(); setDayNight(true); startDebate(); }
 </script>
 </body>
-</html>
+</html> 
