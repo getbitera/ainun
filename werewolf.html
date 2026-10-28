@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY AINUN WEREWOLF - ENGLISH FIXED</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box} body{background:#0a0a14;color:#fff;font-family:Arial;overflow:hidden}
+#wrap{max-width:500px;margin:0 auto;height:100vh;position:relative;background:#0a0a14;display:flex;flex-direction:column}
+#top{padding:8px 12px;display:flex;justify-content:space-between;background:rgba(0,0,0,.7);font-size:11px;font-weight:900;z-index:10}
+#dayNightWindow{position:absolute;top:40px;left:50%;transform:translateX(-50%);background:linear-gradient(#1a1a2e,#000);border:2px solid #444;border-radius:16px;padding:8px 18px;text-align:center;z-index:20;min-width:200px}
+#dayNightWindow.day{border-color:#ffcc00;box-shadow:0 0 20px #ffcc00} #dayNightWindow.night{border-color:#5555ff;box-shadow:0 0 20px #5555ff}
+#timerBox{position:absolute;top:98px;left:50%;transform:translateX(-50%);background:#000;border:1px solid #ffcc00;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:900;z-index:21}
+#timerBox.warn{background:#ff2222}
+#timerBar{height:4px;background:#222;width:100%} #timerFill{height:100%;background:linear-gradient(90deg,#00ff88,#ffcc00);width:100%}
+#table{flex:1;position:relative;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0a0a14 70%);margin-top:20px}
+.chair{position:absolute;width:88px;text-align:center;transition:.3s}
+.chair .av{width:56px;height:56px;border-radius:50%;background:#222;border:3px solid #444;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto;position:relative}
+.chair.speaking .av{border-color:#00ff88;box-shadow:0 0 15px #00ff88;transform:scale(1.07)}
+.chair.dead{opacity:.25;filter:grayscale(1)} .chair.dead::after{content:'💀 DEAD';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900;color:red}
+.chair.protected .av{border-color:#00ffff;box-shadow:0 0 18px #00ffff;animation:glow 1s infinite}
+@keyframes glow{0%{box-shadow:0 0 10px #00ffff}50%{box-shadow:0 0 20px #00ffff}100%{box-shadow:0 0 10px #00ffff}}
+.chair.muted .av{border-color:#aa55ff} .chair.muted .av::after{content:'🔇';position:absolute;bottom:-4px;right:-4px;background:#aa55ff;border-radius:50%;width:20px;height:20px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.name{font-size:9px;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .job{font-size:7px;color:#aaa}
+.bubble{position:absolute;left:66px;top:-8px;background:#fff;color:#000;padding:7px 11px;border-radius:14px;border-bottom-left-radius:2px;font-size:11px;max-width:190px;z-index:15;box-shadow:0 4px 12px rgba(0,0,0,.6);display:none;word-wrap:break-word}
+#b0{left:50%;top:8%;transform:translateX(-50%)} #b1{right:4%;top:30%} #b2{right:10%;bottom:18%} #b3{left:10%;bottom:18%} #b4{left:4%;top:30%}
+#log{height:80px;background:#000;padding:6px;overflow-y:auto;font-size:10px;border-top:1px solid #222}
+.msg{margin:2px 0} .msg.me{color:#00ff88} .msg.wolf{color:#ff5555} .msg.system{color:#ffcc00;font-weight:900}
+#action{padding:8px;background:#151525;display:flex;flex-direction:column;gap:6px;min-height:125px}
+#quickBtns{display:flex;gap:5px;flex-wrap:wrap}
+#chatBox{display:flex;gap:6px}
+#chatInput{flex:1;background:#222;color:#fff;border:1px solid #444;padding:10px 14px;border-radius:20px;font-size:13px;outline:none}
+#chatInput:disabled{background:#111;color:#666}
+.btn{padding:8px 11px;border:none;border-radius:20px;font-weight:900;font-size:11px;cursor:pointer} .btn-primary{background:#fff;color:#000} .btn-wolf{background:#ff2222;color:#fff} .btn-mute{background:#aa55ff;color:#fff} .btn-protect{background:#00ffff;color:#000} .btn-send{background:#00ff88;color:#000;padding:10px 16px;border-radius:20px}
+.btn:disabled{opacity:.4;pointer-events:none}
+#welcomeScreen{position:absolute;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0}
+#welcomeScreen .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.2), rgba(0,0,0,.85));}
+#welcomeScreen .content{position:relative;z-index:2;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;height:100%;justify-content:flex-end;padding-bottom:40px}
+.btn-enter{background:linear-gradient(90deg,#ffcc00,#ff9900);color:#000;font-size:16px;padding:14px 36px;border-radius:30px;font-weight:900;box-shadow:0 0 20px #ffcc00;animation: pulse 1.5s infinite;border:none;cursor:pointer}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+#setup{position:absolute;inset:0;background:#0f0f1a;z-index:50;padding:14px;overflow-y:auto;display:none}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:8px 0}
+.avPick{width:100%;aspect-ratio:1;background:#222;border:2px solid transparent;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer}
+.avPick.sel{border-color:#00ff88;background:#1a3a2a}
+#card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(#222,#111);border:2px solid #444;border-radius:20px;padding:18px;text-align:center;z-index:40;width:84%;transition:.4s}
+#card.show{transform:translate(-50%,-50%) scale(1)}
+#announce{position:absolute;inset:0;background:rgba(0,0,0,.96);z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center}
+#announce.show{display:flex}
+select,input{background:#222;color:#fff;border:1px solid #444;padding:8px;border-radius:10px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="top"><div>DAY <span id="day">1</span>/2 | ALIVE <span id="aliveC">5</span></div><div><button id="voiceToggle" onclick="toggleVoice()" style="background:#333;color:#fff;border:none;padding:4px 8px;border-radius:10px;font-size:10px">🔊 ON</button> <span id="phaseLabel">MORNING</span></div></div>
+<div id="timerBar"><div id="timerFill"></div></div>
+<div id="dayNightWindow" class="day"><h2 id="dnIcon">☀️ MORNING 1</h2><p id="dnDesc">30s debate</p></div>
+<div id="timerBox">⏱️ <span id="timerText">30s</span> left</div>
+<div id="table">
+<div class="chair" id="b0"><div class="av"></div><div class="name"></div><div class="job"></div><div class="bubble"></div></div>
+<div class="chair" id="b1"><div class="av"></div><div class="name"></div><div class="job"></div><div class="bubble"></div></div>
+<div class="chair" id="b2"><div class="av"></div><div class="name"></div><div class="job"></div><div class="bubble"></div></div>
+<div class="chair" id="b3"><div class="av"></div><div class="name"></div><div class="job"></div><div class="bubble"></div></div>
+<div class="chair" id="b4"><div class="av"></div><div class="name"></div><div class="job"></div><div class="bubble"></div></div>
+</div>
+<div id="log"></div>
+<div id="action"><div id="quickBtns"></div><div id="chatBox"><input id="chatInput" placeholder="Type accusation..." onkeydown="if(event.key==='Enter') sendChat()"><button class="btn-send" onclick="sendChat()">SEND ➤</button></div></div>
+<div id="announce"><div id="annIcon" style="font-size:64px"></div><h2 id="annTitle" style="margin-top:8px"></h2><p id="annDesc" style="font-size:12px;color:#ccc;margin:12px 0;line-height:1.5;white-space:pre-line"></p><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn btn-primary" id="annBtn" onclick="closeAnnounce()">CONTINUE</button><button class="btn" id="playAgainBtn" style="display:none;background:#00ff88;color:#000" onclick="resetGame()">PLAY AGAIN? 🔄</button></div></div>
+<div id="welcomeScreen"><div class="overlay"></div><div class="content"><h2 style="color:#ffcc00">WELCOME TO MY AINUN WEREWOLF</h2><button class="btn-enter" onclick="enterGame()">🎮 ENTER GAME</button></div></div>
+<div id="setup">
+<h2 style="text-align:center">🐺 MY AINUN WEREWOLF</h2>
+<p style="font-size:11px;color:#aaa;text-align:center;margin:6px 0">All alive must vote! Muted can vote but cannot chat. Bodyguard can self-protect & self-vote.</p>
+<label style="font-size:11px">Your Name</label><input id="inpName" placeholder="Ainun" style="width:100%;margin:4px 0">
+<label style="font-size:11px">Your Job</label><select id="inpJob" style="width:100%;margin:4px 0"></select>
+<label style="font-size:11px">Avatar</label><div class="grid" id="avGrid"></div>
+<button class="btn btn-primary" style="width:100%;padding:12px" onclick="startGame()">DEAL CARDS 🃏</button>
+</div>
+<div id="card"><div id="cardIcon" style="font-size:48px"></div><h2 id="cardRole"></h2><p id="cardDesc" style="font-size:12px;color:#aaa;margin:8px 0"></p><div id="cardExtra" style="font-size:11px;background:rgba(255,255,0,.1);border:1px solid #ffcc00;padding:8px;border-radius:10px;margin:8px 0;display:none"></div><button class="btn btn-primary" onclick="closeCard()">GOT IT!</button></div>
+</div>
+<script>
+const NAMES=["Alex","Sophia","James","Emma","Michael","Olivia","David","Ava","Daniel","Isabella","Matthew","Mia","Andrew","Charlotte","Joshua","Amelia","Ryan","Harper","John","Luna","Chris","Evelyn","Brian","Grace","Kevin","Chloe","Thomas","Lily","Robert","Zoe"];
+const JOBS=["Doctor","Police Officer","Teacher","Farmer","Programmer","Chef","Bus Driver","Merchant","Mechanic","Nurse","Security Guard","Pilot","Fisherman","Carpenter","Barista","Soldier","Singer","Rancher","Electrician","Writer","Architect","Midwife","Motorcycle Taxi Driver","Librarian","Tailor","Youtuber","Athlete","Builder","Cashier","Artist"];
+const AVATARS=["👨‍🌾","👩‍⚕️","👨‍✈️","🧑‍🍳","👩‍🏫","👨‍💻","👩‍🎤","👨‍🔧","👮‍♂️","👩‍🌾","🧕","👳‍♂️","👲","👩‍🦰","👨‍🦱","🧔‍♂️","👩‍🦳","👱‍♀️","👨‍🦲","🧑‍🦱","👨‍🎨","👩‍🔧","🧑‍🚀","👩‍✈️","👨‍⚕️","🧑‍🏫","👩‍💻","👨‍🌾","👩‍🍳","🧑‍🎤"];
+const ROLES=[
+ {id:'wolf',name:'🐺 WEREWOLF',icon:'🐺',desc:'You are the Wolf! You must vote like everyone else to hide. Kill 2 villagers to win.'},
+ {id:'seer',name:'🔮 SEER',icon:'🔮',desc:'You know who the Wolf is. Guide villagers without revealing yourself!'},
+ {id:'villager',name:'🧑 VILLAGER',icon:'🧑',desc:'Normal villager. Find the wolf!'},
+ {id:'bodyguard',name:'🛡️ BODYGUARD',icon:'🛡️',desc:'You can protect 1 person INCLUDING YOURSELF. If protected gets most votes, he survives! You can also VOTE YOURSELF to protect yourself!'},
+ {id:'muter',name:'🤐 SILENCER',icon:'🤐',desc:'You can mute 1 person. Muted cannot chat BUT CAN STILL VOTE!'},
+];
+const SUSPICION_BY_JOB={
+ "Doctor":a=>`Wait ${a.name} the ${a.job} - diagnosing everyone as wolf is suspicious!`,
+ "Police Officer":a=>`${a.name} as ${a.job} acts like he owns the investigation!`,
+ "Teacher":a=>`${a.name} the Teacher logic is messy!`,
+ "Farmer":a=>`${a.name} the Farmer never talks about farming! Wolf behavior!`,
+ "Programmer":a=>`${a.name} the Programmer has a bug - maybe he is wolf!`,
+ "Chef":a=>`${a.name} the Chef is cooking accusations!`,
+ "Bus Driver":a=>`${a.name} the Driver is driving the topic away!`,
+ "Merchant":a=>`${a.name} the Merchant sells accusations cheap!`,
+ "Mechanic":a=>`${a.name} the Mechanic story needs fixing!`,
+ "Nurse":a=>`${a.name} the Nurse injects suspicion!`,
+ "Security Guard":a=>`${a.name} the Guard is guarding himself!`,
+ "Pilot":a=>`${a.name} the Pilot is flying too high!`,
+ "Fisherman":a=>`${a.name} the Fisherman is casting accusations randomly!`,
+ "Carpenter":a=>`${a.name} the Carpenter alibi is not nailed!`,
+ "Barista":a=>`${a.name} the Barista is bitter like wolf!`,
+ "Soldier":a=>`${a.name} the Soldier is too aggressive!`,
+ "Singer":a=>`${a.name} the Singer voice is shaking!`,
+ "Rancher":a=>`${a.name} the Rancher has sheep but wolf eyes!`,
+ "Electrician":a=>`${a.name} the Electrician has a short-circuit story!`,
+ "Writer":a=>`${a.name} the Writer is writing fiction!`,
+ "Architect":a=>`${a.name} the Architect is framing me!`,
+ "Midwife":a=>`${a.name} the Midwife delivers lies!`,
+ "Motorcycle Taxi Driver":a=>`${a.name} the Driver speeds accusations!`,
+ "Librarian":a=>`${a.name} the Librarian reads wolf books!`,
+ "Tailor":a=>`${a.name} the Tailor tailors accusations!`,
+ "Youtuber":a=>`${a.name} the Youtuber does it for content!`,
+ "Athlete":a=>`${a.name} the Athlete is running from truth!`,
+ "Builder":a=>`${a.name} the Builder foundation is fake!`,
+ "Cashier":a=>`${a.name} the Cashier counts kills!`,
+ "Artist":a=>`${a.name} the Artist paints wolf pictures!`,
+};
+
+let players=[], playerIdx=0, day=1, phase='debate', alive=[], votes={}, protectedIdx=null, mutedIdx=null, wolfKills=0, voiceOn=true, timerInterval=null, timeLeft=30, totalPlayersAtVoteStart=0;
+let synth=window.speechSynthesis, voices=[], audioCtx=null, logEl=document.getElementById('log');
+
+function enterGame(){ document.getElementById('welcomeScreen').style.display='none'; document.getElementById('setup').style.display='block'; }
+function initAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
+function playTick(){ if(!voiceOn||!audioCtx) return; let o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='square'; o.frequency.value=750+Math.random()*500; g.gain.value=0.03; g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.07); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.07); }
+function loadVoices(){ voices=synth.getVoices(); } synth.onvoiceschanged=loadVoices; loadVoices();
+function getVoiceFor(idx){ if(!voices.length) return null; let p=players[idx]; let isFemale=p.avatar.includes('👩')||p.avatar.includes('🧕')||p.avatar.includes('👱')||/Sophia|Emma|Olivia|Ava|Isabella|Mia|Charlotte|Amelia|Harper|Luna|Evelyn|Grace|Chloe|Lily|Zoe/i.test(p.name); let f=voices.filter(v=>v.name.toLowerCase().includes('female')||v.name.includes('Samantha')||v.name.includes('Zira')); let m=voices.filter(v=>!f.includes(v)); let pool=isFemale?(f.length?f:voices):(m.length?m:voices); return pool[idx % pool.length]; }
+function speak(t,i){ if(!voiceOn) return; initAudio(); synth.cancel(); let u=new SpeechSynthesisUtterance(t); let v=getVoiceFor(i); if(v) u.voice=v; u.rate=0.92; u.pitch=0.95; synth.speak(u); }
+function toggleVoice(){ voiceOn=!voiceOn; document.getElementById('voiceToggle').innerText=voiceOn?'🔊 ON':'🔇 OFF'; if(!voiceOn) synth.cancel(); }
+function initSetup(){
+ let jobSel=document.getElementById('inpJob'); jobSel.innerHTML=''; JOBS.forEach(j=>{ let o=document.createElement('option'); o.value=j; o.innerText=j; jobSel.appendChild(o); });
+ let grid=document.getElementById('avGrid'); grid.innerHTML=''; AVATARS.forEach((a,i)=>{ let d=document.createElement('div'); d.className='avPick'; d.innerText=a; d.onclick=()=>{ document.querySelectorAll('.avPick').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); grid.dataset.sel=i; }; grid.appendChild(d); });
+ document.getElementById('inpName').value='';
+}
+initSetup();
+function log(m,c=''){ let d=document.createElement('div'); d.className='msg '+c; d.innerText=m; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; }
+function setDayNight(isDay){ let win=document.getElementById('dayNightWindow'); win.className=isDay?'day':'night'; document.getElementById('dnIcon').innerText=isDay?`☀️ MORNING ${day}`:`🌙 NIGHT ${day}`; document.getElementById('dnDesc').innerText=isDay?`${alive.length} alive - ${timeLeft}s`:`Wolf hunting...`; }
+function getVariedLine(speakerIdx, targetIdx){
+ let speaker = players[speakerIdx];
+ let target = players[targetIdx];
+ let rand = Math.random();
+ 
+ let targetJob = target.job;
+ let targetAv = target.avatar;
+ let targetName = target.name;
+ let speakerJob = speaker.job;
+
+ // TEMPLATE BERVARIASI - 3 kategori besar
+ let jobTemplates = [
+   `${targetName} the ${targetJob} is acting weird! As a ${targetJob} he should be more helpful, but he is quiet! Wolf vibes!`,
+   `Wait ${targetName} is a ${targetJob} but never talks about ${targetJob} work! Suspicious! Are you wolf?`,
+   `${targetName} ${targetAv} as ${targetJob} keeps accusing others, classic wolf to hide!`,
+   `I don't trust ${targetName}, ${targetJob}s are usually calm but he is too nervous!`,
+   `${targetName} the ${targetJob} ${targetAv} - his story doesn't match his job!`,
+   `As a ${speakerJob}, I think ${targetName} the ${targetJob} is lying!`,
+   `${targetName} ${targetJob} is too quiet today, wolves are quiet!`,
+   `Look at ${targetAv} ${targetName}, a ${targetJob} but his alibi is weak!`,
+ ];
+
+ let avatarTemplates = [
+   `${targetAv} ${targetName} looks suspicious! That face is hiding something!`,
+   `I saw ${targetName} ${targetAv} looking at everyone, like a wolf hunting!`,
+   `${targetName} with ${targetAv} avatar is too silent, wolf usually silent!`,
+   `${targetAv} is cute but ${targetName} behind it is wolf! I vote him!`,
+   `Why is ${targetName} ${targetAv} always avoiding eye contact? Wolf!`,
+   `${targetName} ${targetAv} - your avatar looks innocent but your vote is evil!`,
+ ];
+
+ let behaviorTemplates = [
+   `${targetName} keeps changing topic! Wolf tactic!`,
+   `${targetName} voted so fast last round, definitely wolf!`,
+   `${targetName} defends himself too much, innocent villager doesn't do that!`,
+   `Why does ${targetName} always accuse ${speaker.name}? He is deflecting!`,
+   `${targetName} was quiet during debate, then suddenly talks - wolf!`,
+   `I noticed ${targetName} never defends others, only himself - wolf selfish!`,
+   `${targetName} laughed too much, nervous wolf laugh!`,
+ ];
+
+ // ROLE-BASED VARIATION - ini bikin AI lebih pinter
+ if(speaker.role === 'seer'){
+   let wolfIdx = players.findIndex(p=>p.role==='wolf' && p.alive);
+   if(wolfIdx !== -1 && Math.random() < 0.6){
+     // Seer kasih hint halus, ga langsung sebut wolf
+     return [
+       `Hmm I have a bad feeling about ${players[wolfIdx].name} the ${players[wolfIdx].job}... my gut says wolf!`,
+       `I dreamt last night that ${players[wolfIdx].name} ${players[wolfIdx].avatar} was howling!`,
+       `My instinct as ${speakerJob} says ${players[wolfIdx].name} is not a villager!`,
+       `${players[wolfIdx].name} the ${players[wolfIdx].job} is too calm, seers know wolf is calm!`,
+     ][Math.floor(Math.random()*4)];
+   }
+ }
+
+ if(speaker.role === 'wolf'){
+   // Wolf ngeles, tuduh balik villager
+   return [
+     `I'm just a ${speakerJob} ${speaker.avatar}! Why accuse me? Look at ${targetName} the ${targetJob} ${targetAv}! He is wolf!`,
+     `Guys I'm villager! ${targetName} is quiet, wolf is quiet! Vote ${targetName}!`,
+     `As a ${speakerJob} I work hard, but ${targetName} the ${targetJob} does nothing! Wolf!`,
+     `${targetName} ${targetAv} is trying to frame me! He is the real wolf!`,
+   ][Math.floor(Math.random()*4)];
+ }
+
+ // Villager biasa - random dari 3 kategori
+ if(rand < 0.4 && SUSPICION_BY_JOB[targetJob]){
+   return SUSPICION_BY_JOB[targetJob](target);
+ } else if(rand < 0.7){
+   return avatarTemplates[Math.floor(Math.random()*avatarTemplates.length)];
+ } else if(rand < 0.85){
+   return jobTemplates[Math.floor(Math.random()*jobTemplates.length)];
+ } else {
+   return behaviorTemplates[Math.floor(Math.random()*behaviorTemplates.length)];
+ }
+}
+async function showBubble(idx, txt){
+ if(!players[idx].alive) return;
+ if(idx==mutedIdx){
+   log(`🔇 ${players[idx].name} is MUTED and cannot chat, but he CAN VOTE!`, 'system');
+   return;
+ }
+ let chair=document.getElementById('b'+idx); let bub=chair.querySelector('.bubble');
+ chair.classList.add('speaking'); bub.style.display='block'; bub.innerHTML='<i style="color:#888">typing...</i>';
+ await new Promise(r=>setTimeout(r,300));
+ bub.innerHTML=''; for(let i=0;i<txt.length;i++){ bub.innerText=txt.slice(0,i+1); if(i%4==0) playTick(); await new Promise(r=>setTimeout(r,15)); }
+ speak(txt, idx); log(`${players[idx].name}: ${txt}`, idx==playerIdx?'me':players[idx].role=='wolf'?'wolf':'');
+ await new Promise(r=>setTimeout(r,1200+txt.length*10)); bub.style.display='none'; chair.classList.remove('speaking');
+}
+function renderChairs(){
+ players.forEach((p,i)=>{
+   let c=document.getElementById('b'+i);
+   c.querySelector('.av').innerText=p.avatar;
+   c.querySelector('.name').innerText=p.name+(p.isPlayer?' (You)':'');
+   c.querySelector('.job').innerText=p.job+' - '+p.roleData.name;
+   c.classList.toggle('dead',!p.alive);
+   c.classList.toggle('muted',i==mutedIdx);
+   c.classList.toggle('protected',i==protectedIdx);
+ });
+ document.getElementById('day').innerText=day; document.getElementById('aliveC').innerText=alive.length;
+ document.getElementById('chatInput').disabled = (mutedIdx==playerIdx);
+ document.getElementById('chatInput').placeholder = (mutedIdx==playerIdx) ? '🔇 MUTED - You cannot chat but YOU CAN VOTE!' : 'Type accusation...';
+}
+function showAnnounce(icon,title,desc,btnText,cb,isFinal=false){
+ document.getElementById('annIcon').innerText=icon;
+ document.getElementById('annTitle').innerText=title;
+ document.getElementById('annDesc').innerText=desc;
+ document.getElementById('annBtn').innerText=btnText;
+ document.getElementById('annBtn').style.display=isFinal?'none':'inline-block';
+ document.getElementById('playAgainBtn').style.display=isFinal?'inline-block':'none';
+ document.getElementById('announce').classList.add('show');
+ window._annCb=cb;
+}
+function closeAnnounce(){ document.getElementById('announce').classList.remove('show'); if(window._annCb){ let f=window._annCb; window._annCb=null; f(); } }
+function resetGame(){
+ clearInterval(timerInterval);
+ players=[]; alive=[]; votes={}; protectedIdx=null; mutedIdx=null; wolfKills=0; day=1; phase='debate'; timeLeft=30; totalPlayersAtVoteStart=0;
+ document.getElementById('log').innerHTML=''; document.getElementById('announce').classList.remove('show');
+ document.getElementById('timerFill').style.width='100%'; document.getElementById('timerBox').style.display='flex';
+ document.getElementById('welcomeScreen').style.display='flex';
+ document.getElementById('setup').style.display='none';
+ initSetup(); renderChairs();
+}
+function showCard(p){
+ document.getElementById('cardIcon').innerText=p.roleData.icon;
+ document.getElementById('cardRole').innerText=`You are ${p.roleData.name}`;
+ document.getElementById('cardDesc').innerText=p.roleData.desc;
+ let extra=document.getElementById('cardExtra'); extra.style.display='none'; extra.innerHTML='';
+ let wolfIdx=players.findIndex(x=>x.role=='wolf');
+ if(p.roleData.id=='seer' && wolfIdx!=-1){
+   let wolf=players[wolfIdx];
+   extra.style.display='block';
+   extra.innerHTML=`🔮 SEER VISION: Wolf is <b>${wolf.name}</b> (${wolf.job})`;
+ }
+ if(p.roleData.id=='bodyguard'){
+   extra.style.display='block';
+   extra.innerHTML=`🛡️ BODYGUARD: Protect anyone INCLUDING YOURSELF! If protected gets most votes, he SURVIVES! You can VOTE YOURSELF to self-protect!`;
+ }
+ document.getElementById('card').classList.add('show');
+}
+function closeCard(){ document.getElementById('card').classList.remove('show'); }
+function startGame(){
+ initAudio(); loadVoices();
+ let name=document.getElementById('inpName').value||"Ainun";
+ let job=document.getElementById('inpJob').value||'Villager';
+ let avIdx=document.getElementById('avGrid').dataset.sel||0;
+ let myAv=AVATARS[avIdx]||"🧕";
+ let shuffled=[...ROLES].sort(()=>Math.random()-0.5);
+ players=[]; let pools={names:[...NAMES].sort(()=>Math.random()-0.5), jobs:[...JOBS].sort(()=>Math.random()-0.5), avs:[...AVATARS].sort(()=>Math.random()-0.5)};
+ for(let i=0;i<5;i++){
+   if(i==0) players.push({name, job, avatar:myAv, role:shuffled[i].id, roleData:shuffled[i], isPlayer:true, alive:true});
+   else { let bn=pools.names[i]; if(bn==name) bn=pools.names[5]; players.push({name:bn, job:pools.jobs[i], avatar:pools.avs[i], role:shuffled[i].id, roleData:shuffled[i], isPlayer:false, alive:true}); }
+ }
+ alive=[0,1,2,3,4]; renderChairs(); document.getElementById('setup').style.display='none'; showCard(players[0]); setTimeout(()=>startDebate(),800);
+}
+function startTimer(){
+ timeLeft=30; document.getElementById('timerFill').style.transition='none'; document.getElementById('timerFill').style.width='100%';
+ document.getElementById('timerText').innerText='30s'; document.getElementById('timerBox').classList.remove('warn'); document.getElementById('timerBox').style.display='flex';
+ setTimeout(()=>{ document.getElementById('timerFill').style.transition='width 30s linear'; document.getElementById('timerFill').style.width='0%'; },50);
+ clearInterval(timerInterval);
+ timerInterval=setInterval(()=>{
+   timeLeft--; document.getElementById('timerText').innerText=timeLeft+'s'; document.getElementById('phaseLabel').innerText=`DEBATE ${timeLeft}s`; document.getElementById('dnDesc').innerText=`${alive.length} alive - ${timeLeft}s left`;
+   if(timeLeft<=10) document.getElementById('timerBox').classList.add('warn');
+   if(timeLeft<=0){ clearInterval(timerInterval); startVoting(); }
+ },1000);
+}
+
+function getVariedLine(speakerIdx, targetIdx){
+ let speaker = players[speakerIdx];
+ let target = players[targetIdx];
+ let r = Math.random();
+
+ // 1. Seer kasih hint halus
+ if(speaker.role === 'seer'){
+   let wolfIdx = players.findIndex(p=>p.role==='wolf' && p.alive);
+   if(wolfIdx !== -1 && Math.random() < 0.6){
+     return [
+       `Hmm I have a bad feeling about ${players[wolfIdx].name} the ${players[wolfIdx].job}... my gut says wolf!`,
+       `I dreamt last night that ${players[wolfIdx].name} ${players[wolfIdx].avatar} was howling!`,
+       `My instinct as ${speaker.job} says ${players[wolfIdx].name} is not a villager!`,
+       `${players[wolfIdx].name} the ${players[wolfIdx].job} is too calm, seers know wolf is calm!`,
+     ][Math.floor(Math.random()*4)];
+   }
+ }
+
+ // 2. Wolf ngeles + nuduh balik
+ if(speaker.role === 'wolf'){
+   return [
+     `I'm just a ${speaker.job} ${speaker.avatar}! Why accuse me? Look at ${target.name} the ${target.job} ${target.avatar}! He is wolf!`,
+     `Guys I'm villager! ${target.name} is quiet, wolf is quiet! Vote ${target.name}!`,
+     `As a ${speaker.job} I work hard, but ${target.name} the ${target.job} does nothing! Wolf!`,
+     `${target.name} ${target.avatar} is trying to frame me! He is the real wolf!`,
+   ][Math.floor(Math.random()*4)];
+ }
+
+ // 3. Villager biasa - bervariasi pakai job + avatar + behavior
+ if(r < 0.4 && SUSPICION_BY_JOB[target.job]){
+   return SUSPICION_BY_JOB[target.job](target);
+ }
+ if(r < 0.7){
+   let avatarLines = [
+     `${target.avatar} ${target.name} looks suspicious! That face is hiding something!`,
+     `I saw ${target.name} ${target.avatar} looking at everyone, like a wolf hunting!`,
+     `${target.name} with ${target.avatar} is too silent, wolf usually silent!`,
+     `${target.avatar} is cute but ${target.name} behind it is wolf!`,
+     `Why is ${target.name} ${target.avatar} always avoiding eye contact? Wolf!`,
+   ];
+   return avatarLines[Math.floor(Math.random()*avatarLines.length)];
+ }
+ if(r < 0.85){
+   return [
+     `${target.name} the ${target.job} is acting weird! As a ${target.job} he should be more helpful!`,
+     `${target.name} the ${target.job} ${target.avatar} keeps accusing others, classic wolf!`,
+     `As a ${speaker.job}, I think ${target.name} the ${target.job} is lying!`,
+     `${target.name} ${target.job} is too quiet today, wolves are quiet!`,
+   ][Math.floor(Math.random()*4)];
+ }
+ return [
+   `${target.name} keeps changing topic! Wolf tactic!`,
+   `${target.name} defends himself too much, innocent villager doesn't!`,
+   `Why does ${target.name} always accuse ${speaker.name}? Deflecting!`,
+   `${target.name} was quiet during debate, then suddenly talks - wolf!`,
+ ][Math.floor(Math.random()*4)];
+}
+
+async function startDebate(){
+ phase='debate';
+ setDayNight(true); 
+ document.getElementById('phaseLabel').innerText='MORNING DEBATE';
+ log(`=== DAY ${day} - ${alive.length} players alive - Everyone can vote! ===`,'system');
+ if(mutedIdx!=null) log(`🔇 ${players[mutedIdx].name} is MUTED from chat but CAN VOTE!`,'system');
+ if(protectedIdx!=null) log(`🛡️ Protected: ${players[protectedIdx].name}`,'system');
+ renderChairs(); renderActions(); startTimer();
+ 
+ while(phase=='debate' && timeLeft > 2){
+   let talkers = alive.filter(i=>i!=playerIdx && i!=mutedIdx && players[i].alive);
+   if(talkers.length==0) break;
+   let idx = talkers[Math.floor(Math.random()*talkers.length)];
+   if(!players[idx].alive) { await new Promise(r=>setTimeout(r,500)); continue; }
+   
+   let others = alive.filter(a=>a!=idx && players[a].alive);
+   if(others.length==0) continue;
+   
+   // FIX BIAR GA SELALU KAMU:
+   let target;
+   if(Math.random() < 0.2){
+     // 20% aja nuduh kamu
+     target = playerIdx;
+     if(!players[target].alive || target==idx) target = others[Math.floor(Math.random()*others.length)];
+   } else {
+     // 80% bot nuduh bot lain
+     let nonPlayerOthers = others.filter(a=>a!=playerIdx);
+     if(nonPlayerOthers.length>0) target = nonPlayerOthers[Math.floor(Math.random()*nonPlayerOthers.length)];
+     else target = others[Math.floor(Math.random()*others.length)];
+   }
+   
+   let text = getVariedLine(idx, target);
+   await showBubble(idx, text);
+   await new Promise(r=>setTimeout(r, 600 + Math.random()*800));
+ }
+}
+
+function renderActions(){
+ let quick=document.getElementById('quickBtns'); quick.innerHTML=''; let me=players[playerIdx]; if(!me || !me.alive){ quick.innerHTML='<div style="font-size:11px">You are dead 💀 spectating</div>'; return; }
+ if(phase=='debate'){
+   if(me.role=='muter' && mutedIdx==null){
+     quick.innerHTML=`<div style="width:100%;font-size:10px;font-weight:900">🤐 SILENCER - MUTE 1 (they can still vote):</div>`;
+     alive.filter(i=>i!=playerIdx&&players[i].alive).forEach(i=>{
+       let b=document.createElement('button'); b.className='btn btn-mute'; b.innerText=`🔇 Mute ${players[i].name}`; b.onclick=()=>{ mutedIdx=i; log(`You muted ${players[i].name}! He cannot chat but CAN VOTE!`,'system'); renderChairs(); renderActions(); }; quick.appendChild(b);
+     });
+   }
+   if(me.role=='bodyguard' && protectedIdx==null){
+     let div=document.createElement('div'); div.style.width='100%'; div.style.fontSize='10px'; div.style.fontWeight='900'; div.innerText='🛡️ BODYGUARD - PROTECT 1 (including yourself) BEFORE VOTE:';
+     quick.appendChild(div);
+     alive.filter(i=>players[i].alive).forEach(i=>{
+       let b=document.createElement('button'); b.className='btn btn-protect'; b.innerText=i==playerIdx?`🛡️ Protect MYSELF`:`🛡️ Protect ${players[i].name}`; b.onclick=()=>{ protectedIdx=i; log(`You protected ${players[i].name}! If he gets most votes, he survives!`,'system'); renderChairs(); renderActions(); }; quick.appendChild(b);
+     });
+   }
+   if(quick.innerHTML==''){ let skip=document.createElement('button'); skip.className='btn'; skip.style.background='#ffcc00'; skip.style.color='#000'; skip.innerText='Skip → Vote'; skip.onclick=()=>{ clearInterval(timerInterval); startVoting(); }; quick.appendChild(skip); }
+ }
+ if(phase=='vote'){
+   let votedCount=Object.keys(votes).length;
+   quick.innerHTML=`<div style="width:100%;font-size:11px;font-weight:900">🗳️ VOTE DAY ${day} (${votedCount}/${totalPlayersAtVoteStart}) ${mutedIdx!=null?`🔇 ${players[mutedIdx].name} muted but voting!`:''} ${protectedIdx!=null?`🛡️ Protected: ${players[protectedIdx].name}`:''}</div>`;
+   if(votes[playerIdx]==undefined){
+     let container=document.createElement('div'); container.style.width='100%'; container.style.display='flex'; container.style.gap='5px'; container.style.flexWrap='wrap'; container.style.marginTop='4px';
+     // Everyone can vote others
+     alive.filter(i=>players[i].alive && i!=playerIdx).forEach(target=>{
+       let b=document.createElement('button'); b.className='btn'; b.style.background='#fff'; b.style.color='#000'; b.innerText=`Vote ${players[target].name}`; b.onclick=()=>castVote(target); container.appendChild(b);
+     });
+     // BODYGUARD can vote himself
+     if(players[playerIdx].role=='bodyguard'){
+       let b=document.createElement('button'); b.className='btn'; b.style.background='#00ffff'; b.style.color='#000'; b.innerText=`Vote MYSELF (self-protect)`; b.onclick=()=>castVote(playerIdx); container.appendChild(b);
+     }
+     quick.appendChild(container);
+     if(mutedIdx==playerIdx){
+       let info=document.createElement('div'); info.style.fontSize='10px'; info.style.color='#aa55ff'; info.innerText='🔇 You are muted from chat but YOU CAN STILL VOTE!';
+       quick.appendChild(info);
+     }
+   } else {
+     quick.innerHTML+=`<div style="font-size:10px;color:#aaa">You voted. Waiting ${votedCount}/${totalPlayersAtVoteStart}</div>`;
+   }
+
+    // TAMBAHAN - BIAR WOLF PLAYER BISA KILL
+ if(phase=='wolfKill' && players[playerIdx].role=='wolf' && players[playerIdx].alive){
+   quick.innerHTML=`<div style="width:100%;font-size:11px">🐺 YOU ARE WOLF - CHOOSE WHO TO KILL:</div>`;
+   let cont=document.createElement('div');
+   cont.style.display='flex'; cont.style.gap='5px'; cont.style.flexWrap='wrap';
+   alive.filter(i=>i!=playerIdx && players[i].alive).forEach(t=>{
+     let b=document.createElement('button');
+     b.className='btn'; b.style.background='#ff2222'; b.style.color='#fff';
+     b.innerText=`Kill ${players[t].name}`;
+     b.onclick=()=>wolfKill(t);
+     cont.appendChild(b);
+   });
+   quick.appendChild(cont);
+ }
+
+  // KHUSUS WOLF PLAYER - TOMBOL KILL PAS WOLF HUNTING
+ if(phase=='wolfKill' && players[playerIdx].role=='wolf' && players[playerIdx].alive){
+   quick.innerHTML=`<div style="width:100%;font-size:11px;font-weight:900">🐺 YOU ARE WOLF - VOTE WHO TO KILL:</div>`;
+   let cont=document.createElement('div');
+   cont.style.display='flex'; cont.style.gap='5px'; cont.style.flexWrap='wrap'; cont.style.marginTop='6px';
+   alive.filter(i=>i!=playerIdx && players[i].alive).forEach(t=>{
+     let b=document.createElement('button');
+     b.className='btn'; b.style.background='#ff2222'; b.style.color='#fff';
+     b.innerText=`🔪 Kill ${players[t].name} (${players[t].job})`;
+     b.onclick=()=>wolfKill(t);
+     cont.appendChild(b);
+   });
+   quick.appendChild(cont);
+   return;
+ }
+ }
+}
+async function sendChat(){
+ if(mutedIdx==playerIdx){ log('🔇 You are MUTED! You cannot chat but you CAN VOTE!','system'); return; }
+ let input=document.getElementById('chatInput'); let text=input.value.trim(); if(!text) return;
+ if(!players[playerIdx].alive){ log('You are dead','system'); return; }
+ input.value=''; await showBubble(playerIdx, text);
+}
+let voteTimeLeft = 5;
+let voteTimerInterval = null;
+
+async function startVoting(){
+ phase='vote'; 
+ clearInterval(timerInterval); 
+ clearInterval(voteTimerInterval);
+ 
+ document.getElementById('timerBox').style.display='flex';
+ document.getElementById('timerBox').classList.remove('warn');
+ document.getElementById('timerFill').style.transition='none';
+ document.getElementById('timerFill').style.width='100%';
+
+ totalPlayersAtVoteStart=alive.length;
+ voteTimeLeft = 5; // 5 detik proses voting
+
+ setDayNight(true);
+ document.getElementById('phaseLabel').innerText='VOTING';
+ document.getElementById('dnIcon').innerText=`🗳️ VOTING DAY ${day}`;
+ document.getElementById('dnDesc').innerText=`Voting in progress... ${voteTimeLeft}s`;
+
+ log(`=== VOTING DAY ${day} - ALL ${alive.length} MUST VOTE! You have 5 seconds! ===`,'system');
+ votes={}; 
+ renderActions();
+
+ // TIMER 5 DETIK UNTUK VOTING
+ document.getElementById('timerText').innerText = voteTimeLeft + 's voting';
+ setTimeout(()=>{ document.getElementById('timerFill').style.transition='width 5s linear'; document.getElementById('timerFill').style.width='0%'; },50);
+ 
+ voteTimerInterval = setInterval(()=>{
+   voteTimeLeft--;
+   document.getElementById('timerText').innerText = voteTimeLeft + 's voting';
+   document.getElementById('dnDesc').innerText = `Voting... ${voteTimeLeft}s left - ${Object.keys(votes).length}/${alive.length} voted`;
+   if(voteTimeLeft<=2) document.getElementById('timerBox').classList.add('warn');
+   if(voteTimeLeft<=0){
+     clearInterval(voteTimerInterval);
+     log(`⏰ Time up! ${Object.keys(votes).length}/${alive.length} voted. Announcing result...`,'system');
+     finalizeVote(); // setelah 5 detik baru umumkan
+   }
+ },1000);
+
+ // BOT VOTING SELAMA 5 DETIK (random 0-4 detik)
+ for(let i of alive){
+   if(!players[i].alive||i==playerIdx) continue;
+   let delay = Math.random()*4000;
+   setTimeout(async ()=>{
+     if(phase!='vote' || votes[i]!=undefined) return;
+     let cand=alive.filter(a=>a!=i && players[a].alive);
+     
+     // FIX VOTING BIAR GA SELALU KAMU:
+     // 30% chance vote kamu, 70% vote bot lain
+     if(Math.random() < 0.3){
+       // boleh vote kamu
+     } else {
+       cand = cand.filter(a=>a!=playerIdx);
+       if(cand.length==0) cand = alive.filter(a=>a!=i && players[a].alive);
+     }
+
+     if(players[i].role=='bodyguard' && protectedIdx==i) cand.push(i);
+     if(cand.length==0) return;
+     let choice=cand[Math.floor(Math.random()*cand.length)];
+     votes[i]=choice; 
+     log(`${players[i].name} voted ${players[choice].name}`,'system'); 
+     renderActions();
+     checkIfAllVoted();
+   }, delay);
+ }
+}
+
+function checkIfAllVoted(){
+ if(phase!='vote') return;
+ // JANGAN langsung finalize, biar tunggu 5 detik
+ // cuma update UI aja
+ renderActions();
+ if(Object.keys(votes).length >= alive.length){
+   log(`All ${alive.length} voted! Waiting for timer to announce...`,'system');
+ }
+}
+async function castVote(targetIdx){
+ if(phase!='vote' || votes[playerIdx]!=undefined) return;
+ votes[playerIdx]=targetIdx; 
+ log(`You voted ${players[targetIdx].name} ${targetIdx==playerIdx?'(SELF VOTE - self protect!)':''}`,'system'); 
+ renderActions();
+ checkIfAllVoted();
+}
+
+
+function checkWinAndAnnounce(){
+ let wolfAlive = players.some(p=>p.role==='wolf' && p.alive);
+ let villagersAlive = players.filter(p=>p.role!=='wolf' && p.alive).length;
+ 
+ // VILLAGER WIN jika wolf mati
+ if(!wolfAlive){
+   let msg = `Game Over! Villagers win! The wolf ${players.find(p=>p.role==='wolf').name} is dead! Congratulations villagers!`;
+   log(`🎉 ${msg}`,'system');
+   speak(msg, 0);
+   showAnnounce('🎉','VILLAGERS WIN!','The Wolf is dead!\n\n'+players.map(p=>`${p.name} (${p.job} ${p.avatar}) - ${p.role.toUpperCase()} ${p.alive?'ALIVE':'DEAD'}`).join('\n')+'\n\nVillagers win the game!','',null,true);
+   phase='ended';
+   return true;
+ }
+ 
+ // WOLF WIN jika wolf hidup dan villager tinggal 1 atau wolf sudah kill 2
+ if(wolfAlive && (villagersAlive <= 1 || wolfKills >= 2 || alive.length <= 2)){
+   let wolf = players.find(p=>p.role==='wolf');
+   let msg = `Game Over! Wolf wins! ${wolf.name} the ${wolf.job} is the wolf and killed ${wolfKills} villagers! Only ${villagersAlive} villagers left! Wolf wins!`;
+   log(`🐺 ${msg}`,'system');
+   speak(msg, 0);
+   showAnnounce('🐺','WOLF WINS!',''+wolf.name+' ('+wolf.job+' '+wolf.avatar+') is the Wolf!\nKills: '+wolfKills+'\nAlive: '+alive.length+'\n\n'+players.map(p=>`${p.name} (${p.job}) - ${p.role.toUpperCase()} ${p.alive?'ALIVE':'DEAD'}`).join('\n')+'\n\nWolf wins the game!','',null,true);
+   phase='ended';
+   return true;
+ }
+ return false; // game lanjut
+}
+
+function checkWinAfterVote(){
+ let wolfAlive = players.some(p=>p.role==='wolf' && p.alive);
+ let villagersAlive = players.filter(p=>p.role!=='wolf' && p.alive).length;
+ 
+ if(!wolfAlive) return 'villagers';
+ if(villagersAlive <= 1 || alive.length <= 2) return 'wolf';
+ return null;
+}
+
+function finalizeVote(){
+ if(phase!='vote') return;
+ clearInterval(voteTimerInterval);
+ document.getElementById('timerBox').style.display='none';
+ 
+ let count={}; Object.values(votes).forEach(v=>count[v]=(count[v]||0)+1);
+ if(Object.keys(count).length==0){ 
+   let msg = "No votes! No one dies! It's a tie!";
+   log('🤝 '+msg,'system');
+   speak(msg, 0);
+   showAnnounce('🤝','NO VOTES!','No one voted, no one dies!','GO TO NIGHT 🌙',()=>{ protectedIdx=null; mutedIdx=null; startNight(); },false);
+   return; 
+ }
+ let maxV=Math.max(...Object.values(count));
+ let tied=Object.keys(count).filter(k=>count[k]==maxV).map(k=>parseInt(k));
+
+ // anti mati bareng
+ if(tied.length>1){
+   if(maxV===1){
+     let msg = `Tie vote! All votes different, no one dies!`;
+     log('🤝 '+msg,'system');
+     speak(msg, 0);
+     showAnnounce('🤝','TIE VOTE!','All votes are different, no one dies! Go to night...','GO TO NIGHT 🌙',()=>{ protectedIdx=null; mutedIdx=null; startNight(); },false);
+     return;
+   } else {
+     tied = [tied[Math.floor(Math.random()*tied.length)]];
+   }
+ }
+ let died = tied[0];
+
+ // BODYGUARD PROTECT - self protect also works
+ if(protectedIdx!=null && died===protectedIdx){
+   let msg = `Attention! ${players[died].name} got ${maxV} votes but was protected by Bodyguard! He survives!`;
+   log(`🛡️ ${msg}`,'system');
+   speak(msg, 0);
+   showAnnounce('🛡️','PROTECTED BY BODYGUARD!',`Most voted: ${players[died].name} with ${maxV} votes\nBut he was protected by Bodyguard!\nNo one dies!\nHe can still vote next round!`,'GO TO NIGHT 🌙',()=>{ protectedIdx=null; mutedIdx=null; startNight(); },false);
+   return;
+ }
+
+ players[died].alive=false;
+ alive=alive.filter(a=>a!==died);
+ renderChairs();
+ protectedIdx=null;
+
+ let announceMsg = `Attention everyone! After ${totalPlayersAtVoteStart} votes, ${players[died].name} the ${players[died].job} has been voted out with ${maxV} votes! He was ${players[died].role}!`;
+ log(`📢 ${announceMsg}`,'system');
+ speak(announceMsg, 0);
+
+ let desc=`Votes:\n${Object.entries(count).map(([id,c])=>`${players[id].name} (${players[id].job} ${players[id].avatar}): ${c} votes`).join('\n')}\n\nDied: ${players[died].name} - ${players[died].role.toUpperCase()}\nAlive: ${alive.length}`;
+
+ // === FINAL WINNER ANNOUNCEMENT ===
+ let winner = checkWinAfterVote();
+
+ if(players[died].role==='wolf'){
+   // Wolf mati = Villagers win
+   let winMsg = `Game Over! Villagers win! The wolf ${players[died].name} is dead! Villagers have won the game!`;
+   speak(winMsg, 0);
+   log(`🎉 ${winMsg}`,'system');
+   showAnnounce('🎉','VILLAGERS WIN! - WOLF DEAD!',`AI: ${announceMsg}\n\n${winMsg}\n\n${desc}\n\nFinal Roles:\n${players.map(p=>`${p.name} - ${p.role.toUpperCase()} ${p.alive?'ALIVE':'DEAD'}`).join('\n')}`,'',null,true);
+   phase='ended';
+   return;
+ }
+
+ if(winner==='wolf'){
+   // Wolf menang
+   let wolf = players.find(p=>p.role==='wolf');
+   let winMsg = `Game Over! Wolf wins! ${wolf.name} the ${wolf.job} is the wolf! Only ${alive.length} left! Wolf wins!`;
+   speak(winMsg, 0);
+   log(`🐺 ${winMsg}`,'system');
+   showAnnounce('🐺','WOLF WINS!','AI: '+winMsg+'\n\n'+desc+'\n\nFinal Roles:\n'+players.map(p=>`${p.name} (${p.job}) - ${p.role.toUpperCase()} ${p.alive?'ALIVE':'DEAD'}`).join('\n'),'',null,true);
+   phase='ended';
+   return;
+ }
+
+ // Belum ada yang menang, lanjut night / day 2
+ if(day===1){
+   showAnnounce('💀','VOTE RESULT DAY 1',`AI: ${announceMsg}\n\n${desc}`,'GO TO NIGHT 🌙',()=>{ mutedIdx=null; startNight(); },false);
+ } else {
+   // Day 2 habis vote tapi wolf masih hidup = wolf wins karena villager gagal
+   let winMsg = `Game Over! Wolf survives Day 2! Villagers failed! Wolf wins! Wolf is ${players.find(p=>p.role==='wolf').name}!`;
+   speak(winMsg, 0);
+   log(`🐺 ${winMsg}`,'system');
+   showAnnounce('🐺','WOLF WINS! - SURVIVED VOTING',`AI: ${winMsg}\n\n${desc}\n\nFinal Roles:\n${players.map(p=>`${p.name} - ${p.role.toUpperCase()}`).join('\n')}`,'',null,true);
+   phase='ended';
+ }
+}
+
+async function startNight(){
+ phase='wolfKill'; 
+ setDayNight(false); 
+ document.getElementById('phaseLabel').innerText='NIGHT - WOLF HUNTING'; 
+ document.getElementById('dnIcon').innerText=`🌙 NIGHT ${day} - WOLF HUNTING`;
+ document.getElementById('dnDesc').innerText=`Wolf is hunting...`;
+ log(`=== NIGHT ${day} - WOLF HUNTING ===`,'system'); 
+ document.getElementById('timerBox').style.display='none';
+ 
+ let wolfIdx=players.findIndex(p=>p.role=='wolf'&&p.alive);
+ if(wolfIdx===-1) return;
+
+ let bgIdx=players.findIndex(p=>p.role=='bodyguard'&&p.alive&&!p.isPlayer);
+ if(bgIdx!==-1 && protectedIdx==null){
+   let cand=alive.filter(a=>players[a].alive); 
+   protectedIdx=cand[Math.floor(Math.random()*cand.length)];
+   log(`🛡️ Bodyguard ${players[bgIdx].name} protects ${players[protectedIdx].name} tonight!`,'system'); 
+   renderChairs();
+ }
+ 
+ // === JIKA KAMU YANG JADI WOLF ===
+ let isWolfPlayer = players.some(p=>p.role=='wolf'&&p.isPlayer&&p.alive);
+ if(isWolfPlayer){
+   log(`🐺 YOU ARE THE WOLF! VOTE who to KILL tonight!`,'system');
+   // Kasih tombol kill di action
+   let quick=document.getElementById('quickBtns');
+   quick.innerHTML=`<div style="width:100%;font-size:11px;font-weight:900;color:#ff5555">🐺 WOLF HUNTING - CHOOSE VICTIM TO KILL:</div>`;
+   let cont=document.createElement('div');
+   cont.style.display='flex'; cont.style.gap='6px'; cont.style.flexWrap='wrap'; cont.style.marginTop='6px';
+   alive.filter(i=>i!=playerIdx && players[i].alive).forEach(t=>{
+     let b=document.createElement('button');
+     b.className='btn'; b.style.background='#ff2222'; b.style.color='#fff'; b.style.padding='10px 14px';
+     b.innerText=`🔪 Kill ${players[t].name} (${players[t].job} ${players[t].avatar})`;
+     b.onclick=async ()=>{
+       // disable semua tombol biar ga double click
+       cont.querySelectorAll('button').forEach(x=>x.disabled=true);
+       log(`🐺 You chose to kill ${players[t].name}!`,'system');
+       await wolfKill(t);
+     };
+     cont.appendChild(b);
+   });
+   quick.appendChild(cont);
+   return; // tunggu kamu vote
+ }
+
+ // === JIKA BOT YANG JADI WOLF - OTOMATIS ===
+ await new Promise(r=>setTimeout(r,1500));
+ let cand=alive.filter(a=>a!==wolfIdx&&players[a].alive); 
+ let tgt=cand.filter(a=>a!==protectedIdx)[0]||cand[0]; 
+ if(tgt!==undefined) await wolfKill(tgt);
+}
+
+async function wolfKill(targetIdx){
+ let wolfIdx=players.findIndex(p=>p.role=='wolf'&&p.alive);
+ if(protectedIdx===targetIdx){
+   let msg = `Attention! Wolf tried to kill ${players[targetIdx].name} but Bodyguard saved him! No one dies tonight!`;
+   log(`🛡️ ${msg}`,'system');
+   speak(msg, 0);
+   showAnnounce('🛡️','NIGHT SAVED!','Wolf tried to kill '+players[targetIdx].name+'\nBut Bodyguard saved him!\nNo one died!','MORNING DAY 2 ☀️',()=>{ protectedIdx=null; day=2; startNextMorning(); },false);
+   return;
+ }
+ players[targetIdx].alive=false; alive=alive.filter(a=>a!==targetIdx); wolfKills++;
+ protectedIdx=null; renderChairs();
+
+ // CEK MENANG SETELAH WOLF KILL
+ if(checkWinAndAnnounce()) return;
+
+ let msg = `Attention! ${players[targetIdx].name} the ${players[targetIdx].job} was killed by the Wolf last night! He was ${players[targetIdx].role}!`;
+ log(`📢 ${msg}`,'system');
+ speak(msg, 0);
+
+ if(wolfKills>=2){
+   checkWinAndAnnounce();
+ } else {
+   showAnnounce('💀','NIGHT KILL',`AI: ${msg}\n\nDied: ${players[targetIdx].name}\nAlive: ${alive.length}`,'MORNING DAY 2 ☀️',()=>{ mutedIdx=null; day=2; startNextMorning(); },false);
+ }
+}
+ 
+function startNextMorning(){ renderChairs(); setDayNight(true); startDebate(); }
+</script>
+</body>
+</html>
