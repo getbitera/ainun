@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MY AINUN VISUAL GAME - DIRECTION</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#0a0e1f;color:#fff;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;min-height:100vh;background:#0a0e1f;position:relative;display:flex;flex-direction:column}
+#top{padding:10px 14px;display:flex;justify-content:space-between;background:#111432;font-weight:900;font-size:12px}
+#prog{height:6px;background:#222} #fill{height:100%;width:0%;background:linear-gradient(90deg,#00ff88,#ffcc00);transition:.3s}
+#stage{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center}
+.card{background:#1a1d35;border-radius:18px;padding:14px;border:1px solid #2a2e5a;width:100%;text-align:center}
+.qType{font-size:10px;color:#ffcc00;font-weight:900} .qText{font-size:15px;font-weight:800;margin:8px 0;line-height:1.35}
+.show{background:#080a18;padding:16px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:120px;width:100%}
+.compass{width:90px;height:90px;border:3px solid #ffcc00;border-radius:50%;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
+.compass b{position:absolute;font-size:10px;font-weight:900} 
+.compass .N{top:2px} .compass .S{bottom:2px} .compass .E{right:6px} .compass .W{left:6px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;margin-top:10px}
+.opt{background:#fff;border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;border:4px solid transparent;cursor:pointer;min-height:80px;color:#000;font-weight:900;position:relative}
+.opt.sel{border-color:#00ff88;transform:scale(1.03)} .opt.ok{border-color:#00ff88;background:#c6ffd6} .opt.no{border-color:#ff3333;background:#ffcaca}
+.opt b{position:absolute;top:-7px;left:-7px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:6px}
+.btn{width:100%;padding:13px;border:none;border-radius:30px;font-weight:900;margin-top:10px;cursor:pointer} .btn-y{background:#ffcc00;color:#000} .btn:disabled{opacity:.4}
+#welcome{position:absolute;inset:0;z-index:50;background-image:url('arah.jpg');background-size:cover;background-position:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:16px}
+#welcome .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.2), rgba(0,0,0,.85));}
+#welcome .content{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px;align-items:center}
+.btn-enter{padding:16px 36px;border-radius:30px;border:none;background:linear-gradient(90deg,#ffcc00,#ff9900);font-weight:900;font-size:17px;cursor:pointer;box-shadow:0 0 18px #ffcc00}
+#result{position:absolute;inset:0;z-index:60;background:#0a0e1f;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.miniMap{display:grid;grid-template-columns:repeat(4,1fr);gap:4px} .cell{width:22px;height:22px;background:#222;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px} .cell.active{background:#ffcc00} .cell.path{background:#333}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="top"><div>LV <span id="lv">1</span>/20 ❤️<span id="life">3</span></div><div>⭐<span id="sc">0</span></div></div>
+<div id="prog"><div id="fill"></div></div>
+<div id="stage">
+<div class="card">
+<div class="qType" id="qType">DIRECTION</div>
+<div class="qText" id="qText">...</div>
+<div class="show" id="show"></div>
+<div class="grid" id="grid"></div>
+<button class="btn btn-y" id="btn" disabled onclick="next()">CHOOSE ANSWER</button>
+</div>
+</div>
+
+<div id="welcome"><div class="overlay"></div><div class="content">
+<h1 style="color:#ffcc00;font-size:24px;line-height:1.1">WELCOME TO<br>MY AINUN<br>VISUAL GAME<br><span style="font-size:14px;color:#fff">DIRECTION</span></h1>
+<p style="font-size:12px;color:#ddd">Visual Direction Intelligence<br>Compass • Rotation • Navigation • Map</p>
+<div style="font-size:50px">🧭➡️🗺️</div>
+<button class="btn-enter" onclick="start()">ENTER GAME ▶️</button>
+</div></div>
+
+<div id="result">
+<div style="font-size:70px" id="rIcon">🏆</div>
+<h2 id="rTitle">WIN</h2>
+<p id="rDesc" style="font-size:13px;color:#ccc;margin:10px 0;line-height:1.5"></p>
+<div style="font-size:50px;font-weight:900;color:#ffcc00" id="rScore">0</div>
+<button class="btn btn-y" onclick="restart()">PLAY AGAIN 🔄</button>
+</div>
+</div>
+
+<script>
+function arrow(dir, size=64){
+ let map={up:'⬆️',down:'⬇️',left:'⬅️',right:'➡️',upRight:'↗️',upLeft:'↖️',downRight:'↘️',downLeft:'↙️'};
+ return `<div style="font-size:${size}px">${map[dir]||'⬆️'}</div>`;
+}
+function compassWithArrow(dir){
+ let deg={up:0, upRight:45, right:90, downRight:135, down:180, downLeft:225, left:270, upLeft:315};
+ return `<div class="compass"><b class="N">N</b><b class="S">S</b><b class="E">E</b><b class="W">W</b><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(${deg[dir]||0}deg);font-size:26px">⬆️</div></div>`;
+}
+const dirs=['up','upRight','right','downRight','down','downLeft','left','upLeft'];
+const dirLabel={up:'UP / NORTH', down:'DOWN / SOUTH', left:'LEFT / WEST', right:'RIGHT / EAST', upRight:'NORTHEAST', upLeft:'NORTHWEST', downRight:'SOUTHEAST', downLeft:'SOUTHWEST'};
+let levels=[];
+function generateLevels(){
+ levels=[];
+ for(let i=0;i<20;i++){
+  let type,q,base,opts=[],correct;
+  if(i<5){
+   type=`DIRECTION ROTATION ${i+1}`;
+   let start=dirs[Math.floor(Math.random()*8)];
+   let rot=Math.floor(Math.random()*3)+1;
+   let endIdx=(dirs.indexOf(start)+rot)%8;
+   let end=dirs[endIdx];
+   q=`Arrow ${dirLabel[start]} rotated ${rot*45}° clockwise. Where does it point now?`;
+   base=`<div style="display:flex;gap:12px;align-items:center">${arrow(start)}<span style="color:#ffcc00">➤ ${rot*45}° ➤</span><div style="width:60px;height:60px;border:3px dashed #ffcc00;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px">?</div></div>`;
+   let list=[end, dirs[(endIdx+1)%8], dirs[(endIdx+7)%8], dirs[(endIdx+4)%8]];
+   let ord=[...list].sort(()=>Math.random()-0.5);
+   opts=ord.map(d=>`${arrow(d,32)}<small>${dirLabel[d]}</small>`);
+   correct=ord.indexOf(end);
+  } else if(i<10){
+   type=`COMPASS ${i-5+1}`;
+   let d=dirs[Math.floor(Math.random()*8)];
+   q=`If you are facing ${dirLabel[d]}, what direction is on your right?`;
+   let rightIdx=(dirs.indexOf(d)+2)%8;
+   let right=dirs[rightIdx];
+   base=compassWithArrow(d);
+   let list=[right, dirs[(rightIdx+2)%8], dirs[(rightIdx+6)%8], dirs[(rightIdx+4)%8]];
+   let ord=[...list].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>`${arrow(x,28)}<small>${dirLabel[x]}</small>`);
+   correct=ord.indexOf(right);
+  } else if(i<15){
+   type=`NAVIGATION ${i-10+1}`;
+   let steps=['⬆️','➡️','⬇️','⬅️'];
+   let path=[0,1,2,3].sort(()=>Math.random()-0.5).slice(0,3);
+   let pos={x:1,y:1};
+   path.forEach(s=>{ if(s===0) pos.y--; if(s===1) pos.x++; if(s===2) pos.y++; if(s===3) pos.x--; });
+   pos.x=Math.max(0,Math.min(3,pos.x)); pos.y=Math.max(0,Math.min(3,pos.y));
+   q=`Start at center. Move: ${path.map(p=>steps[p]).join(' → ')}. Where are you now?`;
+   base=`<div class="miniMap">${Array.from({length:16},(_,k)=>{ let x=k%4,y=Math.floor(k/4); let isStart=x===1&&y===1; let isEnd=x===pos.x&&y===pos.y; return `<div class="cell ${isEnd?'active':''} ${isStart?'path':''}">${isEnd?'🧍':isStart?'•':''}</div>`; }).join('')}</div><div style="font-size:11px;color:#aaa">Grid 4x4, start center</div>`;
+   let positions=[{x:pos.x,y:pos.y},{x:pos.x+1,y:pos.y},{x:pos.x,y:pos.y+1},{x:pos.x-1,y:pos.y}];
+   positions=positions.map(p=>({x:Math.max(0,Math.min(3,p.x)), y:Math.max(0,Math.min(3,p.y))}));
+   let uniq=[]; positions.forEach(p=>{ if(!uniq.find(u=>u.x===p.x&&u.y===p.y)) uniq.push(p); });
+   while(uniq.length<4) uniq.push({x:Math.floor(Math.random()*4),y:Math.floor(Math.random()*4)});
+   let ord=[...uniq].sort(()=>Math.random()-0.5).slice(0,4);
+   opts=ord.map(p=>`X:${p.x} Y:${p.y}`);
+   correct=ord.findIndex(p=>p.x===pos.x&&p.y===pos.y);
+  } else {
+   type=`MIRROR DIRECTION ${i-15+1}`;
+   let d=dirs[Math.floor(Math.random()*8)];
+   q=`Mirror on the right. Arrow ${dirLabel[d]} in mirror points where?`;
+   let mirrorMap={up:'up',down:'down',left:'right',right:'left',upRight:'upLeft',upLeft:'upRight',downRight:'downLeft',downLeft:'downRight'};
+   let mirrored=mirrorMap[d];
+   base=`${arrow(d)}<span style="color:#ffcc00">| 🪞 MIRROR</span>`;
+   let list=[mirrored, d, dirs[(dirs.indexOf(mirrored)+1)%8], dirs[(dirs.indexOf(mirrored)+7)%8]];
+   let ord=[...list].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>`${arrow(x,32)}<small>${dirLabel[x]}</small>`);
+   correct=ord.indexOf(mirrored);
+  }
+  levels.push({type,q,base,opts,correct});
+ }
+}
+let cur=0, score=0, life=3, sel=null;
+function start(){ generateLevels(); cur=0; score=0; life=3; document.getElementById('welcome').style.display='none'; render(); }
+function render(){
+ let p=levels[cur];
+ document.getElementById('lv').innerText=cur+1; document.getElementById('life').innerText=life; document.getElementById('sc').innerText=score;
+ document.getElementById('fill').style.width=(cur/20*100)+'%';
+ document.getElementById('qType').innerText=p.type; document.getElementById('qText').innerText=p.q;
+ document.getElementById('show').innerHTML=p.base;
+ let g=document.getElementById('grid'); g.innerHTML=''; sel=null;
+ document.getElementById('btn').disabled=true; document.getElementById('btn').innerText='CHOOSE ANSWER';
+ p.opts.forEach((o,i)=>{
+  let el=document.createElement('div'); el.className='opt'; el.innerHTML=`<b>${String.fromCharCode(65+i)}</b>${o}`;
+  el.onclick=()=>{ sel=i; document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); document.getElementById('btn').disabled=false; document.getElementById('btn').innerText='LOCK ANSWER ➤'; };
+  g.appendChild(el);
+ });
+}
+function next(){
+ if(sel===null) return;
+ let p=levels[cur]; let ok=sel===p.correct;
+ document.querySelectorAll('.opt').forEach((o,i)=>{ if(i===p.correct) o.classList.add('ok'); if(i===sel&&!ok) o.classList.add('no'); });
+ if(ok) score+=10; else life--;
+ document.getElementById('btn').innerText=ok?'✅ CORRECT!':'❌ WRONG!'; document.getElementById('btn').disabled=true;
+ setTimeout(()=>{ if(life<=0){ end(false); return; } cur++; if(cur>=20) end(true); else render(); },900);
+}
+function end(win){
+ let r=document.getElementById('result'); r.style.display='flex';
+ document.getElementById('rIcon').innerText=win?'🏆':'💀';
+ document.getElementById('rTitle').innerText=win?'DIRECTION GENIUS!':'GAME OVER';
+ document.getElementById('rDesc').innerText=win?`Score ${score}! You are amazing at direction, compass, navigation.`:`Score ${score} at level ${cur+1}. Train your sense of direction again!`;
+ document.getElementById('rScore').innerText=score+' ⭐';
+}
+function restart(){ generateLevels(); cur=0; score=0; life=3; document.getElementById('result').style.display='none'; render(); }
+generateLevels();
+</script>
+</body>
+</html>

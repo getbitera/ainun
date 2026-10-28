@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MY AINUN GAME VISUAL</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#0a0e1f;color:#fff;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;min-height:100vh;background:#0a0e1f;position:relative;display:flex;flex-direction:column}
+#top{padding:10px 14px;display:flex;justify-content:space-between;background:#111432;font-weight:900;font-size:12px}
+#prog{height:6px;background:#222} #progFill{height:100%;width:0%;background:#ffcc00;transition:.3s}
+#stage{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px}
+.card{background:#1a1d35;border-radius:18px;padding:14px;border:1px solid #2a2e5a;text-align:center}
+.qType{font-size:10px;color:#ffcc00;font-weight:900} .qText{font-size:15px;font-weight:800;margin:6px 0}
+.show{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;background:#080a18;padding:14px;border-radius:14px;min-height:90px}
+.box{width:72px;height:72px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;border:2px solid #000}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt{background:#fff;border-radius:14px;height:82px;display:flex;align-items:center;justify-content:center;border:4px solid transparent;position:relative;cursor:pointer}
+.opt.sel{border-color:#00ff88} .opt.ok{border-color:#00ff88;background:#c6ffd6} .opt.no{border-color:#ff3333;background:#ffcaca}
+.opt b{position:absolute;top:-6px;left:-6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:6px}
+.btn{width:100%;padding:13px;border:none;border-radius:30px;font-weight:900;margin-top:10px;cursor:pointer} .btn-y{background:#ffcc00;color:#000} .btn:disabled{opacity:.4}
+#welcome{position:absolute;inset:0;z-index:50;background-image:url('kubus.jpg');background-size:cover;background-position:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:16px}
+#welcome .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.1), rgba(0,0,0,.85));}
+#welcome .content{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px;align-items:center}
+#welcome h1{font-size:26px;color:#ffcc00;line-height:1.1} #welcome p{font-size:13px;color:#ddd}
+.btn-enter{padding:16px 36px;border-radius:30px;border:none;background:linear-gradient(90deg,#ffcc00,#ff9900);font-weight:900;font-size:17px;cursor:pointer;box-shadow:0 0 18px #ffcc00}
+#result{position:absolute;inset:0;z-index:60;background:#0a0e1f;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.cube{position:relative;width:56px;height:56px}
+.cube .front{position:absolute;left:14px;top:16px;width:28px;height:28px;background:#ffcc00;border:1px solid #000;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000}
+.cube .top{position:absolute;left:14px;top:2px;width:28px;height:14px;background:#00ffff;border:1px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;transform:skewX(-20deg)}
+.cube .side{position:absolute;left:28px;top:16px;width:14px;height:28px;background:#ff8888;border:1px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;transform:skewY(-20deg)}
+.blockWrap{position:relative;width:62px;height:62px} .blk{position:absolute;width:14px;height:14px;border:1.5px solid #000}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="top"><div>LV <span id="lv">1</span>/20 ❤️<span id="life">3</span></div><div>⭐<span id="sc">0</span></div></div>
+<div id="prog"><div id="progFill"></div></div>
+<div id="stage">
+<div class="card">
+<div class="qType" id="qType">LOADING</div>
+<div class="qText" id="qText">...</div>
+<div class="show" id="show"></div>
+<div class="grid" id="grid"></div>
+<button class="btn btn-y" id="btn" disabled onclick="next()">CHOOSE FIRST</button>
+</div>
+</div>
+
+<div id="welcome">
+<div class="overlay"></div>
+<div class="content">
+<h1>WELCOME TO<br>MY AINUN<br>GAME VISUAL</h1>
+<p>🧊 3D Spatial Brain Game<br>Cube Rotation • Prediction • Cube Net<br>20 Exciting Levels!</p>
+<div style="font-size:60px">🧠🎮</div>
+<button class="btn-enter" onclick="start()">ENTER GAME ▶️</button>
+<p style="font-size:10px;color:#aaa">Randomized version on refresh</p>
+</div>
+</div>
+
+<div id="result">
+<div style="font-size:70px" id="rIcon">🏆</div>
+<h2 id="rTitle">WIN</h2>
+<p id="rDesc" style="font-size:13px;color:#ccc;margin:10px 0"></p>
+<div style="font-size:50px;font-weight:900;color:#ffcc00" id="rScore">0</div>
+<button class="btn btn-y" onclick="restart()">PLAY AGAIN 🔄</button>
+<button class="btn" style="background:#222;color:#fff;margin-top:8px" onclick="location.reload()">BACK TO MENU</button>
+</div>
+</div>
+
+<script>
+function dice(f,t,r){
+ return `<div class="cube"><div class="top">${t}</div><div class="front">${f}</div><div class="side">${r}</div></div>`;
+}
+function blocks(arr){
+ let html=`<div class="blockWrap">`;
+ arr.forEach(p=>{
+  let x=p[0]*14 + (p[2]||0)*4, y=p[1]*14 - (p[2]||0)*4;
+  let c=p[2]>0?'#ffcc00':'#fff';
+  html+=`<div class="blk" style="left:${x+10}px;top:${y+10}px;background:${c}"></div>`;
+ });
+ html+=`</div>`; return html;
+}
+function net(arr){
+ let h=`<div style="position:relative;width:70px;height:70px">`;
+ arr.forEach(p=>{ h+=`<div style="position:absolute;left:${p[0]*15+8}px;top:${p[1]*15+8}px;width:15px;height:15px;background:#fff;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900">${p[2]||''}</div>`; });
+ h+=`</div>`; return h;
+}
+const sym=['●','■','▲','★','◆'];
+let game=[];
+function generateGame(){
+ game=[];
+ for(let i=0;i<20;i++){
+  let type,q,base,opts=[],correct=0;
+  if(i<7){
+   type=`CUBE ROTATION ${i+1}`; q='Choose the SAME cube, only rotated!';
+   let f=sym[i%5], t=sym[(i+1)%5], r=sym[(i+2)%5];
+   base=dice(f,t,r);
+   let list=[dice(f,t,r),dice(t,r,f),dice(r,f,t),dice(sym[(i+3)%5],f,r),dice(f,sym[(i+4)%5],r)];
+   let ord=[0,1,2,3,4].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>list[x]); correct=ord.indexOf(0);
+  } else if(i<14){
+   type=`3D BLOCK ${i-7+1}`; q='Which block is identical? Find its rotation!';
+   let b=[[0,0,0],[1,0,0],[2,0,0],[2,1,0],[2,1,1]];
+   if(i%2===0) b.push([0,1,0]);
+   base=blocks(b);
+   let r1=b.map(p=>[-p[1],p[0],p[2]]);
+   let list=[blocks(r1),blocks(b.map(p=>[p[0],p[1]+1,p[2]])),blocks(b),blocks(b.map(p=>[p[1],p[0],p[2]])),blocks(b.map(p=>[p[0]+1,p[1],p[2]]))];
+   let ord=[0,1,2,3,4].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>list[x]); correct=ord.indexOf(0);
+  } else if(i<17){
+   type=`PREDICTION ${i-14+1}`; q='Cube rotates 90° continuously, what is next?';
+   let s1=dice('●','■','▲'), s2=dice('■','▲','◆'), s3=dice('▲','◆','●');
+   base=`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center">${s1}<span style="color:#ffcc00">➤</span>${s2}<span style="color:#ffcc00">➤</span>${s3}<span style="color:#ffcc00">➤</span><div style="width:50px;height:50px;border:3px dashed #ffcc00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">?</div></div>`;
+   let list=[dice('◆','●','■'),dice('●','▲','■'),dice('■','●','◆'),dice('▲','●','◆'),dice('●','◆','▲')];
+   let ord=[0,1,2,3,4].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>list[x]); correct=ord.indexOf(0);
+  } else {
+   type=`CUBE NET ${i-17+1}`; q='If this net is folded into a cube, what will it be?';
+   base=net([[1,0,'●'],[0,1,'■'],[1,1,'▲'],[2,1,'★'],[1,2,'◆']]);
+   let list=[dice('●','■','▲'),dice('■','★','◆'),dice('▲','★','●'),dice('●','★','◆'),dice('■','●','▲')];
+   let ord=[0,1,2,3,4].sort(()=>Math.random()-0.5);
+   opts=ord.map(x=>list[x]); correct=ord.indexOf(0);
+  }
+  game.push({type,q,base,opts,correct});
+ }
+}
+let cur=0, score=0, life=3, sel=null;
+function start(){ generateGame(); cur=0; score=0; life=3; document.getElementById('welcome').style.display='none'; render(); }
+function render(){
+ let p=game[cur];
+ document.getElementById('lv').innerText=cur+1;
+ document.getElementById('life').innerText=life;
+ document.getElementById('sc').innerText=score;
+ document.getElementById('progFill').style.width=(cur/20*100)+'%';
+ document.getElementById('qType').innerText=p.type;
+ document.getElementById('qText').innerText=p.q;
+ document.getElementById('show').innerHTML=`<div class="box">${p.base}</div>`;
+ let g=document.getElementById('grid'); g.innerHTML=''; sel=null;
+ document.getElementById('btn').disabled=true; document.getElementById('btn').innerText='CHOOSE ANSWER ⬆️';
+ p.opts.forEach((o,i)=>{
+  let el=document.createElement('div'); el.className='opt';
+  el.innerHTML=`<b>${String.fromCharCode(65+i)}</b>${o}`;
+  el.onclick=()=>{ sel=i; document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); document.getElementById('btn').disabled=false; document.getElementById('btn').innerText='LOCK ANSWER ➤'; };
+  g.appendChild(el);
+ });
+}
+function next(){
+ if(sel===null) return;
+ let p=game[cur]; let ok=sel===p.correct;
+ document.querySelectorAll('.opt').forEach((o,i)=>{ if(i===p.correct) o.classList.add('ok'); if(i===sel && !ok) o.classList.add('no'); });
+ if(ok) score+=10; else life--;
+ document.getElementById('btn').innerText=ok?'✅ CORRECT!':'❌ WRONG!';
+ document.getElementById('btn').disabled=true;
+ setTimeout(()=>{
+  if(life<=0){ end(false); return; }
+  cur++; if(cur>=20) end(true); else render();
+ },800);
+}
+function end(win){
+ let r=document.getElementById('result'); r.style.display='flex';
+ document.getElementById('rIcon').innerText=win?'🏆':'💀';
+ document.getElementById('rTitle').innerText=win?'YOU ARE A VISUAL GENIUS!':'GAME OVER';
+ document.getElementById('rDesc').innerText=win?`Completed 20 levels! Score ${score}. Your 3D spatial brain is top! Perfect for architect/pilot/engineer.`:`Life ran out at level ${cur+1}. Score ${score}. Try again!`;
+ document.getElementById('rScore').innerText=score+' ⭐';
+}
+function restart(){ generateGame(); cur=0; score=0; life=3; document.getElementById('result').style.display='none'; render(); }
+generateGame();
+</script>
+</body>
+</html>
