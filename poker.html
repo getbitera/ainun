@@ -225,7 +225,11 @@ if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>loadFemaleV
 
 const DAILY_AMOUNT=2000;
 let currentUser=null, authMode='login';
-const AVATARS=['https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=3','https://i.pravatar.cc/150?img=5','https://i.pravatar.cc/150?img=8'];
+const AVATARS=['https://i.pravatar.cc/150?img=1','https://i.pravatar.cc/150?img=3','https://i.pravatar.cc/150?img=5','https://i.pravatar.cc/150?img=8',
+ 'https://i.pravatar.cc/150?img=32','https://i.pravatar.cc/150?img=33','https://i.pravatar.cc/150?img=35','https://i.pravatar.cc/150?img=40',
+ 'https://i.pravatar.cc/150?img=41','https://i.pravatar.cc/150?img=44','https://i.pravatar.cc/150?img=45','https://i.pravatar.cc/150?img=47',
+ 'https://i.pravatar.cc/150?img=48','https://i.pravatar.cc/150?img=50','https://i.pravatar.cc/150?img=52','https://i.pravatar.cc/150?img=56',
+ 'https://i.pravatar.cc/150?img=57','https://i.pravatar.cc/150?img=59','https://i.pravatar.cc/150?img=60','https://i.pravatar.cc/150?img=62'];
 let selectedAvatar=AVATARS[0];
 function getUsers(){ try{ return JSON.parse(localStorage.getItem('poker_users')||'{}'); }catch(e){ return {}; } }
 function saveUsers(u){ localStorage.setItem('poker_users', JSON.stringify(u)); }
@@ -262,15 +266,103 @@ function loginUser(username){
   if(u.lastDaily===today){ setTimeout(()=>newHand(),600); }
 }
 function closeDaily(){ document.getElementById('modalDaily').style.display='none'; document.getElementById('loginModal').style.display='none'; setTimeout(()=>newHand(),600); }
-function logout(){ localStorage.removeItem('poker_current'); location.reload(); }
+function logout(){ 
+  if(currentUser){
+    localStorage.removeItem('poker_enemies_' + currentUser);
+    localStorage.removeItem('poker_tableHands_' + currentUser);
+  }
+  localStorage.removeItem('poker_current'); 
+  location.reload(); 
+}
 window.addEventListener('load',()=>{ let cur=localStorage.getItem('poker_current'); if(cur){ let users=getUsers(); if(users[cur]) loginUser(cur); } });
 function getChips(){ try{ return (getUsers()[currentUser]&&getUsers()[currentUser].chips)||0; }catch(e){ return 0; } }
 function setChips(v){ let display=document.getElementById('chipDisplay'); if(display) display.innerText=(v||0).toLocaleString('en-US'); if(currentUser){ let users=getUsers(); if(users[currentUser]){ users[currentUser].chips=v; saveUsers(users); } } }
 function incHandCount(){ try{ let users=getUsers(); if(users[currentUser]){ users[currentUser].totalHands=(users[currentUser].totalHands||0)+1; saveUsers(users); document.getElementById('handBox').innerText=`HAND #${users[currentUser].totalHands+1}`; } }catch(e){} }
 
 const ENEMY_POOL=[
- {name:'Brian',img:'https://i.pravatar.cc/150?img=11'},{name:'Edward',img:'https://i.pravatar.cc/150?img=14'},{name:'Johnson',img:'https://i.pravatar.cc/150?img=18'},
+ {name:'James Wilson',img:'https://i.pravatar.cc/150?img=11'},
+ {name:'Michael Smith',img:'https://i.pravatar.cc/150?img=12'},
+ {name:'John Davis',img:'https://i.pravatar.cc/150?img=13'},
+ {name:'Robert Johnson',img:'https://i.pravatar.cc/150?img=14'},
+ {name:'David Brown',img:'https://i.pravatar.cc/150?img=15'},
+ {name:'William Miller',img:'https://i.pravatar.cc/150?img=16'},
+ {name:'Thomas Moore',img:'https://i.pravatar.cc/150?img=17'},
+ {name:'Charles Taylor',img:'https://i.pravatar.cc/150?img=18'},
+ {name:'Daniel Anderson',img:'https://i.pravatar.cc/150?img=19'},
+ {name:'Matthew Thomas',img:'https://i.pravatar.cc/150?img=20'},
+ {name:'Anthony Jackson',img:'https://i.pravatar.cc/150?img=21'},
+ {name:'Mark White',img:'https://i.pravatar.cc/150?img=22'},
+ {name:'Donald Harris',img:'https://i.pravatar.cc/150?img=23'},
+ {name:'Steven Martin',img:'https://i.pravatar.cc/150?img=24'},
+ {name:'Andrew Thompson',img:'https://i.pravatar.cc/150?img=25'},
+ {name:'Paul Garcia',img:'https://i.pravatar.cc/150?img=26'},
+ {name:'Joshua Martinez',img:'https://i.pravatar.cc/150?img=27'},
+ {name:'Christopher Lee',img:'https://i.pravatar.cc/150?img=28'},
+ {name:'Brian Robinson',img:'https://i.pravatar.cc/150?img=29'},
+ {name:'Kevin Walker',img:'https://i.pravatar.cc/150?img=30'},
+ {name:'George Hall',img:'https://i.pravatar.cc/150?img=31'},
+ {name:'Edward Allen',img:'https://i.pravatar.cc/150?img=32'},
+ {name:'Ronald Young',img:'https://i.pravatar.cc/150?img=33'},
+ {name:'Timothy King',img:'https://i.pravatar.cc/150?img=34'},
+ {name:'Jason Wright',img:'https://i.pravatar.cc/150?img=35'},
+ {name:'Jeffrey Lopez',img:'https://i.pravatar.cc/150?img=36'},
+ {name:'Ryan Hill',img:'https://i.pravatar.cc/150?img=37'},
+ {name:'Jacob Scott',img:'https://i.pravatar.cc/150?img=38'},
+ {name:'Gary Green',img:'https://i.pravatar.cc/150?img=39'},
+ {name:'Nicholas Adams',img:'https://i.pravatar.cc/150?img=40'},
+ {name:'Eric Baker',img:'https://i.pravatar.cc/150?img=41'},
+ {name:'Jonathan Nelson',img:'https://i.pravatar.cc/150?img=42'},
+ {name:'Stephen Carter',img:'https://i.pravatar.cc/150?img=43'},
+ {name:'Larry Mitchell',img:'https://i.pravatar.cc/150?img=44'},
+ {name:'Justin Perez',img:'https://i.pravatar.cc/150?img=45'},
+ {name:'Scott Roberts',img:'https://i.pravatar.cc/150?img=46'},
+ {name:'Brandon Turner',img:'https://i.pravatar.cc/150?img=47'},
+ {name:'Benjamin Phillips',img:'https://i.pravatar.cc/150?img=48'},
+ {name:'Samuel Campbell',img:'https://i.pravatar.cc/150?img=49'},
+ {name:'Frank Parker',img:'https://i.pravatar.cc/150?img=50'},
+ {name:'Gregory Evans',img:'https://i.pravatar.cc/150?img=51'},
+ {name:'Raymond Edwards',img:'https://i.pravatar.cc/150?img=52'},
+ {name:'Alexander Collins',img:'https://i.pravatar.cc/150?img=53'},
+ {name:'Patrick Stewart',img:'https://i.pravatar.cc/150?img=54'},
+ {name:'Jack Morris',img:'https://i.pravatar.cc/150?img=55'},
+ {name:'Dennis Rogers',img:'https://i.pravatar.cc/150?img=56'},
+ {name:'Jerry Reed',img:'https://i.pravatar.cc/150?img=57'},
+ {name:'Tyler Cook',img:'https://i.pravatar.cc/150?img=58'},
+ {name:'Aaron Morgan',img:'https://i.pravatar.cc/150?img=59'},
+ {name:'Henry Bell',img:'https://i.pravatar.cc/150?img=60'},
+ {name:'Adam Murphy',img:'https://i.pravatar.cc/150?img=61'}
 ];
+ 
+let tableHands = parseInt(localStorage.getItem('poker_tableHands_'+currentUser) || '0');
+
+function getSessionEnemies(){
+  let key = 'poker_enemies_' + currentUser;
+  let saved = localStorage.getItem(key);
+  if(saved){
+    try{ return JSON.parse(saved); }catch(e){}
+  }
+  let pool = [...ENEMY_POOL];
+  for(let i=pool.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]] }
+  let filtered = pool.filter(p=>p.img!==selectedAvatar);
+  let chosen = filtered.slice(0,3);
+  localStorage.setItem(key, JSON.stringify(chosen));
+  return chosen;
+}
+
+function replaceOneEnemy(currentEnemies){
+  let pool = [...ENEMY_POOL];
+  let usedNames = currentEnemies.map(e=>e.name);
+  let available = pool.filter(p=> !usedNames.includes(p.name) && p.img!==selectedAvatar);
+  if(available.length==0) available = pool.filter(p=>p.img!==selectedAvatar);
+  for(let i=available.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [available[i],available[j]]=[available[j],available[i]] }
+  let newGuy = available[0];
+  // ganti 1 orang random dari 3 musuh
+  let idxToReplace = Math.floor(Math.random()*3);
+  currentEnemies[idxToReplace] = newGuy;
+  localStorage.setItem('poker_enemies_' + currentUser, JSON.stringify(currentEnemies));
+  return currentEnemies;
+}
+
 let myName='YOU';
 function dealerSay(t,d=3000){ let b=document.getElementById('dealerBubble'); if(!b) return; b.innerText=t; b.classList.add('show'); setTimeout(()=>b.classList.remove('show'),d); if(VOICE_ON&&'speechSynthesis' in window){ try{ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; function dealerSay(text, duration=3500){
   try{
@@ -433,7 +525,33 @@ function newHand(){
     if(chips<=0){ document.getElementById('modalNoChip').style.display='flex'; return; }
     document.getElementById('winnerBox').style.display='none';
     deck=makeDeck(); shuffle(deck); community=[]; pot=0; currentBet=0; stage=0; raiseCount=0; actedThisRound=[false,false,false,false,false];
-    let shuffledPool=[...ENEMY_POOL].sort(()=>0.5-Math.random()); let chosen=shuffledPool.slice(0,3);
+
+    tableHands++;
+    localStorage.setItem('poker_tableHands_'+currentUser, tableHands);
+
+    let chosen = getSessionEnemies();
+
+    // CEK OPSI 2: ADA MUSUH BANGKRUT?
+    // ambil data chip musuh sebelumnya kalau ada
+    let oldPlayers = players;
+    if(oldPlayers && oldPlayers.length>0){
+      for(let i=1;i<=3;i++){
+        if(oldPlayers[i] && oldPlayers[i].chips<=0 && !oldPlayers[i].empty){
+          log(`💀 ${oldPlayers[i].name} BANGKRUT! Diganti...`);
+          chosen = replaceOneEnemy(chosen);
+          dealerSay(`${chosen[Math.floor(Math.random()*3)].name} joins the table!`,2500);
+          break;
+        }
+      }
+    }
+
+    // CEK OPSI 1: TIAP 5 HAND GANTI 1 ORANG
+    if(tableHands % 5 === 0 && tableHands !== 0){
+      log(`🔄 Meja refresh! Hand ke-${tableHands} ganti 1 pemain`);
+      chosen = replaceOneEnemy(chosen);
+      dealerSay(`New player! ${chosen[Math.floor(Math.random()*3)].name} joins!`,2500);
+    }
+
     players=[
       {id:0,name:myName,chips:getChips(),hand:[],bet:0,fold:false,allin:false,isUser:true,avatar:selectedAvatar,empty:false},
       {id:1,name:chosen[0].name,chips:2500,hand:[],bet:0,fold:false,allin:false,isUser:false,avatar:chosen[0].img,empty:false},
@@ -441,9 +559,9 @@ function newHand(){
       {id:3,name:chosen[2].name,chips:2500,hand:[],bet:0,fold:false,allin:false,isUser:false,avatar:chosen[2].img,empty:false},
       {id:4,name:'EMPTY',chips:0,hand:[],bet:0,fold:true,allin:false,isUser:false,avatar:'',empty:true}
     ];
+
     for(let r=0;r<2;r++){ for(let p of players){ if(p&&!p.empty){ let card=deck.pop(); p.hand.push(card); } } }
     
-    // SAFE SB/BB FINDER
     let sb=(dealer+1)%5; let tries=0; while(players[sb]&&players[sb].empty && tries<10){ sb=(sb+1)%5; tries++; }
     let bb=(dealer+2)%5; tries=0; while(((players[bb]&&players[bb].empty) || bb==sb) && tries<10){ bb=(bb+1)%5; tries++; }
     
@@ -455,7 +573,7 @@ function newHand(){
     turn=(dealer+3)%5; tries=0; while(players[turn]&&(players[turn].empty||players[turn].fold) && tries<10){ turn=(turn+1)%5; tries++; }
     
     render();
-    log(`SB ${players[sb].name} $20, BB ${players[bb].name} $40`);
+    log(`HAND #${tableHands} vs ${chosen.map(c=>c.name).join(', ')}`);
     if(turn==0) startHeartbeat(); else botTurn();
   }catch(e){
     console.log('newHand crash',e);
