@@ -33,7 +33,17 @@
 #chatInput:disabled{background:#111;color:#666}
 .btn{padding:8px 11px;border:none;border-radius:20px;font-weight:900;font-size:11px;cursor:pointer} .btn-primary{background:#fff;color:#000} .btn-wolf{background:#ff2222;color:#fff} .btn-mute{background:#aa55ff;color:#fff} .btn-protect{background:#00ffff;color:#000} .btn-send{background:#00ff88;color:#000;padding:10px 16px;border-radius:20px}
 .btn:disabled{opacity:.4;pointer-events:none}
-#welcomeScreen{position:absolute;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0}
+#welcomeScreen{
+  position:absolute;inset:0;z-index:100;
+  background-image: url('werewolfgambar.jpg');
+  background-size: cover;
+  background-position: center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#welcomeScreen .overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom, rgba(0,0,0,.1), rgba(0,0,0,.85));
+}
 #welcomeScreen .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.2), rgba(0,0,0,.85));}
 #welcomeScreen .content{position:relative;z-index:2;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;height:100%;justify-content:flex-end;padding-bottom:40px}
 .btn-enter{background:linear-gradient(90deg,#ffcc00,#ff9900);color:#000;font-size:16px;padding:14px 36px;border-radius:30px;font-weight:900;box-shadow:0 0 20px #ffcc00;animation: pulse 1.5s infinite;border:none;cursor:pointer}
