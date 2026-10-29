@@ -1,222 +1,267 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>My Ainun Card - Fortune Game</title>
+<title>My Ainun Card </title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a1a;display:flex;justify-content:center;min-height:100vh;font-family:system-ui;color:#fff;overflow:hidden}
+body{background:#0a0a1a;display:flex;justify-content:center;min-height:100vh;font-family:system-ui, -apple-system, sans-serif;color:#fff;overflow:hidden}
 #phone{width:100%;max-width:420px;height:100vh;height:100dvh;background:#000;position:relative;overflow:hidden;border-left:1px solid #222;border-right:1px solid #222}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:.4s;z-index:2;background:#0f0f2a}
 .hidden{opacity:0;pointer-events:none;z-index:1;transform:scale(0.98)}
-#welcome{
-  background:#0a0a1a;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  padding:0;
-  overflow:hidden;
-  position:relative;
-}
-.welcomeImg{
-  width:100%;
-  height:100%;
-  object-fit:contain; /* INI KUNCINYA: contain bukan cover, jadi gak kepotong */
-  object-position:top center;
-}
-.w-content{
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  padding:16px;
-  width:100%;
-  text-align:center;
-  background:linear-gradient(to top, rgba(0,0,0,.9) 20%, transparent);
-}
-.welcomeImg{width:100%;height:75%;object-fit:cover}
-.w-content{padding:16px;width:100%;text-align:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+#welcome{background:#0a0a1a;display:flex;flex-direction:column;justify-content:flex-start;position:relative}
+.welcomeImg{width:100%;height:100%;object-fit:contain;object-position:top center}
+.w-content{position:absolute;bottom:0;left:0;right:0;padding:16px;text-align:center;background:linear-gradient(to top, rgba(0,0,0,.9), transparent)}
 .btnStart{width:100%;padding:18px;border-radius:100px;border:0;background:linear-gradient(90deg,#ffd700,#ffb700);color:#000;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(255,215,0,.5)}
 #nameScreen{background:radial-gradient(ellipse at 50% 0%, #2a1a4a, #0a0a1a);justify-content:center;padding:24px;text-align:center}
 .nameCard{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:24px;padding:24px;width:100%}
-input{width:100%;padding:14px 18px;border-radius:100px;border:2px solid #444;background:#111;color:#fff;margin:16px 0;font-size:16px;outline:none;text-align:center}
-.btnGo{width:100%;padding:14px;border-radius:100px;border:0;background:#00e5cc;color:#000;font-weight:900;font-size:15px;cursor:pointer}
+input{width:100%;padding:14px 18px;border-radius:100px;border:2px solid #444;background:#111;color:#fff;margin:16px 0;font-size:16px;text-align:center;outline:none}
+.btnGo{width:100%;padding:14px;border-radius:100px;border:0;background:#00e5cc;color:#000;font-weight:900;cursor:pointer}
 .btnGo:disabled{opacity:.4}
 #game{background:radial-gradient(ellipse at 50% 0%, #1a2a4a, #0a0a1a);padding:12px;display:flex;flex-direction:column}
 .topbar{padding:10px;text-align:center;font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;overflow-y:auto;padding:8px}
-.card{aspect-ratio:2/3;background:linear-gradient(180deg,#2a2a5a,#1a1a3a);border:2px solid #ffd700;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.3s;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.card{aspect-ratio:2/3;background:linear-gradient(180deg,#2a2a5a,#1a1a3a);border:2px solid #ffd700;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.3s}
 .card.flipped{background:linear-gradient(180deg,#fff8dc,#ffd700);color:#000;border-color:#fff}
 .card.selected{border-color:#00e5cc;box-shadow:0 0 20px #00e5cc;transform:scale(1.05)}
 .card .back{font-size:10px;font-weight:900;text-align:center;line-height:1.2;color:#ffd700}
-.card .front{font-size:9px;font-weight:800;text-align:center;padding:4px}
+.card .front{font-size:10px;font-weight:800;text-align:center;padding:6px}
 .progressBar{height:4px;background:#222;border-radius:10px;margin:8px 0;overflow:hidden}
 .progressBar div{height:100%;background:#00e5cc;transition:.4s}
-#resultScreen{background:rgba(0,0,0,.92);backdrop-filter:blur(10px);justify-content:flex-start;padding:20px;overflow-y:auto}
-.resCard{background:linear-gradient(180deg,#1e223a,#11142a);border:2px solid #ffd700;border-radius:24px;padding:20px;width:100%;text-align:left}
-.meaning{margin:12px 0;padding:12px;background:rgba(255,255,255,.06);border-radius:12px;border-left:3px solid #00e5cc}
-.meaning b{color:#00e5cc;display:block;margin-bottom:4px;font-size:13px}
-.meaning p{font-size:12px;line-height:1.5;opacity:.9}
+
+/* --- FIX READABILITY DISINI --- */
+#resultScreen{background:#070714;justify-content:flex-start;padding:12px;overflow-y:auto}
+.resCard{background:#15152a;border:2px solid #ffd700;border-radius:24px;padding:16px;width:100%;text-align:left}
+.meaning{
+  margin:14px 0;
+  padding:16px;
+  background:#ffffff12; /* lebih terang */
+  border-radius:14px;
+  border-left:4px solid #00e5cc;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.meaning b{
+  color:#2ef5d6; /* cyan terang biar kebaca */
+  display:block;
+  margin-bottom:8px;
+  font-size:14px;
+  letter-spacing:.3px;
+  text-shadow:0 0 8px rgba(0,229,204,.4);
+}
+.meaning p{
+  color:#f2f2ff !important; /* FIX UTAMA: dari hitam jadi putih */
+  font-size:14px !important;
+  line-height:1.7 !important;
+  opacity:1 !important;
+  font-weight:400;
+}
 </style>
 </head>
 <body>
 <div id="phone">
-
 <div id="welcome" class="screen">
   <img class="welcomeImg" src="myainuncard.jpg" alt="Welcome">
   <div class="w-content">
-    <!-- TULISAN DOBEL AKU HAPUS, CUKUP PAKAI YANG DI GAMBAR -->
-    <button class="btnStart" onclick="goName()">✨ START GAME ✨</button>
-    <div style="font-size:8px;opacity:.5;margin-top:8px">Just for entertainment, not real</div>
+    <button class="btnStart" onclick="goName()">✨ START READING ✨</button>
+    <div style="font-size:8px;opacity:.5;margin-top:8px">Original My Ainun Creation • 22 Cards • Public Domain Inspired</div>
   </div>
 </div>
-
 <div id="nameScreen" class="screen hidden">
   <div class="nameCard">
     <div style="font-size:48px">🔮</div>
     <h2 style="margin:8px 0">What's Your Name?</h2>
-    <p style="font-size:12px;opacity:.7">Enter your name to start the reading</p>
+    <p style="font-size:11px;opacity:.6">Enter your name to begin the reading</p>
     <input id="nameInput" placeholder="Your name...">
-    <button class="btnGo" id="goBtn" disabled onclick="startGame()">SEE MY FORTUNE 🔮</button>
-    <p style="font-size:9px;opacity:.5;margin-top:12px">Just for entertainment, not real</p>
+    <button class="btnGo" id="goBtn" disabled onclick="startGame()">SEE MY DESTINY 🔮</button>
   </div>
 </div>
-
 <div id="game" class="screen hidden">
   <div class="topbar">
-    <div style="font-weight:900;color:#ffd700;font-size:14px" id="greeting">Hello!</div>
-    <div style="font-size:10px;margin:4px 0">Choose 3 Cards of Your Destiny (from 22 cards)</div>
+    <div style="font-weight:900;color:#ffd700;font-size:14px" id="greeting"></div>
+    <div style="font-size:10px;margin:4px 0">Choose 3 Cards of Your Destiny (22 Cards)</div>
     <div class="progressBar"><div id="prog" style="width:0%"></div></div>
-    <div style="font-size:10px"><span id="picked">0</span>/3 selected</div>
+    <div style="font-size:10px"><span id="picked">0</span>/3 selected • Shuffles every time</div>
   </div>
   <div class="grid" id="cardGrid"></div>
-  <div style="padding:8px"><button class="btnGo" id="revealBtn" disabled onclick="reveal()" style="opacity:.4">REVEAL READING ✨</button></div>
+  <div style="padding:8px"><button class="btnGo" id="revealBtn" disabled onclick="reveal()" style="opacity:.4">REVEAL MY LONG READING ✨</button></div>
 </div>
-
 <div id="resultScreen" class="screen hidden">
   <div class="resCard" id="resCard"></div>
 </div>
-
 </div>
 
 <script>
 const cards=[
-{id:1,name:"The Heart",emoji:"💖",mean:"A sincere heart. You are surrounded by loving energy. Someone truly cares about you right now."},
-{id:2,name:"The Star",emoji:"⭐",mean:"Star of hope. All your hard work is finally showing results. Don't give up, your star is shining bright."},
-{id:3,name:"The Dream",emoji:"☁️",mean:"You are a big dreamer. Your crazy idea is valid! But one small step today is worth more than 100 dreams."},
-{id:4,name:"The Journey",emoji:"🧭",mean:"A new journey is coming — new job, new friendship, new place. Don't be afraid to leave your comfort zone."},
-{id:5,name:"The Secret",emoji:"🔑",mean:"Something remains hidden. It's time to be honest with yourself about what you really want."},
-{id:6,name:"The Future",emoji:"🔮",mean:"Your future is bright, but the key is what you do TODAY. Stop overthinking the future."},
-{id:7,name:"The Moon",emoji:"🌙",mean:"Your intuition is super sharp. If you feel uneasy, listen to it. You need rest and good sleep."},
-{id:8,name:"The Sun",emoji:"☀️",mean:"Happiness explosion! Good news is coming this week that will boost your mood. Time to shine."},
-{id:9,name:"The Love",emoji:"💕",mean:"Universal love. You will get a hug, a compliment, warm attention. For singles: someone secretly likes you!"},
-{id:10,name:"The Luck",emoji:"🍀",mean:"Luck is on your side. Try what you postponed — apply, message first. A small chance can be a jackpot."},
-{id:11,name:"The Guardian",emoji:"🛡️",mean:"You are protected. There is a guardian figure — a friend, sibling, or a stronger version of yourself watching over you."},
-{id:12,name:"The Shadow",emoji:"🌑",mean:"The dark side you hide. It's okay to feel sad, scared, or insecure. Acknowledge it, then heal slowly."},
-{id:13,name:"The Courage",emoji:"🦁",mean:"The little lion inside you is waking up! Dare to say NO and dare to say YES. Your courage will inspire others."},
-{id:14,name:"The Friendship",emoji:"🤝",mean:"A true friend will show up. Someone will help you without being asked. Don't forget to thank them."},
-{id:15,name:"The Bloom",emoji:"🌸",mean:"Flowers are blooming. Whatever you planted — study, work, relationship — is about to be harvested. Be patient."},
-{id:16,name:"The Storm",emoji:"⛈️",mean:"The storm will pass. If things are messy right now, it's only temporary. After rain you become stronger."},
-{id:17,name:"The Wish",emoji:"🌠",mean:"Shooting star! One wish you whisper before sleep, the universe is listening. Write it down and chase it."},
-{id:18,name:"The Mirror",emoji:"🪞",mean:"Time to look in the heart mirror. What you see in others is often a reflection of yourself. Check again."},
-{id:19,name:"The Key",emoji:"🗝️",mean:"The key to the answer is within you. The confusing problem has a close solution. Try a new way, the door will open."},
-{id:20,name:"The Anchor",emoji:"⚓",mean:"You need an anchor so you don't drift. Create routine: regular sleep, save a little, light exercise. Stability makes you safe."},
-{id:21,name:"The Gift",emoji:"🎁",mean:"An unexpected gift! Could be an item, surprise money, compliment, or opportunity. Be grateful and share."},
-{id:22,name:"The Time",emoji:"⏳",mean:"The hourglass says don't rush. Everything has its time. What you're waiting for will come at the perfect time, not the fastest."}
+{id:0,name:"The Newbie",emoji:"🌱",means:[
+"Your soul is standing at the very beginning of a brand new chapter. This is the energy of pure potential, like a blank page that has never been touched. The universe is not asking you to be perfect, it is asking you to be brave enough to take the first step even when you don't know where the path leads. A new person, a new city, or a new version of yourself is about to arrive. Walk with curiosity, not fear.",
+"Right now you are being called to unlearn and become a beginner again. It is easy to feel embarrassed for not knowing, but this card says your innocence is your power. People will underestimate you, but that is their mistake. Keep your heart open like a child, say yes to small adventures, and let life surprise you. The greatest journeys always start when you admit: I don't know, but I want to learn.",
+"There is a beautiful, almost reckless courage in you right now. You want to jump without checking how deep the water is. That spirit is precious, but remember to pack a little wisdom with your dreams. Don't throw away your past, bring it as a small compass. A new friendship or unexpected invitation will be the doorway. Trust the wind that pushes you forward."
+]},
+{id:1,name:"The Creator",emoji:"✨",means:[
+"You are no longer just a dreamer, you are the creator. All four elements - idea, emotion, logic, and action - are finally in your hands. This is a powerful manifestation window. Stop waiting for permission from anyone. The pen is literally in your hand, the paper is in front of you. Whatever you build in the next 7 days will have a much longer lifespan than you think. Create it now.",
+"The universe is handing you its toolbox. You have the fire to start, the water to feel, the air to plan, and the earth to build. But tools are useless if they stay in the box. You have been consuming too much content and creating too little. Reverse it. One imperfect creation today is worth more than a hundred perfect ideas in your head. Make it messy, make it yours.",
+"This is the card of alchemy. You are turning invisible thoughts into something people can touch, see, and feel. Your words have weight right now, your hands have magic. If you have been wanting to launch a small business, write a book, start a channel, or confess something, the signal is green. Don't talk about your power, show it."
+]},
+{id:2,name:"The Whisper",emoji:"🤫",means:[
+"There is a quiet voice inside you that you have been ignoring because the world outside is so loud. This card asks you to turn off the noise. Go for a walk without music, sit without scrolling. The answer you are desperately searching for on Google is actually already living in your chest. Your intuition is not overthinking, it is a sacred whisper that only gets louder when you are still.",
+"You are guarding a sacred secret, and that is exactly what you should do. Not every plan needs an audience. Not every dream needs validation. Some seeds grow better in the dark before they are ready for sunlight. Protect your energy. There are people who listen not to help, but to judge. Keep this chapter private until it becomes a solid book.",
+"Behind the curtain of your daily routine, something is working silently. You feel it but you cannot explain it yet. This is the time of inner temple, meditation, journaling, and deep dreams. Pay attention to repetitive dreams or deja vu this week. The veil between your conscious and subconscious is very thin. What you feel is real, even if you have no proof."
+]},
+{id:3,name:"The Bloom",emoji:"🌸",means:[
+"Look at you, finally blooming after a long winter of waiting. This is not an overnight success, this is the result of all the silent days when you kept watering yourself even when no one clapped for you. Your softness is not a weakness, it is your strategy. People feel safe around you because your energy is like a garden. Now is the time to receive compliments, love, and abundance without guilt.",
+"Your creative womb is fertile right now. Whether it is a child, a project, a relationship, or a new self, something wants to be born through you. But blooming also requires boundaries. Not everyone deserves access to your garden. Learn to say this is my season to grow, and I will choose who waters me. Nurture yourself as tenderly as you nurture others.",
+"You have been so focused on becoming that you forgot you already are. This card reminds you to embody the Empress within - graceful, abundant, unapologetically beautiful. Wear the color that makes you feel alive, cook your favorite food, slow down. Abundance doesn't come from hustling harder, it comes from allowing yourself to feel worthy of receiving."
+]},
+{id:4,name:"The Pillar",emoji:"🏛️",means:[
+"You are being asked to become the pillar for your own life. No more blaming parents, partners, or circumstances. True power is not about controlling others, it is about mastering your own schedule, your own finances, your own emotions. Build a morning routine that doesn't collapse when your mood collapses. Discipline is not punishment, it is the highest form of self-respect.",
+"There is a fatherly energy protecting you right now, whether it is an actual father figure, a mentor, or the disciplined father energy inside you. This card says: stop negotiating with your excuses. Decide what you want, write the rules, and follow them like law. The moment you become structured, the chaos outside loses its power over you.",
+"Your foundation was shaky because you were building on other people's opinions. Now it is time to pour your own concrete. Get serious about money, health, and long-term plans. People may call you boring or too serious, but they will come to you when their own houses shake. Be the mountain, not the weather."
+]},
+{id:5,name:"The Mentor",emoji:"📚",means:[
+"You don't need to invent the wheel. Thousands of souls have walked this path before you, and they left maps. This card is an invitation to become a student again. Find a book, a teacher, a course, or an elder whose life you respect. Your ego wants to say I know, but your soul wants to say teach me. Humility will open a door that pride never could.",
+"There is a sacred tradition or family value that you have been rejecting because you wanted to be different. Maybe it is time to look at it again with mature eyes. Not all old things are outdated, some are timeless. The answer to your modern problem might be hidden in an old prayer, an old recipe, or advice from your grandmother. Honor the roots while you grow the branches.",
+"This is a sign that you are ready to become the mentor for someone else. But you cannot teach what you haven't lived. Before you preach, practice. Before you lead, listen. Your life experience, even the painful one, is now a curriculum that can save someone else years of searching. Share it with integrity."
+]},
+{id:6,name:"The Bond",emoji:"💞",means:[
+"Love is not just romance, it is choice. This card shows you at a crossroads of the heart. One path is safe but numb, the other is scary but alive. You cannot walk both. The universe is asking you to choose with radical honesty: what do you truly desire when no one is watching? Your decision will define not just your love life, but your self-love. Choose what makes your soul feel at home.",
+"A deep soul contract is in front of you. It could be a lover, a best friend, a business partner, or even a version of yourself that you abandoned. This bond is not meant to be perfect, it is meant to be real. It will mirror your wounds so you can heal them. Don't run from the reflection, look closer. True intimacy starts when masks fall.",
+"You have been trying to be loved by being liked by everyone. This card says stop. A meaningful bond requires you to disappoint some people. Say what you really feel. Set a boundary. The people who are meant for you will stay when you are honest. The people who leave were only in love with your mask, not your heart."
+]},
+{id:7,name:"The Drive",emoji:"🏎️",means:[
+"You have two powerful forces inside you pulling in opposite directions, and for a long time you let them fight. Now it is time to hold both reins and drive. This is the card of focused ambition. Cancel the noise, mute the drama, put your eyes on one single goal. Your victory will not come from being the smartest, but from being the most decided. Go, and don't look back.",
+"Movement is your medicine right now. Not just mental movement, physical movement. Your car, your body, your project needs to move out of the garage. You have been stuck in analysis paralysis. The road will teach you what the map never could. Book that ticket, send that proposal, start that conversation. The universe loves speed when the direction is clear.",
+"You are in your winning season, but winning requires you to be both the horse and the driver. Be wild enough to dream big, but disciplined enough to steer daily. People will try to distract you with small arguments. Don't stop the car for every barking dog. Keep your hands on the wheel, your victory is less than a mile away."
+]},
+{id:8,name:"The Brave",emoji:"🦁",means:[
+"Real courage is not roaring, real courage is whispering I will try again tomorrow after a day of falling apart. You are much stronger than your anxiety tells you. This card comes when you have been taming yourself to make others comfortable. Stop shrinking. Your gentle heart is not fragile, it is your armor. Let your softness be your loudest bravery.",
+"You don't need to fight every battle to prove you are strong. Sometimes strength looks like patience, like forgiving someone who never apologized, like staying kind in a cruel room. The lion inside you doesn't need to bite to be respected. It just needs to exist, calm, grounded, knowing its own power. Breathe, you got this.",
+"There is a situation that requires you to set a loving but firm boundary. Your inner child is scared to disappoint people, but your future self will thank you for being brave today. Say no without a long explanation. Say yes without guilt. That is true strength, not aggression, but self-ownership."
+]},
+{id:9,name:"The Lantern",emoji:"🏮",means:[
+"You have been the light for everyone else for too long, and now your own wick is burning low. This card gives you permission to retreat, not as punishment, but as ritual. Turn off your socials for a day, take a solo walk, journal with a real pen. Loneliness and solitude are two different things. One drains you, the other restores you. Choose restoration.",
+"Stop asking the crowd for directions to a place only you have been. The path you are on is not on Google Maps. It is a private mountain that only you can climb. The lantern you carry is not for others to see, it is for your own feet. Walk slowly, walk alone for a while, the right people will meet you at the top, not in the middle of your confusion.",
+"This is the hermit season. You are shedding old identities and that process is not pretty or Instagrammable. It is quiet, it is lonely, it is necessary. Don't rush to be understood. Let people think you disappeared. You are not lost, you are in the laboratory of your soul, mixing a new version of yourself that doesn't need external validation."
+]},
+{id:10,name:"The Wheel",emoji:"🎡",means:[
+"Life is not a straight line, it is a wheel. What feels like a downfall right now is actually a turning point. The wheel is moving in your favor, but you cannot control its speed. What you can control is how you ride it - with panic or with trust. This is a reminder that nothing, neither good nor bad, stays forever. Stay humble when you are up, stay hopeful when you are down.",
+"A sudden change, an unexpected message, a canceled plan, a delayed flight - it all looks random but it is orchestrated. The wheel of fortune is spinning and it will land on a number you didn't bet on, but it will be better than your bet. Be flexible. Your rigid plan is smaller than the universe's plan for you.",
+"Luck is not an accident, it is alignment. When your thoughts, words, and actions line up, luck finds you like a magnet. For the next 48 hours, say yes to small invitations, try again that job application, reply to that DM you ignored. The wheel is giving you one free spin. Use it."
+]},
+{id:11,name:"The Balance",emoji:"⚖️",means:[
+"The universe keeps perfect accounting. Every silent good deed, every tear no one saw, every time you chose honesty when lying was easier - it was all recorded. Now the balancing is coming. If you have been wronged, justice will speak for you without you having to scream. If you have wronged someone, this is the time to make it right before the bill gets bigger.",
+"You are being called to make a decision not from emotion, but from principle. Cut the story, cut the drama, what is objectively fair? This card asks you to be the judge in your own life. No more favoritism for your comfort zone. Choose what is right, not what is easy, and your future self will sleep peacefully because of it.",
+"Karma is not revenge, karma is a mirror. You are seeing the reflection of what you planted 6 months ago. Don't like what you see? Then plant something else today. Balance doesn't mean perfect equality, it means conscious correction. One small honest action today can rebalance a year of imbalance."
+]},
+{id:12,name:"The Pause",emoji:"⏸️",means:[
+"You feel stuck, hanging upside down, and you hate it. But what if this suspension is not punishment but perspective? When you hang, blood goes to your head and you see the world differently. This card says: don't struggle to get down yet. Use this pause to see your life from a completely new angle. The solution you seek cannot be found at the same level of thinking that created the problem.",
+"Sacrifice is a scary word until you realize you sacrifice all the time - you sacrifice sleep for scrolling, peace for people-pleasing. This card asks for a conscious sacrifice: sacrifice one comfortable habit for one uncomfortable growth. Let go of being right, let go of being liked. In return, you will gain clarity that you could never buy.",
+"Everything is on hold because something inside you is not ready to move. And that's okay. Not every waiting is wasted. Trees wait in winter not because they are lazy, but because they are gathering strength underground. Your pause is productive even if it looks lazy on the outside. Trust the timing of your roots."
+]},
+{id:13,name:"The Reset",emoji:"🦋",means:[
+"Something needs to die, not your body, but an identity, a habit, a hope that is already expired. You have been trying to revive a dead flower by watering it more. This card is brutally compassionate: let it go. Grieve it properly, then bury it with respect. Only when you empty your hands can the universe place something new in them.",
+"This is the most feared card but actually the most liberating. Death is not the end, it is a compost. All your failures, heartbreaks, and cringe past are becoming fertilizer for your next bloom. You are not losing yourself, you are shedding a skin that became too tight. It will hurt, but you will be able to breathe again after.",
+"You are in a chrysalis. From the outside it looks like nothing is happening, inside everything is dissolving. Don't try to open the cocoon early to prove you are still okay. Stay in the dark a little longer. When you come out, you will not be an improved version of the old you, you will be a completely new species."
+]},
+{id:14,name:"The Flow",emoji:"🍵",means:[
+"You are trying to hold water with clenched fists. The tighter you grip, the more it leaks. This card teaches the art of temperance - mixing, not forcing. Mix your ambition with rest, mix your logic with intuition, mix giving with receiving. Your life doesn't need more intensity, it needs more balance. Pour a little of this and a little of that until the taste feels right.",
+"An angel is pouring water between two cups, not spilling a single drop. That is your job right now: be the mediator, be the alchemist, be the one who stays calm when everyone else is extreme. A conflict around you doesn't need a winner, it needs a translator. Be the calm water that cools the fire.",
+"Healing is not a straight line, it is a slow blending. You cannot rush your healing by shouting at your wound. You heal by daily small rituals - drinking water, sleeping enough, talking kindly to yourself. Be patient with your own recovery. You are not behind, you are in the process of becoming whole again, one drop at a time."
+]},
+{id:15,name:"The Chain",emoji:"⛓️",means:[
+"Look closely at the chains around you. Are they really locked, or are they loose enough that you could slip out if you really wanted to? This card reveals self-imposed prisons: an addiction to validation, to scrolling, to a toxic person, to the idea that you are not enough. The devil is not outside, it is the voice inside that says you cannot live without this. And that voice is lying.",
+"You are obsessed, and obsession feels like love but it is actually fear wearing a pretty mask. You think you need this job, this relationship, this amount of money to be safe, but actually you are safe already and you are just scared to find out. Name your chain out loud today. When you name it, it loses half its power.",
+"This is not a card to shame you, this is a card to free you. Everyone has a chain. The question is: are you ready to look at it without judgment? You are not a bad person for being attached. You are a human who learned that attachment equals survival. Now you are learning a new lesson: freedom equals survival too. The key is already in your pocket."
+]},
+{id:16,name:"The Crack",emoji:"⚡",means:[
+"The tower you built with so much effort is cracking. And yes, it is terrifying. But that tower was built on other people's expectations, on fear, on pretending to be okay. Its collapse is not your failure, it is your liberation. What falls now was never meant to last forever. Let it fall, so you can see the sky again without a roof blocking it.",
+"You have been living in a structure that felt safe but was actually a cage. A sudden truth, a sudden breakup, a sudden job loss - it feels like the universe is punishing you, but actually it is rescuing you from a life that was too small for your soul. Don't rebuild the same tower with the same bricks. Build a home, not a prison this time.",
+"After the lightning comes clarity. You will realize that you knew this was coming, you just didn't want to admit it. The crack is where the light enters. For the next few days, don't make big decisions out of panic. Just sit among the rubble and ask: what is still standing? Those few true things are your real foundation."
+]},
+{id:17,name:"The Hope",emoji:"🌟",means:[
+"After the storm of the Tower, here comes the Star. This is the universe's way of saying: I didn't forget you. Even when your nights were the longest, there was a star that stayed. This card is a promise that healing is real, that wishes whispered at 2 AM are heard. Your job now is to believe again, softly, gently, without forcing yourself to be positive overnight.",
+"You are the star for someone else without knowing it. Your survival, your small kindness, your story of getting through - it is guiding someone who is still in their dark night. Keep shining, even if your light feels small. One star is enough to prove that darkness is not infinite. Your hope is not naive, it is revolutionary.",
+"Pour water back to the earth. You have received so much, even through pain, now it is time to give back. This is a time of faith, not blind faith, but earned faith. Faith that says: I have fallen many times and I have always been caught, even if not how I expected. Wash your past, water your future. The cosmos is on your side."
+]},
+{id:18,name:"The Night",emoji:"🌙",means:[
+"Your emotions are high tide right now. Everything feels bigger at night - the fear, the loneliness, the what-ifs. This card doesn't tell you to stop feeling, it tells you to stop believing every feeling is a fact. Your intuition is powerful but your anxiety is loud too. Learn to tell the difference. One feels calm and clear, the other feels panicky and urgent. Trust the calm one.",
+"You are walking through a foggy forest with only the moon as your lamp. You cannot see the whole path, only the next two steps. That is enough. You don't need the whole map, you need courage for the next step. Don't make permanent decisions based on temporary moonlight. Sleep on it. Morning always brings a different light.",
+"A dream, a memory, a past wound is visiting you again. Not to punish you, but to show you how much you have healed since then. The moon shows you your shadow so you can love it, not so you can fear it. Cry if you need to, write the unsent letter, then let the tide take it away. You are allowed to feel deeply and still move forward."
+]},
+{id:19,name:"The Shine",emoji:"☀️",means:[
+"You have walked through night after night, and finally, here is the sunrise you prayed for. This is the card of pure joy, childlike happiness, success that feels light, not heavy. Good news is not just coming, it is already on its way to your doorstep. Your inner child is finally allowed to come out and play without being scolded. Let yourself be happy without guilt.",
+"Your energy is magnetic right now. People want to be near you because your light doesn't compete, it invites. This is the best time to launch, to post, to perform, to confess your feelings. The sun doesn't ask for permission to shine, it just shines. Do the same. Your confidence is not arrogance, it is gratitude for being alive.",
+"After all the complicated cards, the Sun says it simply: life can be good again. Not perfect, but good. Warm, simple, clear. Go outside, feel the actual sun on your skin, drink something cold, laugh loudly. Joy is not a reward you get after healing, joy is part of the healing. Let it in."
+]},
+{id:20,name:"The Echo",emoji:"📢",means:[
+"A loud call is coming for you, not from outside, but from your own soul. It is time to rise from the small life you settled for. The old version of you is being summoned to the grave with honor, and a new version is being called to rise. Forgive yourself for who you were when you didn't know better. The echo says: it is not too late to become who you were meant to be.",
+"You will receive a message, an apology, a result, or a closure that you have been waiting for months, maybe years. The judgment here is not punishment, it is awakening. The universe is asking: are you still living by the verdict other people gave you when you were younger? It is time to issue your own verdict: I am worthy, I am free, I am ready.",
+"This is resurrection energy. What you thought was dead - a dream, a love, a hope - is breathing again. But you cannot take the old mindset into this new life. You need to upgrade your beliefs to match your new calling. Take a deep breath, stand up, your name is being called for a second chance."
+]},
+{id:21,name:"The World",emoji:"🌍",means:[
+"You did it. A huge cycle that started long ago is finally complete. This is graduation day for your soul. You have traveled through all 21 lessons before this - from naive beginner to wounded healer to shining sun - and now you are whole. Celebrate this, not with arrogance, but with deep gratitude. You earned this ending, and this ending is also a beginning.",
+"You are not just finishing a project, you are finishing an identity. The world is literally opening its doors for you. Travel, move, expand, teach, publish - your energy is no longer local, it is global. What you learned in private is now needed in public. Your small story is part of a much bigger story. Say yes to the bigger stage, you are ready.",
+"This is the card of integration. All parts of you - the light and the shadow, the brave and the scared, the past and the future - are finally sitting at the same table holding hands. You are no longer fragmented. You are home within yourself. Wherever you go next, you carry this wholeness with you. The world is not out there, the world is inside you, and it is beautiful."
+]}
 ];
+
 let playerName="", selected=[];
 const ac=new (window.AudioContext||window.webkitAudioContext)();
 function beep(f,d,t='sine',v=.4){try{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type=t;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+d);o.start();o.stop(ac.currentTime+d);}catch(e){}}
-function speak(text){
-  beep(600,.15);
-  if(!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-  let u=new SpeechSynthesisUtterance(text);
-  u.lang='en-US';u.rate=0.95;u.pitch=1.05;
-  speechSynthesis.speak(u);
-}
-function goName(){
-  try{ac.resume();}catch(e){}
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('nameScreen').classList.remove('hidden');
-  speak("Welcome to My Ainun Card. This is only a game for entertainment purpose only, not something real. Please enter your name to start.");
-}
-document.getElementById('nameInput').addEventListener('input',()=>{
-  let v=document.getElementById('nameInput').value.trim();
-  document.getElementById('goBtn').disabled=v.length<2;
-});
-function startGame(){
-  playerName=document.getElementById('nameInput').value.trim();
-  document.getElementById('nameScreen').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
-  document.getElementById('greeting').innerText=`Hello, ${playerName}! 🔮`;
-  buildGrid();
-  speak(`Hello ${playerName}, choose three cards of your destiny. Remember this is only a game for entertainment purpose only.`);
-}
+function speak(text){beep(600,.15);if(!('speechSynthesis' in window)) return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=0.95;u.pitch=1.05;speechSynthesis.speak(u);}
+function goName(){try{ac.resume();}catch(e){}document.getElementById('welcome').classList.add('hidden');document.getElementById('nameScreen').classList.remove('hidden');}
+document.getElementById('nameInput').addEventListener('input',()=>{document.getElementById('goBtn').disabled=document.getElementById('nameInput').value.trim().length<2;});
+function startGame(){playerName=document.getElementById('nameInput').value.trim();document.getElementById('nameScreen').classList.add('hidden');document.getElementById('game').classList.remove('hidden');document.getElementById('greeting').innerText=`Hello, ${playerName}! 🔮`;buildGrid();}
 function buildGrid(){
-  const grid=document.getElementById('cardGrid');
-  grid.innerHTML="";
+  const grid=document.getElementById('cardGrid'); grid.innerHTML=""; selected=[];
+  document.getElementById('picked').innerText='0'; document.getElementById('prog').style.width='0%';
   let shuffled=[...cards].sort(()=>0.5-Math.random());
   shuffled.forEach(c=>{
-    let div=document.createElement('div');
-    div.className='card';
+    c.currentMean = c.means[Math.floor(Math.random()*c.means.length)];
+    let div=document.createElement('div'); div.className='card';
     div.innerHTML=`<div class='back'>MY AINUN<br>✨<br>${c.id}</div>`;
-    div.onclick=()=>toggleCard(c,div);
-    grid.appendChild(div);
+    div.onclick=()=>toggleCard(c,div); grid.appendChild(div);
   });
 }
 function toggleCard(c,el){
   let idx=selected.findIndex(x=>x.id===c.id);
-  if(idx>-1){
-    selected.splice(idx,1);
-    el.classList.remove('selected','flipped');
-    el.innerHTML=`<div class='back'>MY AINUN<br>✨<br>${c.id}</div>`;
-  } else {
-    if(selected.length>=3){beep(200,.3,'sawtooth');return;}
-    selected.push(c);
-    el.classList.add('selected','flipped');
-    el.innerHTML=`<div class='front'>${c.emoji}<br><b>${c.name}</b></div>`;
-    beep(800,.15);setTimeout(()=>beep(1000,.2),100);
-  }
+  if(idx>-1){selected.splice(idx,1); el.classList.remove('selected','flipped'); el.innerHTML=`<div class='back'>MY AINUN<br>✨<br>${c.id}</div>`;}
+  else {if(selected.length>=3){beep(200,.3,'sawtooth');return;} selected.push(c); el.classList.add('selected','flipped'); el.innerHTML=`<div class='front'>${c.emoji}<br><b>${c.name}</b></div>`; beep(800,.15);}
   document.getElementById('picked').innerText=selected.length;
   document.getElementById('prog').style.width=(selected.length/3*100)+'%';
-  let btn=document.getElementById('revealBtn');
-  if(selected.length===3){btn.disabled=false;btn.style.opacity=1;}
-  else {btn.disabled=true;btn.style.opacity=.4;}
+  let btn=document.getElementById('revealBtn'); if(selected.length===3){btn.disabled=false;btn.style.opacity=1;} else {btn.disabled=true;btn.style.opacity=.4;}
 }
 function reveal(){
   if(selected.length!==3) return;
-  speak(`${playerName}, here is your three-card reading. Remember, this is only a game for entertainment.`);
   document.getElementById('game').classList.add('hidden');
   let res=document.getElementById('resultScreen');
   res.classList.remove('hidden');
-  let labels=["YOUR PAST - Past","YOUR PRESENT - Present","YOUR FUTURE - Future"];
-  let html=`<h2 style='text-align:center;color:#ffd700'>🔮 Reading for ${playerName.toUpperCase()}</h2>
-  <div style='text-align:center;font-size:9px;opacity:.6;margin:8px 0'>This is only a game • For entertainment purpose only • Not something real</div>`;
+  let labels=["YOUR PAST - Where You've Been","YOUR PRESENT - Where You Are","YOUR FUTURE - Where You're Going"];
+  let html=`
+  <div style='padding:12px;background:#ff1a1a22;border:2px solid #ff4444;border-radius:14px;font-size:10px;line-height:1.6;text-align:center;margin-bottom:16px'>
+  <b style='color:#ff6666;font-size:11px'>⚠️ IMPORTANT DISCLAIMER ⚠️</b><br><br>
+  <span style='color:#ffcccc'>ENGLISH: This reading is ONLY A GAME. It is NOT an instruction, NOT a direction, NOT a prohibition on how to behave. This is for entertainment purposes ONLY, NOT educational, NOT medical, NOT legal, NOT financial advice. Use your own free will and common sense.</span><br><br>
+  <span style='color:#ffcccc'>INDONESIA: Ini HANYA GAME HIBURAN. BUKAN instruksi, BUKAN arahan, BUKAN larangan untuk berperilaku. Hanya untuk tujuan hiburan, BUKAN edukasi, BUKAN nasihat medis, hukum, atau keuangan. Gunakan akal sehat Anda sendiri.</span>
+  </div>
+  <h2 style='text-align:center;color:#ffd700'>🔮 Long Reading for ${playerName.toUpperCase()}</h2>
+  <div style='text-align:center;font-size:9px;opacity:.5;margin:8px 0'>Original My Ainun Cards • 22 Cards • Meanings shuffle every refresh</div>`;
   selected.forEach((c,i)=>{
-    html+=`<div class='meaning'><b>${labels[i]}: ${c.emoji} ${c.name}</b><p>${c.mean}</p></div>`;
+    html+=`<div class='meaning'><b>${labels[i]}: ${c.emoji} ${c.name}</b><p>${c.currentMean}</p></div>`;
   });
-  html+=`<div style='margin-top:16px;padding:12px;background:linear-gradient(90deg,#ffd70022,#ffaa0022);border-radius:12px;font-size:11px;text-align:center'><b style='color:#ffd700'>✨ Universe Message for ${playerName} ✨</b><br><br>These three cards say your journey was in <b>${selected[0].name}</b> phase, now in <b>${selected[1].name}</b> and will end in <b>${selected[2].name}</b>. Stay positive!</div>
-  <button class='btnStart' style='margin-top:16px;font-size:14px;padding:12px' onclick='resetGame()'>PLAY AGAIN 🔄</button>
+  html+=`
+  <div style='margin-top:18px;padding:14px;background:linear-gradient(90deg,#ffd70022,#ffaa0022);border-radius:12px;font-size:12px;text-align:center;line-height:1.6'>
+  <b style='color:#ffd700'>✨ Universe Message for ${playerName} ✨</b><br><br>
+  Your soul traveled from <b>${selected[0].name}</b>, through <b>${selected[1].name}</b>, and is heading to <b>${selected[2].name}</b>. Carry this story with you, but remember to live with your own choices.
+  </div>
+  <div style='margin-top:14px;padding:10px;background:rgba(255,255,255,.05);border-radius:10px;font-size:8px;opacity:.5;text-align:center;line-height:1.5'>
+  Original work inspired by public domain archetypes. All names and long readings are original My Ainun creations. This game does not provide real fortune telling.
+  </div>
+  <button class='btnStart' style='margin-top:16px' onclick='resetGame()'>SHUFFLE NEW MEANINGS 🔄</button>
   <button style='width:100%;background:transparent;color:#fff;border:1px solid #333;border-radius:100px;margin-top:8px;padding:10px;font-size:12px' onclick='location.reload()'>Back to Start</button>`;
   document.getElementById('resCard').innerHTML=html;
-  setTimeout(()=>{
-    let txt=`Reading for ${playerName}. First card ${selected[0].name}, ${selected[0].mean}. Second card ${selected[1].name}, ${selected[1].mean}. Third card ${selected[2].name}, ${selected[2].mean}. Remember this is only a game for entertainment purpose only, not something real.`;
-    speak(txt);
-  },800);
+  speak(`Here is your long reading, ${playerName}. Remember, this is only a game for entertainment, not an instruction or advice.`);
 }
-function resetGame(){
-  selected=[];
-  document.getElementById('resultScreen').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
-  buildGrid();
-  document.getElementById('picked').innerText='0';
-  document.getElementById('prog').style.width='0%';
-  let btn=document.getElementById('revealBtn');btn.disabled=true;btn.style.opacity=.4;
-  speak("Choose three new cards of your destiny.");
-}
+function resetGame(){document.getElementById('resultScreen').classList.add('hidden');document.getElementById('game').classList.remove('hidden');buildGrid();}
 </script>
 </body>
 </html>
