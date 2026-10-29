@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MY AINUN WHO AM I</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a1a;display:flex;justify-content:center;min-height:100vh;font-family:system-ui;color:#fff;overflow:hidden}
+#phone{width:100%;max-width:420px;height:100vh;height:100dvh;background:#000;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:.35s;z-index:2;background:radial-gradient(ellipse at 50% 0%, #2a1a4a, #0a0a1a)}
+.hidden{opacity:0;pointer-events:none;transform:scale(0.98);z-index:1}
+#splash{padding:0;background:#000;z-index:10}
+.splashImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.splashContent{position:relative;z-index:2;padding:24px 20px;background:linear-gradient(to top, rgba(0,0,0,1) 10%, transparent);text-align:center;width:100%;margin-top:auto}
+#welcome{justify-content:center;padding:20px;text-align:center;background:radial-gradient(ellipse at 50% 0%, #2a1a4a, #0a0a1a), url('whoami.jpg');background-blend-mode:overlay;background-size:cover;background-position:center}
+.welcomeCard{background:rgba(10,10,26,.88);border:2px solid rgba(255,215,0,.4);border-radius:28px;padding:26px;backdrop-filter:blur(10px)}
+.btnStart{width:100%;padding:18px;border-radius:100px;border:0;background:linear-gradient(90deg,#ffd700,#ffb700);color:#000;font-weight:900;font-size:18px;cursor:pointer;margin-top:16px;box-shadow:0 8px 20px rgba(255,215,0,.5)}
+#nameScreen{justify-content:center;padding:24px;text-align:center}
+.nameCard{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:24px;padding:24px}
+input{width:100%;padding:14px 18px;border-radius:100px;border:2px solid #444;background:#111;color:#fff;margin:16px 0;font-size:16px;text-align:center;outline:none}
+.btnGo{width:100%;padding:14px;border-radius:100px;border:0;background:#00e5cc;color:#000;font-weight:900;cursor:pointer}
+.btnGo:disabled{opacity:.4}
+#game{padding:12px;display:flex;flex-direction:column}
+.topbar{padding:8px;text-align:center}
+.progressBar{height:6px;background:#222;border-radius:10px;margin:10px 0;overflow:hidden}
+.progressBar div{height:100%;background:linear-gradient(90deg,#00e5cc,#ffd700);transition:.4s}
+.qCard{background:linear-gradient(180deg,#1e223a,#15152a);border:2px solid rgba(255,215,0,.25);border-radius:22px;padding:20px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.qNumber{font-size:11px;color:#00e5cc;font-weight:900}
+.qText{font-size:17px;font-weight:700;line-height:1.5;margin:12px 0 20px;color:#f2f2ff}
+.qBtn{padding:16px;border-radius:100px;border:2px solid #333;background:#0f0f1f;color:#fff;font-weight:700;font-size:14px;cursor:pointer;width:100%;margin-bottom:10px}
+.qBtn.yes{border-color:#00e5cc;background:#00e5cc22}
+.qBtn.no{border-color:#ffd700;background:#ffd70011}
+#resultScreen{background:#070714;justify-content:flex-start;padding:12px;overflow-y:auto}
+.resCard{background:#15152a;border:2px solid #ffd700;border-radius:24px;padding:18px;width:100%}
+.meaning{margin:12px 0;padding:14px;background:#ffffff10;border-radius:14px;border-left:4px solid #00e5cc}
+.meaning b{color:#2ef5d6;display:block;margin-bottom:6px;font-size:13px}
+.meaning p{color:#f2f2ff;font-size:13px;line-height:1.6}
+.barWrap{background:#222;border-radius:10px;height:10px;overflow:hidden;margin:6px 0}
+.bar{height:100%;transition:.5s}
+.soundBtn{position:absolute;top:12px;right:12px;z-index:20;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:6px 12px;font-size:11px;color:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="phone">
+<button class="soundBtn" id="soundBtn" onclick="toggleSound()">🔊 Sound ON</button>
+
+<div id="splash" class="screen">
+  <img class="splashImg" src="whoami.jpg" alt="WHO AM I">
+  <div class="splashContent">
+    <button class="btnStart" onclick="goWelcome()">✨ START GAME ✨</button>
+    <div style="font-size:8px;opacity:.6;margin-top:10px">Original by My Ainun • AI Voice Enabled</div>
+  </div>
+</div>
+
+<div id="welcome" class="screen hidden">
+  <div class="welcomeCard">
+    <div style="font-size:12px;font-weight:900;letter-spacing:2px;color:#00e5cc">MY AINUN PRESENTS</div>
+    <h1 style="color:#fff;font-size:22px;line-height:1.3;font-weight:900;margin-top:8px">Welcome to<br><span style="color:#ffd700;font-size:28px">MY AINUN<br>WHO AM I</span></h1>
+    <p style="font-size:12px;line-height:1.6;opacity:.75;margin-top:10px">Discover your inner pattern in 40 questions.</p>
+    <button class="btnStart" onclick="goName()">✨ ENTER GAME ✨</button>
+  </div>
+</div>
+
+<div id="nameScreen" class="screen hidden">
+  <div class="nameCard">
+    <h2>What's Your Name?</h2>
+    <input id="nameInput" placeholder="Type your name...">
+    <button class="btnGo" id="goBtn" disabled onclick="startGame()">BEGIN MY JOURNEY</button>
+  </div>
+</div>
+
+<div id="game" class="screen hidden">
+  <div class="topbar"><div style="font-weight:900;color:#ffd700" id="greeting"></div><div style="font-size:10px;opacity:.6"><span id="qNow">1</span>/40</div><div class="progressBar"><div id="prog" style="width:0%"></div></div></div>
+  <div class="qCard" id="qCard"></div>
+</div>
+
+<div id="resultScreen" class="screen hidden"><div class="resCard" id="resCard"></div></div>
+</div>
+
+<script>
+let soundOn = true;
+let voices = [];
+function loadVoices(){voices = speechSynthesis.getVoices();}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+function speak(text){
+  if(!soundOn) return;
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US'; utter.rate = 0.95; utter.pitch = 1.1;
+  const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google US English'));
+  if(femaleVoice) utter.voice = femaleVoice;
+  speechSynthesis.speak(utter);
+}
+function toggleSound(){soundOn=!soundOn;document.getElementById('soundBtn').innerText=soundOn?'🔊 Sound ON':'🔇 Sound OFF';if(!soundOn)speechSynthesis.cancel();}
+
+const questions=[{id:1,text:"I prefer spending time alone rather than gathering with many people.",yes:"self",no:"env"},{id:2,text:"I recharge my energy by being alone, not by meeting people.",yes:"self",no:"env"},{id:3,text:"I feel more comfortable working alone than working in a large team.",yes:"self",no:"env"},{id:4,text:"I enjoy small deep conversations rather than many shallow chats.",yes:"self",no:"env"},{id:5,text:"I often think best when I am alone in a quiet place.",yes:"self",no:"env"},{id:6,text:"I get energy and excitement from meeting new people.",yes:"env",no:"self"},{id:7,text:"I feel energized after social gatherings, not tired.",yes:"env",no:"self"},{id:8,text:"I like being the center of attention at events.",yes:"env",no:"self"},{id:9,text:"I prefer to process my problems internally first before telling others.",yes:"self",no:"env"},{id:10,text:"I need quiet time after social activity to feel okay again.",yes:"self",no:"env"},{id:11,text:"When making decisions, I rely more on data and logic than on feelings.",yes:"logic",no:"emo"},{id:12,text:"I often consider other people's feelings before deciding if something is right.",yes:"emo",no:"logic"},{id:13,text:"I stay calm and logical even when others are very emotional.",yes:"logic",no:"emo"},{id:14,text:"I can easily sense when someone is upset even if they try to hide it.",yes:"emo",no:"logic"},{id:15,text:"I prefer telling the truth even if it hurts, rather than comforting lies.",yes:"logic",no:"emo"},{id:16,text:"I prioritize keeping harmony over being right in an argument.",yes:"emo",no:"logic"},{id:17,text:"I always analyze pros and cons before making a big decision.",yes:"logic",no:"emo"},{id:18,text:"I make choices based on how people will feel afterwards.",yes:"emo",no:"logic"},{id:19,text:"People come to me for objective and fair advice.",yes:"logic",no:"emo"},{id:20,text:"Empathy and kindness are more important to me than being correct.",yes:"emo",no:"logic"},{id:21,text:"I can easily change my plans when the situation suddenly changes.",yes:"flex",no:"struct"},{id:22,text:"I like having a daily routine that stays the same and predictable.",yes:"struct",no:"flex"},{id:23,text:"I feel stressed when there are no clear rules or plans.",yes:"struct",no:"flex"},{id:24,text:"I enjoy improvising and finding new ways to do things.",yes:"flex",no:"struct"},{id:25,text:"I like to make to-do lists and follow them strictly.",yes:"struct",no:"flex"},{id:26,text:"I am comfortable with last-minute changes and surprises.",yes:"flex",no:"struct"},{id:27,text:"I prefer finishing one task completely before starting another.",yes:"struct",no:"flex"},{id:28,text:"I often try different methods even if the old method still works.",yes:"flex",no:"struct"},{id:29,text:"I keep my workspace organized and consistent.",yes:"struct",no:"flex"},{id:30,text:"I get bored quickly if I have to do the same thing every day.",yes:"flex",no:"struct"},{id:31,text:"I focus more on what is happening right now than on past memories.",yes:"present",no:"reflect"},{id:32,text:"I often think about past events and what I could have done differently.",yes:"reflect",no:"present"},{id:33,text:"I live in the moment and try to enjoy it fully.",yes:"present",no:"reflect"},{id:34,text:"I spend a lot of time analyzing my past experiences to learn.",yes:"reflect",no:"present"},{id:35,text:"I make decisions based on the current situation, not past baggage.",yes:"present",no:"reflect"},{id:36,text:"I often replay old conversations in my mind for a long time.",yes:"reflect",no:"present"},{id:37,text:"I believe the best action is what you can do today, not tomorrow.",yes:"present",no:"reflect"},{id:38,text:"My past memories strongly influence my present choices.",yes:"reflect",no:"present"},{id:39,text:"I rarely worry about the past, I care more about what is happening now.",yes:"present",no:"reflect"},{id:40,text:"I learn a lot by deeply reflecting on what already happened.",yes:"reflect",no:"present"}];
+
+let playerName="",currentQ=0,scores={self:0,env:0,logic:0,emo:0,flex:0,struct:0,present:0,reflect:0};
+
+function goWelcome(){
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('welcome').classList.remove('hidden');
+  speak("Welcome to My Ainun, Who Am I. Discover your inner pattern in forty questions.");
+}
+function goName(){
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('nameScreen').classList.remove('hidden');
+  setTimeout(()=>{ speak("Please enter your beautiful name to begin your journey."); }, 300);
+}
+document.getElementById('nameInput').addEventListener('input',()=>{document.getElementById('goBtn').disabled=document.getElementById('nameInput').value.trim().length<2;});
+function startGame(){
+  playerName=document.getElementById('nameInput').value.trim();
+  document.getElementById('nameScreen').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('greeting').innerText=`Hi ${playerName}!`;
+  currentQ=0;scores={self:0,env:0,logic:0,emo:0,flex:0,struct:0,present:0,reflect:0};
+  speak(`Hi ${playerName}! Let's find out who you really are. Answer forty questions honestly.`);
+  showQ();
+}
+function showQ(){
+  let q=questions[currentQ];
+  document.getElementById('qNow').innerText=currentQ+1;
+  document.getElementById('prog').style.width=(currentQ/40*100)+'%';
+  document.getElementById('qCard').innerHTML=`<div class="qNumber">Q ${q.id}/40</div><div class="qText">"${q.text}"</div><button class="qBtn yes" onclick="answer('yes')">✅ YES</button><button class="qBtn no" onclick="answer('no')">❌ NO</button>`;
+}
+function answer(type){
+  let q=questions[currentQ];
+  let chosen=type==='yes'?q.yes:q.no;
+  scores[chosen]++;
+  currentQ++;
+  if(currentQ<questions.length) showQ();
+  else showResult();
+}
+
+function showResult(){
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  let oriCode = scores.self >= scores.env ? 'S' : 'E';
+  let intelCode = scores.logic >= scores.emo ? 'L' : 'M';
+  let patCode = scores.flex >= scores.struct ? 'F' : 'T';
+  let timeCode = scores.present >= scores.reflect ? 'P' : 'R';
+  let shortCode = oriCode + intelCode + patCode + timeCode;
+
+  const meanings = {
+    S: {title:"S - Self Orientation", desc:"You recharge your energy by being alone. You are more comfortable working solo, thinking deeply, and having meaningful conversations rather than small talk. Strengths: Independent, focused, deep thinker. You find clarity in solitude.", score: `${scores.self}/10`},
+    E: {title:"E - Environment Orientation", desc:"You get energy from people and your surroundings. You enjoy crowds, social events, and being noticed. Strengths: Communicative, energetic, socially adaptable. You thrive when connected with others.", score: `${scores.env}/10`},
+    L: {title:"L - Logical Intelligence", desc:"Your intelligence is logical. You make decisions based on data, facts, fairness, and objectivity. You stay calm when others are emotional. People come to you for honest, unbiased advice. Strengths: Analytical, fair, excellent problem solver.", score: `${scores.logic}/10`},
+    M: {title:"M - Emotional Intelligence", desc:"Your intelligence is emotional. You are highly sensitive to other people's feelings. You value harmony more than being right. Strengths: High empathy, compassionate, a great listener and healer.", score: `${scores.emo}/10`},
+    F: {title:"F - Flexible Pattern", desc:"Your life pattern is flexible. You easily change plans, love to improvise, and get bored with the same routine every day. Strengths: Adaptable, creative, calm when facing sudden changes.", score: `${scores.flex}/10`},
+    T: {title:"T - Structured Pattern", desc:"Your life pattern is structured. You love schedules, to-do lists, a tidy workspace, and finishing one task completely before starting another. Strengths: Disciplined, organized, reliable, and consistent.", score: `${scores.struct}/10`},
+    P: {title:"P - Present Focus", desc:"Your focus is on the present. You live in the moment and make decisions based on what is happening now, not past baggage. Strengths: Action-oriented, you enjoy life fully, you don't overthink the past.", score: `${scores.present}/10`},
+    R: {title:"R - Reflective Focus", desc:"Your focus is reflective. You often replay past events to learn from them. Your strong memories influence your present choices. Strengths: Wise, you learn from experience, a deep learner.", score: `${scores.reflect}/10`}
+  };
+
+  let comboDesc = "";
+  if(shortCode === "SLFP") comboDesc = "You are The Independent Explorer. Independent, logical, flexible, and living in the present. You are a creator and a straightforward problem solver who doesn't overcomplicate things.";
+  else if(shortCode === "SLFR") comboDesc = "You are The Deep Thinker. Independent, logical, flexible, but you love to reflect on the past to become wiser.";
+  else if(shortCode === "SLTP") comboDesc = "You are The Focused Architect. Independent, logical, structured, and present-focused. You build your future with clear plans.";
+  else if(shortCode === "EMFP") comboDesc = "You are The Free Spirit Heart. Social, emotional, flexible, and present. You bring joy wherever you go.";
+  else comboDesc = `You are a unique combination of ${shortCode}. A blend of 4 powers that no one else has in exactly the same way as you.`;
+
+  let html=`
+  <div style='padding:10px;background:#ff1a1a22;border:2px solid #ff4444;border-radius:14px;font-size:10px;text-align:center;margin-bottom:12px'><b style='color:#ff6666'>⚠️ FOR ENTERTAINMENT ONLY</b><br><span style='color:#ffcccc'>THIS IS ONLY A GAME. NOT A PSYCHOLOGICAL TEST.</span></div>
+  
+  <div style='text-align:center;background:linear-gradient(90deg,#ffd700,#ffb700);color:#000;border-radius:20px;padding:18px;margin-bottom:12px'>
+    <div style='font-size:11px;font-weight:900;letter-spacing:1px'>WELCOME TO MY AINUN WHO AM I</div>
+    <div style='font-size:12px;font-weight:700;margin-top:4px'>YOUR CODE IS</div>
+    <div style='font-size:48px;font-weight:900;letter-spacing:8px;margin:6px 0'>${shortCode}</div>
+    <div style='font-size:14px;font-weight:900'>YOU ARE ${shortCode}</div>
+  </div>
+
+  <div style='background:rgba(255,255,255,.06);padding:12px;border-radius:12px;margin-bottom:12px;font-size:11px'>
+    <div>Self ${scores.self} vs Env ${scores.env} → <b>${oriCode}</b></div><div class="barWrap"><div class="bar" style="width:${scores.self*10}%;background:#00e5cc"></div></div>
+    <div style="margin-top:6px">Logical ${scores.logic} vs Emotional ${scores.emo} → <b>${intelCode}</b></div><div class="barWrap"><div class="bar" style="width:${scores.logic*10}%;background:#7a8cff"></div></div>
+    <div style="margin-top:6px">Flexible ${scores.flex} vs Structured ${scores.struct} → <b>${patCode}</b></div><div class="barWrap"><div class="bar" style="width:${scores.flex*10}%;background:#4effa1"></div></div>
+    <div style="margin-top:6px">Present ${scores.present} vs Reflective ${scores.reflect} → <b>${timeCode}</b></div><div class="barWrap"><div class="bar" style="width:${scores.present*10}%;background:#40d9ff"></div></div>
+  </div>
+
+  <div style='background:linear-gradient(90deg,#ffd70022,#00e5cc22);padding:14px;border-radius:14px;text-align:center;margin-bottom:12px'>
+    <b style='color:#ffd700;font-size:14px'>✨ CONCLUSION: YOU ARE ${shortCode} ✨</b><br><br>
+    <span style="font-size:12px;line-height:1.6">${comboDesc}<br><br><b>${playerName}</b>, your pattern is <b>${shortCode}</b> = ${meanings[oriCode].title.split(' - ')[1]} + ${meanings[intelCode].title.split(' - ')[1]} + ${meanings[patCode].title.split(' - ')[1]} + ${meanings[timeCode].title.split(' - ')[1]}</span>
+  </div>
+
+  <div class="meaning"><b>${meanings[oriCode].title} - ${meanings[oriCode].score}</b><p>${meanings[oriCode].desc}</p></div>
+  <div class="meaning"><b>${meanings[intelCode].title} - ${meanings[intelCode].score}</b><p>${meanings[intelCode].desc}</p></div>
+  <div class="meaning"><b>${meanings[patCode].title} - ${meanings[patCode].score}</b><p>${meanings[patCode].desc}</p></div>
+  <div class="meaning"><b>${meanings[timeCode].title} - ${meanings[timeCode].score}</b><p>${meanings[timeCode].desc}</p></div>
+
+  <button class="btnStart" style="margin-top:16px" onclick="location.reload()">PLAY AGAIN 🔄</button>
+  <button class="btnStart" style="margin-top:10px;background:linear-gradient(90deg,#00e5cc,#00bba6)" onclick="speakDisclaimer()">🔊 PLAY DISCLAIMER</button>
+  `;
+  document.getElementById('resCard').innerHTML=html;
+  
+  setTimeout(()=>{
+    speak(`Congratulations ${playerName}! Your code is ${shortCode.split('').join(' ')}. You are ${shortCode}. ${meanings[oriCode].title}. ${meanings[intelCode].title}. ${meanings[patCode].title}. ${meanings[timeCode].title}. ${comboDesc}`);
+    setTimeout(()=>{ speakDisclaimer(); }, 9000);
+  }, 500);
+}
+
+function speakDisclaimer(){
+  speak("Important disclaimer. This game is for entertainment purposes only. It is not a psychological test, it is not a medical diagnosis, and it is not a scientific assessment. Your result is just for fun, to help you discover your inner pattern. Thank you for playing My Ainun, Who Am I.");
+}
+</script>
+</body>
+</html>
