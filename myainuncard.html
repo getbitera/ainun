@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Ainun Card - Fortune Game</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a1a;display:flex;justify-content:center;min-height:100vh;font-family:system-ui;color:#fff;overflow:hidden}
+#phone{width:100%;max-width:420px;height:100vh;height:100dvh;background:#000;position:relative;overflow:hidden;border-left:1px solid #222;border-right:1px solid #222}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:.4s;z-index:2;background:#0f0f2a}
+.hidden{opacity:0;pointer-events:none;z-index:1;transform:scale(0.98)}
+#welcome{
+  background:#0a0a1a;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  padding:0;
+  overflow:hidden;
+  position:relative;
+}
+.welcomeImg{
+  width:100%;
+  height:100%;
+  object-fit:contain; /* INI KUNCINYA: contain bukan cover, jadi gak kepotong */
+  object-position:top center;
+}
+.w-content{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:16px;
+  width:100%;
+  text-align:center;
+  background:linear-gradient(to top, rgba(0,0,0,.9) 20%, transparent);
+}
+.welcomeImg{width:100%;height:75%;object-fit:cover}
+.w-content{padding:16px;width:100%;text-align:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+.btnStart{width:100%;padding:18px;border-radius:100px;border:0;background:linear-gradient(90deg,#ffd700,#ffb700);color:#000;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(255,215,0,.5)}
+#nameScreen{background:radial-gradient(ellipse at 50% 0%, #2a1a4a, #0a0a1a);justify-content:center;padding:24px;text-align:center}
+.nameCard{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:24px;padding:24px;width:100%}
+input{width:100%;padding:14px 18px;border-radius:100px;border:2px solid #444;background:#111;color:#fff;margin:16px 0;font-size:16px;outline:none;text-align:center}
+.btnGo{width:100%;padding:14px;border-radius:100px;border:0;background:#00e5cc;color:#000;font-weight:900;font-size:15px;cursor:pointer}
+.btnGo:disabled{opacity:.4}
+#game{background:radial-gradient(ellipse at 50% 0%, #1a2a4a, #0a0a1a);padding:12px;display:flex;flex-direction:column}
+.topbar{padding:10px;text-align:center;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;overflow-y:auto;padding:8px}
+.card{aspect-ratio:2/3;background:linear-gradient(180deg,#2a2a5a,#1a1a3a);border:2px solid #ffd700;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.3s;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.card.flipped{background:linear-gradient(180deg,#fff8dc,#ffd700);color:#000;border-color:#fff}
+.card.selected{border-color:#00e5cc;box-shadow:0 0 20px #00e5cc;transform:scale(1.05)}
+.card .back{font-size:10px;font-weight:900;text-align:center;line-height:1.2;color:#ffd700}
+.card .front{font-size:9px;font-weight:800;text-align:center;padding:4px}
+.progressBar{height:4px;background:#222;border-radius:10px;margin:8px 0;overflow:hidden}
+.progressBar div{height:100%;background:#00e5cc;transition:.4s}
+#resultScreen{background:rgba(0,0,0,.92);backdrop-filter:blur(10px);justify-content:flex-start;padding:20px;overflow-y:auto}
+.resCard{background:linear-gradient(180deg,#1e223a,#11142a);border:2px solid #ffd700;border-radius:24px;padding:20px;width:100%;text-align:left}
+.meaning{margin:12px 0;padding:12px;background:rgba(255,255,255,.06);border-radius:12px;border-left:3px solid #00e5cc}
+.meaning b{color:#00e5cc;display:block;margin-bottom:4px;font-size:13px}
+.meaning p{font-size:12px;line-height:1.5;opacity:.9}
+</style>
+</head>
+<body>
+<div id="phone">
+
+<div id="welcome" class="screen">
+  <img class="welcomeImg" src="myainuncard.jpg" alt="Welcome">
+  <div class="w-content">
+    <!-- TULISAN DOBEL AKU HAPUS, CUKUP PAKAI YANG DI GAMBAR -->
+    <button class="btnStart" onclick="goName()">✨ START GAME ✨</button>
+    <div style="font-size:8px;opacity:.5;margin-top:8px">Just for entertainment, not real</div>
+  </div>
+</div>
+
+<div id="nameScreen" class="screen hidden">
+  <div class="nameCard">
+    <div style="font-size:48px">🔮</div>
+    <h2 style="margin:8px 0">What's Your Name?</h2>
+    <p style="font-size:12px;opacity:.7">Enter your name to start the reading</p>
+    <input id="nameInput" placeholder="Your name...">
+    <button class="btnGo" id="goBtn" disabled onclick="startGame()">SEE MY FORTUNE 🔮</button>
+    <p style="font-size:9px;opacity:.5;margin-top:12px">Just for entertainment, not real</p>
+  </div>
+</div>
+
+<div id="game" class="screen hidden">
+  <div class="topbar">
+    <div style="font-weight:900;color:#ffd700;font-size:14px" id="greeting">Hello!</div>
+    <div style="font-size:10px;margin:4px 0">Choose 3 Cards of Your Destiny (from 22 cards)</div>
+    <div class="progressBar"><div id="prog" style="width:0%"></div></div>
+    <div style="font-size:10px"><span id="picked">0</span>/3 selected</div>
+  </div>
+  <div class="grid" id="cardGrid"></div>
+  <div style="padding:8px"><button class="btnGo" id="revealBtn" disabled onclick="reveal()" style="opacity:.4">REVEAL READING ✨</button></div>
+</div>
+
+<div id="resultScreen" class="screen hidden">
+  <div class="resCard" id="resCard"></div>
+</div>
+
+</div>
+
+<script>
+const cards=[
+{id:1,name:"The Heart",emoji:"💖",mean:"A sincere heart. You are surrounded by loving energy. Someone truly cares about you right now."},
+{id:2,name:"The Star",emoji:"⭐",mean:"Star of hope. All your hard work is finally showing results. Don't give up, your star is shining bright."},
+{id:3,name:"The Dream",emoji:"☁️",mean:"You are a big dreamer. Your crazy idea is valid! But one small step today is worth more than 100 dreams."},
+{id:4,name:"The Journey",emoji:"🧭",mean:"A new journey is coming — new job, new friendship, new place. Don't be afraid to leave your comfort zone."},
+{id:5,name:"The Secret",emoji:"🔑",mean:"Something remains hidden. It's time to be honest with yourself about what you really want."},
+{id:6,name:"The Future",emoji:"🔮",mean:"Your future is bright, but the key is what you do TODAY. Stop overthinking the future."},
+{id:7,name:"The Moon",emoji:"🌙",mean:"Your intuition is super sharp. If you feel uneasy, listen to it. You need rest and good sleep."},
+{id:8,name:"The Sun",emoji:"☀️",mean:"Happiness explosion! Good news is coming this week that will boost your mood. Time to shine."},
+{id:9,name:"The Love",emoji:"💕",mean:"Universal love. You will get a hug, a compliment, warm attention. For singles: someone secretly likes you!"},
+{id:10,name:"The Luck",emoji:"🍀",mean:"Luck is on your side. Try what you postponed — apply, message first. A small chance can be a jackpot."},
+{id:11,name:"The Guardian",emoji:"🛡️",mean:"You are protected. There is a guardian figure — a friend, sibling, or a stronger version of yourself watching over you."},
+{id:12,name:"The Shadow",emoji:"🌑",mean:"The dark side you hide. It's okay to feel sad, scared, or insecure. Acknowledge it, then heal slowly."},
+{id:13,name:"The Courage",emoji:"🦁",mean:"The little lion inside you is waking up! Dare to say NO and dare to say YES. Your courage will inspire others."},
+{id:14,name:"The Friendship",emoji:"🤝",mean:"A true friend will show up. Someone will help you without being asked. Don't forget to thank them."},
+{id:15,name:"The Bloom",emoji:"🌸",mean:"Flowers are blooming. Whatever you planted — study, work, relationship — is about to be harvested. Be patient."},
+{id:16,name:"The Storm",emoji:"⛈️",mean:"The storm will pass. If things are messy right now, it's only temporary. After rain you become stronger."},
+{id:17,name:"The Wish",emoji:"🌠",mean:"Shooting star! One wish you whisper before sleep, the universe is listening. Write it down and chase it."},
+{id:18,name:"The Mirror",emoji:"🪞",mean:"Time to look in the heart mirror. What you see in others is often a reflection of yourself. Check again."},
+{id:19,name:"The Key",emoji:"🗝️",mean:"The key to the answer is within you. The confusing problem has a close solution. Try a new way, the door will open."},
+{id:20,name:"The Anchor",emoji:"⚓",mean:"You need an anchor so you don't drift. Create routine: regular sleep, save a little, light exercise. Stability makes you safe."},
+{id:21,name:"The Gift",emoji:"🎁",mean:"An unexpected gift! Could be an item, surprise money, compliment, or opportunity. Be grateful and share."},
+{id:22,name:"The Time",emoji:"⏳",mean:"The hourglass says don't rush. Everything has its time. What you're waiting for will come at the perfect time, not the fastest."}
+];
+let playerName="", selected=[];
+const ac=new (window.AudioContext||window.webkitAudioContext)();
+function beep(f,d,t='sine',v=.4){try{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type=t;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+d);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function speak(text){
+  beep(600,.15);
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  let u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=0.95;u.pitch=1.05;
+  speechSynthesis.speak(u);
+}
+function goName(){
+  try{ac.resume();}catch(e){}
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('nameScreen').classList.remove('hidden');
+  speak("Welcome to My Ainun Card. This is only a game for entertainment purpose only, not something real. Please enter your name to start.");
+}
+document.getElementById('nameInput').addEventListener('input',()=>{
+  let v=document.getElementById('nameInput').value.trim();
+  document.getElementById('goBtn').disabled=v.length<2;
+});
+function startGame(){
+  playerName=document.getElementById('nameInput').value.trim();
+  document.getElementById('nameScreen').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('greeting').innerText=`Hello, ${playerName}! 🔮`;
+  buildGrid();
+  speak(`Hello ${playerName}, choose three cards of your destiny. Remember this is only a game for entertainment purpose only.`);
+}
+function buildGrid(){
+  const grid=document.getElementById('cardGrid');
+  grid.innerHTML="";
+  let shuffled=[...cards].sort(()=>0.5-Math.random());
+  shuffled.forEach(c=>{
+    let div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`<div class='back'>MY AINUN<br>✨<br>${c.id}</div>`;
+    div.onclick=()=>toggleCard(c,div);
+    grid.appendChild(div);
+  });
+}
+function toggleCard(c,el){
+  let idx=selected.findIndex(x=>x.id===c.id);
+  if(idx>-1){
+    selected.splice(idx,1);
+    el.classList.remove('selected','flipped');
+    el.innerHTML=`<div class='back'>MY AINUN<br>✨<br>${c.id}</div>`;
+  } else {
+    if(selected.length>=3){beep(200,.3,'sawtooth');return;}
+    selected.push(c);
+    el.classList.add('selected','flipped');
+    el.innerHTML=`<div class='front'>${c.emoji}<br><b>${c.name}</b></div>`;
+    beep(800,.15);setTimeout(()=>beep(1000,.2),100);
+  }
+  document.getElementById('picked').innerText=selected.length;
+  document.getElementById('prog').style.width=(selected.length/3*100)+'%';
+  let btn=document.getElementById('revealBtn');
+  if(selected.length===3){btn.disabled=false;btn.style.opacity=1;}
+  else {btn.disabled=true;btn.style.opacity=.4;}
+}
+function reveal(){
+  if(selected.length!==3) return;
+  speak(`${playerName}, here is your three-card reading. Remember, this is only a game for entertainment.`);
+  document.getElementById('game').classList.add('hidden');
+  let res=document.getElementById('resultScreen');
+  res.classList.remove('hidden');
+  let labels=["YOUR PAST - Past","YOUR PRESENT - Present","YOUR FUTURE - Future"];
+  let html=`<h2 style='text-align:center;color:#ffd700'>🔮 Reading for ${playerName.toUpperCase()}</h2>
+  <div style='text-align:center;font-size:9px;opacity:.6;margin:8px 0'>This is only a game • For entertainment purpose only • Not something real</div>`;
+  selected.forEach((c,i)=>{
+    html+=`<div class='meaning'><b>${labels[i]}: ${c.emoji} ${c.name}</b><p>${c.mean}</p></div>`;
+  });
+  html+=`<div style='margin-top:16px;padding:12px;background:linear-gradient(90deg,#ffd70022,#ffaa0022);border-radius:12px;font-size:11px;text-align:center'><b style='color:#ffd700'>✨ Universe Message for ${playerName} ✨</b><br><br>These three cards say your journey was in <b>${selected[0].name}</b> phase, now in <b>${selected[1].name}</b> and will end in <b>${selected[2].name}</b>. Stay positive!</div>
+  <button class='btnStart' style='margin-top:16px;font-size:14px;padding:12px' onclick='resetGame()'>PLAY AGAIN 🔄</button>
+  <button style='width:100%;background:transparent;color:#fff;border:1px solid #333;border-radius:100px;margin-top:8px;padding:10px;font-size:12px' onclick='location.reload()'>Back to Start</button>`;
+  document.getElementById('resCard').innerHTML=html;
+  setTimeout(()=>{
+    let txt=`Reading for ${playerName}. First card ${selected[0].name}, ${selected[0].mean}. Second card ${selected[1].name}, ${selected[1].mean}. Third card ${selected[2].name}, ${selected[2].mean}. Remember this is only a game for entertainment purpose only, not something real.`;
+    speak(txt);
+  },800);
+}
+function resetGame(){
+  selected=[];
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  buildGrid();
+  document.getElementById('picked').innerText='0';
+  document.getElementById('prog').style.width='0%';
+  let btn=document.getElementById('revealBtn');btn.disabled=true;btn.style.opacity=.4;
+  speak("Choose three new cards of your destiny.");
+}
+</script>
+</body>
+</html>
