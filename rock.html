@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>My Ainun Championship</title>
+<title>My Ainun Championship - BO5 BO7 BO9</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#000;display:flex;justify-content:center;min-height:100vh;font-family:system-ui;color:#fff;overflow:hidden}
@@ -18,7 +18,7 @@ body{background:#000;display:flex;justify-content:center;min-height:100vh;font-f
 #splash .bgImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 #splash .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.1) 0%, rgba(0,0,0,.7) 60%);z-index:1}
 .splashBottom{position:relative;z-index:2;padding:20px;width:100%;margin-bottom:20px}
-.btnStart{width:100%;padding:18px;border-radius:100px;border:0;background:#fff;color:#000;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+.btnStart{width:100%;padding:18px;border-radius:100px;border:0;background:#fff;color:#000;font-weight:900;font-size:18px;cursor:pointer}
 #nameScreen{background:radial-gradient(ellipse at 50% 0%, #1c2040, #000);justify-content:center;padding:60px 16px 16px}
 .nameCard{background:rgba(20,22,40,.95);border:2px solid rgba(255,255,255,.15);border-radius:22px;padding:18px;width:100%;text-align:center}
 input{width:100%;padding:13px 16px;border-radius:100px;border:2px solid #33385a;background:#0f1220;color:#fff;margin:12px 0;outline:none;font-size:15px}
@@ -45,9 +45,8 @@ input{width:100%;padding:13px 16px;border-radius:100px;border:2px solid #33385a;
 #ann.show{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
 .controls{display:flex;gap:6px;padding:10px;background:#11142a;border-top:1px solid #222746}
 .cBtn{flex:1;background:#1e223a;border:2px solid #3a3f65;border-radius:12px;padding:8px 4px;font-size:26px;text-align:center;cursor:pointer}
+.cBtn.disabled{opacity:.3;pointer-events:none}
 .cBtn b{display:block;font-size:8px}
-
-/* RESULT & INTERMISSION */
 #result, #intermission{position:absolute;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;transition:.4s}
 #result.hidden, #intermission.hidden{opacity:0;pointer-events:none}
 .resCard{background:linear-gradient(180deg,#1e223a,#11142a);border:2px solid #fff;border-radius:24px;padding:24px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)}
@@ -58,7 +57,7 @@ input{width:100%;padding:13px 16px;border-radius:100px;border:2px solid #33385a;
 </head>
 <body>
 <div id="phone">
-<div id="redBox"><div class="left"><small>CHAMPIONSHIP SCORE</small><span id="scoreBig">0 - 0</span></div><div class="right"><div class="time" id="timer">00.0s</div><small>TOP: <b id="topRec">--</b> • <span id="rInfo">R1/3</span></small></div></div>
+<div id="redBox"><div class="left"><small>CHAMPIONSHIP</small><span id="scoreBig">0-0</span></div><div class="right"><div class="time" id="timer">00.0s</div><small>TOP: <b id="topRec">--</b> • <span id="rInfo">R1/3</span></small></div></div>
 
 <div id="splash" class="screen">
   <img class="bgImg" src="screengambarscisor.jpg" alt="">
@@ -79,24 +78,22 @@ input{width:100%;padding:13px 16px;border-radius:100px;border:2px solid #33385a;
 </div>
 
 <div id="game" class="screen hidden">
-  <div class="topbar"><span id="p1">FIGHTER</span><span class="badge" id="badge">ROUND 1 - BO3</span><span id="scoreMini">YOU 0-0 AI</span></div>
+  <div class="topbar"><span id="p1">FIGHTER</span><span class="badge" id="badge">ROUND 1 - BO5</span><span id="scoreMini">ROUND 0-0</span></div>
   <div class="progress"><div id="prog" style="width:0%"></div></div>
-  <div class="ring-wrap"><div class="ring"><div class="ropes"></div><div class="ref">🧑‍⚖️</div><div class="fighters"><div style="text-align:center"><div class="f-avatar" id="av1">😎</div><div class="nameTag" id="n1">YOU</div><div class="choice" id="b1">?</div></div><div class="vs" id="vs">VS</div><div style="text-align:center"><div class="f-avatar" id="av2">🤖</div><div class="nameTag">AI</div><div class="choice" id="b2">?</div></div></div><div id="ann">FIGHT!</div></div></div>
+  <div class="ring-wrap"><div class="ring"><div class="ropes"></div><div class="ref">🧑‍⚖️</div><div class="fighters"><div style="text-align:center"><div class="f-avatar" id="av1">😎</div><div class="nameTag" id="n1">YOU</div><div class="choice" id="b1">?</div></div><div class="vs" id="vs">3W</div><div style="text-align:center"><div class="f-avatar" id="av2">🤖</div><div class="nameTag">AI</div><div class="choice" id="b2">?</div></div></div><div id="ann">FIGHT!</div></div></div>
   <div class="controls"><div class="cBtn" onclick="play('scissor')">✌️<b>SCISSOR</b></div><div class="cBtn" onclick="play('rock')">✊<b>ROCK</b></div><div class="cBtn" onclick="play('paper')">✋<b>PAPER</b></div></div>
 </div>
 
-<!-- INTERMISSION: PENGUMUMAN RONDE + COUNTDOWN 3 2 1 -->
 <div id="intermission" class="hidden">
   <div class="resCard">
     <div id="interEmoji" style="font-size:48px">🏆</div>
-    <h1 id="interTitle" style="font-size:24px">ROUND 1 WINNER!</h1>
-    <div class="bigScore" id="interScore">YOU WIN 2-0</div>
-    <div id="interDetail" style="font-size:12px;opacity:.8">Next round starting in...</div>
+    <h1 id="interTitle" style="font-size:22px">ROUND 1 WINNER!</h1>
+    <div class="bigScore" id="interScore">YOU WIN 3-0</div>
+    <div id="interDetail" style="font-size:12px;opacity:.8">Next round in...</div>
     <div class="countNum" id="countNum">3</div>
   </div>
 </div>
 
-<!-- FINAL RESULT -->
 <div id="result" class="hidden">
   <div class="resCard">
     <div id="resEmoji" style="font-size:48px">🏆</div>
@@ -106,12 +103,11 @@ input{width:100%;padding:13px 16px;border-radius:100px;border:2px solid #33385a;
     <button class="btnStart" style="font-size:14px;padding:12px;margin-top:12px" onclick="closeResult()">PLAY AGAIN 🔄</button>
   </div>
 </div>
-
 </div>
 
 <script>
 const avatars=['😎','🔥','👑','⚡','🥷','🦁','🐯','👊','💀','🤠'];
-let selAv=avatars[0], playerName='', round=1, roundWins=[0,0], cur={p:0,ai:0}, startTime=0, tInt=null;
+let selAv=avatars[0], playerName='', round=1, roundWins=[0,0], cur={p:0,ai:0}, startTime=0, tInt=null, isLocked=false;
 let records=JSON.parse(localStorage.getItem('ainun_records')||'[]');
 const icon={scissor:'✌️',rock:'✊',paper:'✋'};
 const ac=new (window.AudioContext||window.webkitAudioContext)();
@@ -129,78 +125,79 @@ renderBoard();
 function goSplash(){document.getElementById('nameScreen').classList.add('hidden');document.getElementById('splash').classList.remove('hidden');}
 function goName(){ac.resume();document.getElementById('splash').classList.add('hidden');document.getElementById('nameScreen').classList.remove('hidden');bell();}
 function showAnn(t,c='#00e5cc'){let el=document.getElementById('ann');el.innerText=t;el.style.color=c;el.style.borderColor=c;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
-
-function startTour(){round=1;roundWins=[0,0];startMatch();document.getElementById('nameScreen').classList.add('hidden');document.getElementById('game').classList.remove('hidden');document.getElementById('n1').innerText=playerName.toUpperCase();document.getElementById('p1').innerText=playerName.toUpperCase();document.getElementById('av1').innerText=selAv;startTime=Date.now();tInt=setInterval(()=>{document.getElementById('timer').innerText=((Date.now()-startTime)/1000).toFixed(1)+'s';},100);bell();cheer();showAnn(`ROUND 1!`,'#ffd700');speak(`Round one, best of three!`);}
-function startMatch(){cur={p:0,ai:0};let need=round==1?2:round==2?3:4;document.getElementById('badge').innerText=round==1?'ROUND 1 - BO3':round==2?'ROUND 2 - BO5':'FINAL - BO7';document.getElementById('rInfo').innerText=`R${round}/3`;document.getElementById('vs').innerText=`${need}W`;updateScore();}
-function updateScore(){document.getElementById('scoreBig').innerText=`${cur.p} - ${cur.ai}`;document.getElementById('scoreMini').innerText=`YOU ${cur.p}-${cur.ai} AI`;let need=round==1?2:round==2?3:4;document.getElementById('prog').style.width=(Math.max(cur.p,cur.ai)/need*100)+'%';}
-
+function startTour(){round=1;roundWins=[0,0];startMatch();document.getElementById('nameScreen').classList.add('hidden');document.getElementById('game').classList.remove('hidden');document.getElementById('n1').innerText=playerName.toUpperCase();document.getElementById('p1').innerText=playerName.toUpperCase();document.getElementById('av1').innerText=selAv;startTime=Date.now();tInt=setInterval(()=>{document.getElementById('timer').innerText=((Date.now()-startTime)/1000).toFixed(1)+'s';},100);bell();cheer();showAnn(`ROUND 1 - BO5`,'#ffd700');}
+function getNeed(){return round==1?3:round==2?4:5;}
+function getMax(){return round==1?5:round==2?7:9;}
+function startMatch(){
+  cur={p:0,ai:0};isLocked=false;
+  let need=getNeed();
+  document.getElementById('badge').innerText=round==1?`ROUND 1 - BO5 (${need}W)` : round==2?`ROUND 2 - BO7 (${need}W)` : `FINAL - BO9 (${need}W)`;
+  document.getElementById('rInfo').innerText=`R${round}/3`;
+  document.getElementById('vs').innerText=`${need}W`;
+  updateScore();
+  document.querySelectorAll('.cBtn').forEach(b=>b.classList.remove('disabled'));
+}
+function updateScore(){
+  document.getElementById('scoreBig').innerText=`${roundWins[0]}-${roundWins[1]}`;
+  document.getElementById('scoreMini').innerText=`ROUND ${cur.p}-${cur.ai}`;
+  let need=getNeed();
+  document.getElementById('prog').style.width=(Math.max(cur.p,cur.ai)/need*100)+'%';
+}
 function play(p){
+  if(isLocked) return;
   let ops=['scissor','rock','paper'];let pKom=ops[Math.floor(Math.random()*3)];
   document.getElementById('b1').innerText=icon[p];document.getElementById('b2').innerText=icon[pKom];
-  let av1=document.getElementById('av1'),av2=document.getElementById('av2');av1.classList.add('punch');av2.classList.add('punch');setTimeout(()=>{av1.classList.remove('punch');av2.classList.remove('punch');},250);
-  let win=null;if(p!=pKom){if((p=='scissor'&&pKom=='paper')||(p=='rock'&&pKom=='scissor')||(p=='paper'&&pKom=='rock'))win='p';else win='ai';}
-  if(win=='p'){cur.p++;clap();showAnn('YOU WIN!','#00e5cc');}else if(win=='ai'){cur.ai++;boo();showAnn('AI WINS!','#ff5a6a');}else showAnn('DRAW!','#aaa');
+  let av1=document.getElementById('av1'),av2=document.getElementById('av2');
+  av1.classList.add('punch');av2.classList.add('punch');
+  setTimeout(()=>{av1.classList.remove('punch');av2.classList.remove('punch');},250);
+  let win=null;
+  if(p!=pKom){if((p=='scissor'&&pKom=='paper')||(p=='rock'&&pKom=='scissor')||(p=='paper'&&pKom=='rock'))win='p';else win='ai';}
+  if(win=='p'){cur.p++;clap();showAnn('YOU WIN!','#00e5cc');}
+  else if(win=='ai'){cur.ai++;boo();showAnn('AI WINS!','#ff5a6a');}
+  else showAnn('DRAW!','#aaa');
   updateScore();
-  let need=round==1?2:round==2?3:4;
+  let need=getNeed();
   if(cur.p>=need||cur.ai>=need){
-    let winner = cur.p>cur.ai ? playerName.toUpperCase() : 'AI';
-    let scoreText = `${cur.p}-${cur.ai}`;
-    // Tampilkan intermission dulu kalau bukan final
-    if(round==1 || (round==2 && roundWins[0]+roundWins[1]==0)){
-      // untuk round 1 dan awal round 2, simpan dulu
-      if(cur.p>cur.ai) roundWins[0]++; else roundWins[1]++;
-      if(round==1){
-        showIntermission(winner, `ROUND 1 WINNER!`, `SCORE ${scoreText}`, ()=>{ round=2; startMatch(); bell(); cheer(); showAnn('ROUND 2 START!','#ffd700'); speak('Round two, best of five!'); });
-      } else { // round 2 selesai tapi masih 1-1 atau 2-0
-        if(roundWins[0]==2) finish(true);
-        else if(roundWins[1]==2) finish(false);
-        else {
-          // 1-1 -> final
-          showIntermission('DRAW 1-1!', `GO TO FINAL!`, `SCORE ${roundWins[0]}-${roundWins[1]}`, ()=>{ round=3; startMatch(); bell(); cheer(); showAnn('FINAL ROUND!','#ffd700'); speak('Final round, best of seven!'); });
-        }
-      }
+    isLocked=true;
+    document.querySelectorAll('.cBtn').forEach(b=>b.classList.add('disabled'));
+    let playerWonRound = cur.p>cur.ai;
+    let winnerName = playerWonRound ? playerName.toUpperCase() : 'AI';
+    let roundScore = `${cur.p}-${cur.ai}`;
+    if(playerWonRound) roundWins[0]++; else roundWins[1]++;
+    updateScore();
+    if(round==1){
+      showIntermission(winnerName, `ROUND 1 WINNER!`, `${winnerName} WIN ${roundScore}`, ()=>{
+        round=2; startMatch(); bell(); cheer(); showAnn('ROUND 2 - BO7!','#ffd700'); speak('Round two, best of seven, need four wins!');
+      });
     } else if(round==2){
-      if(cur.p>cur.ai) roundWins[0]++; else roundWins[1]++;
       if(roundWins[0]==2) finish(true);
       else if(roundWins[1]==2) finish(false);
       else {
-        showIntermission('DRAW 1-1!', `FINAL ROUND!`, `${roundWins[0]}-${roundWins[1]}`, ()=>{ round=3; startMatch(); bell(); cheer(); });
+        showIntermission(`DRAW ${roundWins[0]}-${roundWins[1]}`, `FINAL ROUND! BO9`, `SCORE ${roundWins[0]}-${roundWins[1]}`, ()=>{
+          round=3; startMatch(); bell(); cheer(); showAnn('FINAL BO9!','#ffd700'); speak('Final round best of nine, need five wins!');
+        });
       }
     } else {
-      // final round 3
-      if(cur.p>cur.ai) roundWins[0]++; else roundWins[1]++;
       finish(roundWins[0]>roundWins[1]);
     }
   }
 }
-
 function showIntermission(winner, title, score, callback){
   let inter=document.getElementById('intermission');
   document.getElementById('interEmoji').innerText = winner.includes('AI')?'🤖':'🏆';
   document.getElementById('interTitle').innerText = title;
-  document.getElementById('interScore').innerText = `${winner} WIN ${score}`;
+  document.getElementById('interScore').innerText = score;
   document.getElementById('interDetail').innerText = 'Next round in...';
   inter.classList.remove('hidden');
-  bell(); speak(`${winner} wins this round!`);
-  
-  let count=3;
-  document.getElementById('countNum').innerText=count;
+  bell(); speak(`${winner} wins!`);
+  let count=3; document.getElementById('countNum').innerText=count;
   let cInt=setInterval(()=>{
     count--;
-    if(count>0){
-      document.getElementById('countNum').innerText=count;
-      beep(600+count*100,.3,'sine',.6);
-    } else if(count==0){
-      document.getElementById('countNum').innerText='FIGHT!';
-      beep(1000,.6,'sine',.8);
-    } else {
-      clearInterval(cInt);
-      inter.classList.add('hidden');
-      callback();
-    }
+    if(count>0){document.getElementById('countNum').innerText=count;beep(600+count*100,.3,'sine',.6);}
+    else if(count==0){document.getElementById('countNum').innerText='FIGHT!';beep(1000,.6,'sine',.8);}
+    else {clearInterval(cInt);inter.classList.add('hidden');callback();}
   },900);
 }
-
 function finish(isChamp){
   clearInterval(tInt);let time=(Date.now()-startTime)/1000;bell();
   let res=document.getElementById('result');
@@ -208,18 +205,17 @@ function finish(isChamp){
   if(isChamp){
     document.getElementById('resEmoji').innerText='🏆';
     document.getElementById('resTitle').innerText=`CHAMPION ${playerName.toUpperCase()}!`;
-    document.getElementById('resMsg').innerText=`Amazing! You win ${roundWins[0]}-${roundWins[1]} in ${time.toFixed(1)}s!`;
-    clap();cheer();speak(`Champion ${playerName} wins ${roundWins[0]} to ${roundWins[1]} in ${time.toFixed(1)} seconds!`);
+    document.getElementById('resMsg').innerText=`You win ${roundWins[0]}-${roundWins[1]} in ${time.toFixed(1)}s! BO5/BO7/BO9`;
+    clap();cheer();
     records.push({name:playerName,time:time,rounds:round,date:Date.now()});records.sort((a,b)=>a.time-b.time);records=records.slice(0,10);localStorage.setItem('ainun_records',JSON.stringify(records));renderBoard();
   } else {
     document.getElementById('resEmoji').innerText='😭';
     document.getElementById('resTitle').innerText=`YOU LOSE!`;
     document.getElementById('resMsg').innerText=`AI wins ${roundWins[1]}-${roundWins[0]}. Try again!`;
-    speak(`You lose!`);
   }
   res.classList.remove('hidden');
 }
-function closeResult(){document.getElementById('result').classList.add('hidden');document.getElementById('game').classList.add('hidden');document.getElementById('splash').classList.remove('hidden');document.getElementById('timer').innerText='00.0s';document.getElementById('scoreBig').innerText='0 - 0';}
+function closeResult(){document.getElementById('result').classList.add('hidden');document.getElementById('game').classList.add('hidden');document.getElementById('splash').classList.remove('hidden');document.getElementById('timer').innerText='00.0s';document.getElementById('scoreBig').innerText='0-0';isLocked=false;}
 </script>
 </body>
 </html>
