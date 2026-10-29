@@ -1,102 +1,88 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Ainun - Level 1</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEVEL 1 - 16 QUESTIONS - FULL RANDOM</title>
 <style>
-body{margin:0;background:#f5f1e8;display:flex;justify-content:center;min-height:100vh;font-family:sans-serif}
-.museum{width:100%;max-width:900px;background:radial-gradient(ellipse at center,#fdfbf5 0%,#e8e0cc 100%);border-left:24px solid #2b2117;border-right:24px solid #2b2117;padding:40px 20px 80px}
-h1{font-family:serif;text-align:center;font-size:42px;letter-spacing:0.12em;margin:0}
-.sub{text-align:center;opacity:0.5;letter-spacing:0.2em;font-size:13px;margin:6px 0 30px}
-.frame{background:#111;padding:12px;border:10px solid #1a1a1a;max-width:700px;margin:0 auto}
-.frame img{width:100%;display:block}
-.plaque{background:#f9f6ef;border:1px solid #d6c7a8;padding:20px;margin:50px auto 0;max-width:700px}
-label{display:block;font-family:serif;font-size:18px;margin:18px 0 8px;font-weight:600}
-textarea,input{width:100%;border:1px solid #c9b896;background:#fffefb;padding:12px;box-sizing:border-box;font-size:15px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.row input{width:calc(20% - 7px);min-width:75px;text-align:center}
-.btn{display:block;margin:30px auto 0;background:#1a1a1a;color:#e8e0cc;border:none;padding:14px 40px;letter-spacing:0.2em;cursor:pointer;transition:.2s}
-.btn:hover{background:#000}
-.btn2{display:none;margin:16px auto 0;background:#2b2117;color:#e8e0cc;border:none;padding:14px 36px;letter-spacing:0.15em;cursor:pointer;animation:fadeIn .5s ease}
-.btn2:hover{background:#000}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-#out{display:none;text-align:center;margin-top:30px;border-top:1px dashed #c9a96e;padding-top:20px}
-.note{text-align:center;font-size:11px;opacity:0.4;margin-top:24px}
+body{font-family:Arial;background:linear-gradient(135deg,#00BFA5,#1DE9B6);margin:0;padding:15px;display:flex;justify-content:center;min-height:100vh}
+.container{max-width:600px;width:100%;background:#fff;padding:20px;border-radius:20px;border:3px solid #004D40;text-align:center}
+.timer{height:12px;background:#B2DFDB;border-radius:6px;overflow:hidden;margin:10px 0}
+#timerBar{height:100%;background:linear-gradient(90deg,#00C853,#FFEB3B,#FF1744);width:100%;transition:width 0.1s linear}
+.soal{font-size:19px;font-weight:900;margin:15px 0;min-height:60px;color:#004D40;text-align:left}
+.pil{padding:14px;background:#E0F2F1;border:2px solid #4DB6AC;border-radius:12px;cursor:pointer;font-weight:700;margin-bottom:8px;color:#004D40;text-align:left}
+.pil.bener{background:#00C853!important;color:#fff;border-color:#00C853}
+.pil.salah{background:#FF3D00!important;color:#fff;border-color:#FF3D00}
+.info{display:flex;justify-content:space-between;font-weight:900;color:#00796B;font-size:14px}
+.next-btn{display:none;margin:15px auto;padding:14px 25px;background:#004D40;color:#fff;border:none;border-radius:12px;font-weight:900;font-size:16px;cursor:pointer;width:100%;animation:bounce 1s infinite}
+.ulang-btn{display:none;margin:8px auto;padding:12px 20px;background:#E0F2F1;color:#004D40;border:2px solid #004D40;border-radius:12px;font-weight:900;font-size:14px;cursor:pointer;width:100%}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
-<div class="museum">
-<h1>MY AINUN</h1>
-<div class="sub">LEVEL 1 - MUSEUM</div>
-<div class="frame"><img src="level1.jpg" alt="Statue House"></div>
-<div class="plaque">
-<label>1. Tell your story freely, without limits:</label>
-<textarea id="story" rows="5" placeholder="Write your story here..."></textarea>
-<label>2. Summarize into 1-5 adjectives:</label>
-<div class="row">
-<input id="a1" placeholder="1"><input id="a2" placeholder="2"><input id="a3" placeholder="3"><input id="a4" placeholder="4"><input id="a5" placeholder="5">
-</div>
-<button class="btn" onclick="go()">DONE</button>
-<button class="btn2" id="nextBtn" onclick="goToLevel2()">CONTINUE TO LEVEL 2 →</button>
-<div id="out"></div>
-<div class="note">just for entertainment - done, delete, pass - heheheheh</div>
-</div>
+<div class="container">
+<h2 style="color:#004D40">🟢 LEVEL 1 - 16 QUESTIONS - FULL RANDOM 100%</h2>
+<div class="info"><span id="noSoal">Question 1/16</span><span id="benar">CORRECT: 0/16</span><span id="totalTimer">48.0s</span></div>
+<div class="timer"><div id="timerBar"></div></div>
+<div class="soal" id="soalText"></div>
+<div id="pilihan"></div>
+<div id="hasil" style="font-weight:900;color:#004D40;margin-top:15px;line-height:1.6"></div>
+<button id="btnNext" class="next-btn" onclick="lanjutKeLevel2()">➡️ CONTINUE TO LEVEL 2 (100% CORRECT) ➡️</button>
+<button id="btnUlang" class="ulang-btn" onclick="location.reload()">🔁 REPLAY LEVEL 1 (QUESTIONS WILL SHUFFLE AGAIN)</button>
 </div>
 <script>
-// Load if already exists
-window.onload = () => {
-  const saved = JSON.parse(localStorage.getItem('myainun_level1') || 'null');
-  if(saved){
-    document.getElementById('story').value = saved.story || '';
-    if(saved.adjectives){
-      saved.adjectives.forEach((v,i)=>{
-        const el = document.getElementById('a'+(i+1));
-        if(el) el.value = v;
-      });
-    }
+const SOAL_ORIG=[
+{q:"What is the nerve cell that transmits signals called?",a:["Organ","Axon","Neuron","Cranial"],k:2},
+{q:"What is the force of attraction of the earth called?",a:["Magnetic","Gravity","Friction","Spring"],k:1},
+{q:"What gas is needed for breathing?",a:["Carbon","Nitrogen","Oxygen","Hydrogen"],k:2},
+{q:"What is the genetic material that carries traits?",a:["RNA","DNA","Enzyme","Protein"],k:1},
+{q:"What is the ability to do work called?",a:["Force","Power","Energy","Momentum"],k:2},
+{q:"What is an atom with an electric charge called?",a:["Molecule","Ion","Proton","Neutron"],k:1},
+{q:"What is the smallest particle of an element?",a:["Atom","Cell","Molecule","Compound"],k:0},
+{q:"What is the super small pathogen that causes disease?",a:["Bacteria","Fungus","Virus","Protozoa"],k:2},
+{q:"A collection of tissues forms a?",a:["Cell","Organ","System","Organism"],k:1},
+{q:"What is the biocatalyst in the body?",a:["Hormone","Enzyme","Vitamin","Mineral"],k:1},
+{q:"What is the reproductive tool in fungi?",a:["Seed","Spore","Bud","Root"],k:1},
+{q:"What is the red fluid that flows in the body?",a:["Lymph","Plasma","Blood","Fluid"],k:2},
+{q:"What is all genetic material called?",a:["Genome","Gene","Chromosome","Phenotype"],k:0},
+{q:"What is the largest organ in humans?",a:["Heart","Lung","Skin","Liver"],k:2},
+{q:"What is the impulse conduction system?",a:["Muscle","Bone","Nerve","Blood"],k:2},
+{q:"What is the process of forming glucose from fat?",a:["Glycolysis","Ketogenesis","Photosynthesis","Respiration"],k:1}
+];
+
+function shuffle(arr){
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
   }
+  return a;
 }
-
-function go(){
-  const s=document.getElementById('story').value.trim();
-  const ad=[1,2,3,4,5].map(i=>document.getElementById('a'+i).value.trim()).filter(Boolean);
-  const out=document.getElementById('out');
-  const next=document.getElementById('nextBtn');
-
-  if(!s){alert('Write your story first');return}
-  if(!ad.length){alert('Fill at least 1 adjective');return}
-
-  // SAVE TO LOCAL STORAGE FOR CONTINUITY
-  const data = {
-    story: s,
-    adjectives: ad,
-    timestamp: new Date().toISOString(),
-    level: 1
+function acakJawaban(soal){
+  let list = soal.a.map((txt,i)=>({txt, isBenar: i===soal.k}));
+  list = shuffle(list);
+  return {
+    q: soal.q,
+    a: list.map(x=>x.txt),
+    k: list.findIndex(x=>x.isBenar)
   };
-  localStorage.setItem('myainun_level1', JSON.stringify(data));
-  // Also set global progress
-  localStorage.setItem('myainun_currentLevel', '1');
-
-  out.style.display='block';
-  out.innerHTML='<p><b>"'+s+'"</b></p><p style="margin-top:12px;letter-spacing:0.1em">'+ad.join(' • ')+'</p><p style="margin-top:10px;font-size:12px;color:#22c55e">✓ Saved - ready for Level 2</p>';
-  next.style.display='block';
-  // Scroll to button
-  next.scrollIntoView({behavior:'smooth'});
 }
+const SOAL = shuffle(SOAL_ORIG).map(s=>acakJawaban(s));
 
-function goToLevel2(){
-  const saved = localStorage.getItem('myainun_level1');
-  if(!saved){
-    alert('Click DONE first');
-    return;
-  }
-  // Mark level 1 as completed
-  localStorage.setItem('myainun_level1_completed', 'true');
-  localStorage.setItem('myainun_currentLevel', '2');
-  window.location.href='imajinasilevel2.html';
+let idx=0,benar=0,totalTime=48,sisaTotal=48,timer,salahList=[];
+function render(){if(idx>=SOAL.length){end();return;}document.getElementById('noSoal').innerText=`Question ${idx+1}/16`;document.getElementById('soalText').innerText=`${idx+1}. ${SOAL[idx].q}`;let div=document.getElementById('pilihan');div.innerHTML='';SOAL[idx].a.forEach((t,i)=>{let b=document.createElement('div');b.className='pil';b.innerText=`${String.fromCharCode(65+i)}. ${t}`;b.onclick=()=>jawab(i);div.appendChild(b);});}
+function jawab(p){let b=SOAL[idx].k;document.querySelectorAll('.pil').forEach((el,i)=>{el.style.pointerEvents='none';if(i===b)el.classList.add('bener');if(i===p&&i!==b)el.classList.add('salah');});if(p===b){benar++;}else{salahList.push(`${idx+1}. ${SOAL[idx].q} → Answer: ${SOAL[idx].a[b]}`);}document.getElementById('benar').innerText=`CORRECT: ${benar}/16`;setTimeout(()=>{idx++;render();},400);}
+function start(){timer=setInterval(()=>{sisaTotal-=0.1;let per=(sisaTotal/totalTime)*100;document.getElementById('timerBar').style.width=per+'%';document.getElementById('totalTimer').innerText=sisaTotal.toFixed(1)+'s';if(sisaTotal<=0)end();},100);}
+function lanjutKeLevel2(){if(benar!==16) return;localStorage.setItem('level1_benar', benar);window.location.href='level2.html';}
+function end(){
+  clearInterval(timer);
+  document.getElementById('soalText').innerText='LEVEL 1 COMPLETE!';
+  document.getElementById('pilihan').innerHTML='';
+  let listSalah = salahList.length>0? `<div style="text-align:left;margin-top:12px;background:#FFEBEE;padding:10px;border-radius:10px;font-size:12px;color:#B71C1C"><b>FAILED - WRONG ${salahList.length}:</b><br>${salahList.join('<br>')}</div>` : `<div style="color:#00C853;margin-top:10px;font-size:18px">🔥 PERFECT 16/16!</div>`;
+  document.getElementById('hasil').innerHTML=`<div style="font-size:22px">CORRECT: ${benar} of 16</div><div style="font-size:13px;color:#555">${benar===16? 'WOW 100%! Level 2 unlocked' : 'You need 100% (16/16) to continue. Questions will shuffle if you replay!'}</div>${listSalah}`;
+  document.getElementById('btnUlang').style.display='block';
+  if(benar===16){document.getElementById('btnNext').style.display='block';}
 }
+render();start();
 </script>
 </body>
 </html>
