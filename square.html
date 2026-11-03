@@ -2,20 +2,21 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MY AINUN BLOCK GREEN - MOBILE FIXED</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MY AINUN BLOCK GREEN - FINAL FIX</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;user-select:none;-webkit-tap-highlight-color: transparent;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;user-select:none;-webkit-tap-highlight-color:transparent}
 body{background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 60%,#c8f7c5 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:8px;touch-action:manipulation}
 .header{width:100%;max-width:420px;background:#1a1a1a;color:#fff;padding:10px 14px;border-radius:14px;display:flex;justify-content:space-between;align-items:center}
 .logo{font-weight:900;font-size:12px;line-height:1.1;text-align:center} .logo span{color:#a8e6a3}
 .scoreBox{background:#2a2a2a;padding:6px 12px;border-radius:10px;text-align:center;min-width:70px}
 .scoreBox b{color:#a8e6a3;font-size:18px;display:block}
 #board{width:95vw;max-width:400px;aspect-ratio:1;background:#1a1a1a;border-radius:16px;padding:8px;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr);gap:4px;margin-top:10px;box-shadow:8px 8px 0 rgba(0,0,0,0.2);border:3px solid #000;touch-action:none}
-.cell{background:#222;border-radius:6px;transition:all .1s;position:relative;touch-action:none}
+.cell{background:#222;border-radius:6px;transition:all .1s;touch-action:none}
 .cell.filled{box-shadow:inset 0 -4px 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3)}
-.cell.preview-ok{background:#a8e6a3 !important;opacity:0.7}
-.cell.preview-bad{background:#fc5c65 !important;opacity:0.7}
+.cell.preview-ok{background:#a8e6a3 !important;opacity:.7}
+.cell.preview-bad{background:#fc5c65 !important;opacity:.7}
 .cell.clearing{animation:pop .35s forwards}
 @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2);filter:brightness(1.5)}100%{transform:scale(0);opacity:0}}
 .c-orange{background:linear-gradient(180deg,#ff9f43,#ff7f00);border:1px solid #cc6600}
@@ -31,7 +32,7 @@ body{background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 60%,#c8f7c5 100%);min-
 .piece.selected{outline:3px solid #1a1a1a;background:#a8e6a3;transform:scale(1.1)}
 .piece.used{opacity:0;pointer-events:none}
 .mini{width:22px;height:22px;border-radius:5px;border:1px solid rgba(0,0,0,0.2)}
-#msg{margin-top:8px;font-size:11px;color:#1a1a1a;background:rgba(255,255,255,0.85);padding:6px 12px;border-radius:20px;font-weight:700;text-align:center}
+#msg{margin-top:8px;font-size:11px;color:#1a1a1a;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:20px;font-weight:700;text-align:center;max-width:420px}
 </style>
 </head>
 <body>
@@ -41,14 +42,13 @@ body{background:linear-gradient(135deg,#7bc87f 0%,#a8e6a3 60%,#c8f7c5 100%);min-
 <div class="scoreBox"><small style="font-size:9px;color:#888">BEST</small><b id="best">0</b></div>
 </div>
 <div id="board"></div>
-<div id="msg">💚 Pilih balok bawah → tap papan!</div>
+<div id="msg">💚 Pilih balok bawah → tap papan 2x untuk taruh!</div>
 <div id="tray"></div>
-
 <script>
 const BOARD_SIZE=10;
-let board=[], score=0, best=localStorage.getItem('myAinunBlockGreenBest')||0;
+let board=[], score=0, best=parseInt(localStorage.getItem('myAinunBlockGreenBest')||'0');
 let pieces=[], selectedPiece=null, selectedIdx=-1, isClearing=false;
-let lastPreviewPos = null;
+let lastPreviewPos=null;
 document.getElementById('best').innerText=best;
 
 const COLORS=['c-orange','c-blue','c-green','c-red','c-yellow','c-purple','c-black'];
@@ -67,14 +67,11 @@ function createBoard(){
  const b=document.getElementById('board'); b.innerHTML='';
  for(let r=0;r<BOARD_SIZE;r++) for(let c=0;c<BOARD_SIZE;c++){
    let cell=document.createElement('div'); 
-   cell.className='cell'; 
-   cell.id=`cell-${r}-${c}`;
-   // FIX: pakai pointer events, 1 handler untuk semua device
+   cell.className='cell'; cell.id=`cell-${r}-${c}`;
    cell.addEventListener('pointerdown', (e)=>handlePointer(r,c,e));
-   cell.addEventListener('pointerenter', ()=>{ if(selectedPiece) preview(r,c) });
+   cell.addEventListener('pointerenter', ()=>{ if(selectedPiece && !isClearing) preview(r,c) });
    b.appendChild(cell);
  }
- // clear preview kalau jari keluar board
  b.addEventListener('pointerleave', clearPreview);
 }
 
@@ -86,25 +83,60 @@ function handlePointer(r,c,e){
     if(navigator.vibrate) navigator.vibrate(30);
     return; 
   }
-  // kalau tap di posisi yang sama dengan preview dan bisa ditaruh -> langsung taruh
   if(lastPreviewPos && lastPreviewPos.r===r && lastPreviewPos.c===c && canPlaceAt(r,c,selectedPiece.shape)){
     tryPlace(r,c);
   } else {
     preview(r,c);
-    // di HP, tap sekali lagi di tempat sama akan ketrigger karena lastPreviewPos sama
     if(canPlaceAt(r,c,selectedPiece.shape)){
       document.getElementById('msg').innerText='👉 Tap lagi di sini untuk taruh!';
+    } else {
+      document.getElementById('msg').innerText='❌ Gak muat di sini, geser dikit!';
     }
   }
 }
 
-function newPieces(){
- pieces=[];
- for(let i=0;i<3;i++){
-   let shape=SHAPES[Math.floor(Math.random()*SHAPES.length)];
-   let color=COLORS[Math.floor(Math.random()*COLORS.length)];
-   pieces.push({shape, color, used:false});
+function canPlaceAt(r,c,shape){
+ for(let sr=0;sr<shape.length;sr++) for(let sc=0;sc<shape[sr].length;sc++){
+   if(!shape[sr][sc]) continue;
+   let nr=r+sr, nc=c+sc;
+   if(nr<0||nr>=BOARD_SIZE||nc<0||nc>=BOARD_SIZE||board[nr][nc]) return false;
  }
+ return true;
+}
+
+function isGameOverCheck(bd, pcs){
+ for(let p of pcs){
+   if(p.used) continue;
+   for(let r=0;r<BOARD_SIZE;r++) for(let c=0;c<BOARD_SIZE;c++){
+     if(canPlaceAt(r,c,p.shape)) return false;
+   }
+ }
+ return pcs.some(p=>!p.used);
+}
+
+function isGameOver(){ return isGameOverCheck(board, pieces); }
+
+function newPieces(){
+ let attempts=0;
+ let tempPieces=[];
+ do{
+   tempPieces=[];
+   for(let i=0;i<3;i++){
+     let shape=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+     let color=COLORS[Math.floor(Math.random()*COLORS.length)];
+     tempPieces.push({shape, color, used:false});
+   }
+   attempts++;
+   if(attempts>60){
+     tempPieces=[
+       {shape:[[1]], color:COLORS[2], used:false},
+       {shape:[[1,1]], color:COLORS[1], used:false},
+       {shape:[[1],[1]], color:COLORS[0], used:false},
+     ];
+     break;
+   }
+ } while(isGameOverCheck(board, tempPieces));
+ pieces=tempPieces;
  renderTray();
 }
 
@@ -129,66 +161,57 @@ function renderTray(){
 function selectPiece(idx){
  if(pieces[idx].used || isClearing) return;
  selectedIdx=idx; selectedPiece=pieces[idx];
- document.getElementById('msg').innerText='👉 Sekarang tap papan buat taruh!';
+ document.getElementById('msg').innerText='👉 Tap papan, kalau ijo tap lagi buat taruh!';
  renderTray(); clearPreview();
- if(navigator.vibrate) navigator.vibrate(20);
+ if(navigator.vibrate) navigator.vibrate(15);
 }
 
 function clearPreview(){ 
  document.querySelectorAll('.cell.preview-ok, .cell.preview-bad').forEach(c=>c.classList.remove('preview-ok','preview-bad')); 
 }
 
-function canPlaceAt(r,c,shape){
- for(let sr=0;sr<shape.length;sr++) for(let sc=0;sc<shape[sr].length;sc++){
-   if(!shape[sr][sc]) continue;
-   let nr=r+sr, nc=c+sc;
-   if(nr<0||nr>=BOARD_SIZE||nc<0||nc>=BOARD_SIZE||board[nr][nc]) return false;
- }
- return true;
-}
-
 function preview(r,c){
  if(!selectedPiece || isClearing) return;
  clearPreview();
- let shape=selectedPiece.shape;
- let ok = canPlaceAt(r,c,shape);
- for(let sr=0;sr<shape.length;sr++) for(let sc=0;sc<shape[sr].length;sc++){
-   if(!shape[sr][sc]) continue;
+ let ok=canPlaceAt(r,c,selectedPiece.shape);
+ for(let sr=0;sr<selectedPiece.shape.length;sr++) for(let sc=0;sc<selectedPiece.shape[sr].length;sc++){
+   if(!selectedPiece.shape[sr][sc]) continue;
    let nr=r+sr, nc=c+sc;
    if(nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE){
-     document.getElementById(`cell-${nr}-${nc}`).classList.add(ok ? 'preview-ok' : 'preview-bad');
+     document.getElementById(`cell-${nr}-${nc}`).classList.add(ok?'preview-ok':'preview-bad');
    }
  }
- lastPreviewPos = {r,c};
+ lastPreviewPos={r,c};
 }
 
 function tryPlace(r,c){
  if(isClearing || !selectedPiece) return;
- if(!canPlaceAt(r,c,selectedPiece.shape)){
-   document.getElementById('msg').innerText='❌ Gak bisa taruh sini, mentok!';
-   if(navigator.vibrate) navigator.vibrate([30,30,30]);
-   return;
- }
+ if(!canPlaceAt(r,c,selectedPiece.shape)) return;
  let shape=selectedPiece.shape;
  for(let sr=0;sr<shape.length;sr++) for(let sc=0;sc<shape[sr].length;sc++){
    if(!shape[sr][sc]) continue;
    board[r+sr][c+sc]=selectedPiece.color;
  }
  pieces[selectedIdx].used=true;
- score+=shape.flat().filter(x=>x).length * 10;
+ score+=shape.flat().filter(x=>x).length*10;
  selectedPiece=null; selectedIdx=-1; lastPreviewPos=null;
  clearPreview(); renderBoard(); renderTray();
 
  checkClear(()=>{
-   if(pieces.every(p=>p.used)) newPieces();
-   setTimeout(()=>{
-     if(isGameOver()){
-       if(score>best){ best=score; localStorage.setItem('myAinunBlockGreenBest',best); document.getElementById('best').innerText=best; }
-       alert(`Game Over! Score: ${score}`);
-       score=0; document.getElementById('score').innerText=0;
-       createBoard(); newPieces();
-     }
-   },100);
+   if(pieces.every(p=>p.used)){
+     newPieces();
+     document.getElementById('msg').innerText='💚 Balok baru! Lanjut!';
+   } else {
+     setTimeout(()=>{
+       if(isGameOver()){
+         if(score>best){ best=score; localStorage.setItem('myAinunBlockGreenBest',best); document.getElementById('best').innerText=best; }
+         alert(`Game Over! MY AINUN BLOCK GREEN Score: ${score}`);
+         score=0; document.getElementById('score').innerText=0;
+         createBoard(); newPieces();
+         document.getElementById('msg').innerText='💚 Game baru! Pilih balok lagi';
+       }
+     },150);
+   }
  });
 }
 
@@ -212,23 +235,13 @@ function checkClear(callback){
  setTimeout(()=>{
    rows.forEach(r=>{ for(let c=0;c<BOARD_SIZE;c++) board[r][c]=null; });
    cols.forEach(c=>{ for(let r=0;r<BOARD_SIZE;r++) board[r][c]=null; });
-   let cleared=rows.length + cols.length;
-   score+=cleared * 100 * (cleared>1?2:1);
-   document.getElementById('msg').innerText= cleared>1 ? `🔥 COMBO x${cleared}! +${cleared*100*2}` : `💚 Clear ${cleared} line! +${cleared*100}`;
+   let cleared=rows.length+cols.length;
+   score+=cleared*100*(cleared>1?2:1);
+   document.getElementById('msg').innerText=cleared>1?`🔥 COMBO x${cleared}! +${cleared*100*2}`:`💚 Clear ${cleared} line! +${cleared*100}`;
    renderBoard(); isClearing=false;
    if(callback) callback(cleared);
    if(navigator.vibrate) navigator.vibrate(cleared>1?[50,30,100]:50);
  },350);
-}
-
-function isGameOver(){
- for(let p of pieces){
-   if(p.used) continue;
-   for(let r=0;r<BOARD_SIZE;r++) for(let c=0;c<BOARD_SIZE;c++){
-     if(canPlaceAt(r,c,p.shape)) return false;
-   }
- }
- return pieces.some(p=>!p.used);
 }
 
 createBoard(); newPieces();
