@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY AINUN SPIN GAME</title>
+<style>
+  *{box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
+  body{margin:0;background:#D9A5A0;color:#000;display:flex;justify-content:center;min-height:100vh}
+  .container{width:100%;max-width:900px;padding:12px;text-align:center}
+  .hidden{display:none !important}
+  #screenWelcome{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  #welcomeImg{width:100%;max-width:760px;max-height:62vh;object-fit:cover;border-radius:20px;border:4px solid #000;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .bigBtn{padding:14px 28px;border:none;border-radius:999px;font-weight:900;font-size:20px;cursor:pointer}
+  #startBtn{background:#FFD93D;color:#000;border:3px solid #000;margin-top:12px}
+  #voiceBtn{background:#fff;color:#000;border:2px solid #000;padding:9px 16px;border-radius:999px;font-weight:900;cursor:pointer;margin-top:10px}
+  .hint{color:#4A2C2A;font-size:13px;margin-top:6px}
+  .nameCard{background:#FFF7D6;border:3px solid #000;border-radius:20px;padding:22px;max-width:520px;margin:20px auto}
+  .nameCard h2{margin:0 0 5px;font-size:26px}
+  .nameCard p{color:#555;margin:0 0 12px}
+  .nameCard input{width:100%;padding:13px;border:3px solid #000;border-radius:12px;font-size:18px;font-weight:bold;text-align:center;color:#000;background:#fff}
+  #playBtn{background:#000;color:#fff;width:100%;margin-top:12px}
+  .topBar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .topBar h2{margin:0;font-size:22px}
+  .modes{display:flex;gap:8px;justify-content:center;margin:12px 0}
+  .modes button{padding:11px 20px;border:2px solid #000;background:#fff;color:#000;border-radius:999px;cursor:pointer;font-weight:900}
+  .modes button.active{background:#000;color:#fff}
+  .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .wheel-box{position:relative;width:380px;height:380px;max-width:90vw}
+  #pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:42px;z-index:10}
+  canvas{width:100%;height:100%;border-radius:50%;border:4px solid #000;transition:transform 4s cubic-bezier(.15,.9,.25,1)}
+  #centerBtn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:#fff;border:3px solid #000;color:#000;font-weight:900;font-size:20px;cursor:pointer;z-index:5}
+  .inputs{background:#FFF7D6;padding:15px;border-radius:15px;width:320px;border:2px solid #000;text-align:left}
+  .inputs input{width:100%;padding:11px;margin-bottom:8px;border-radius:8px;border:2px solid #000;background:#fff;color:#000;font-size:15px;font-weight:bold}
+  #result{margin-top:12px;font-size:21px;font-weight:900;min-height:28px;color:#000}
+  #spinBtn{background:#FFD93D;color:#000;width:100%;padding:13px;border:3px solid #000;border-radius:12px;font-weight:900;font-size:18px;cursor:pointer;margin-top:5px}
+  #spinBtn:disabled{opacity:.6;cursor:not-allowed}
+  #backBtn{background:#fff;border:2px solid #000;padding:8px 14px;border-radius:999px;font-weight:900;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="screenWelcome">
+    <img id="welcomeImg" src="myainunspingame.jpg" alt="Welcome to My Ainun Spin Game">
+    <button id="startBtn" class="bigBtn" onclick="goToName()">▶ START GAME</button>
+    <button id="voiceBtn" onclick="speak('Welcome to My Ainun Spin Game! Click start game to play!')">🔊 TEST AI VOICE</button>
+    <p class="hint">Speaker on. No need to scroll - START is right here!</p>
+  </div>
+
+  <div id="screenName" class="hidden">
+    <div class="nameCard">
+      <h2>👋 ENTER YOUR NAME</h2>
+      <p>What should we call you?</p>
+      <input id="playerName" type="text" placeholder="Type your name here..." maxlength="20" onkeydown="if(event.key==='Enter') goToGame()">
+      <button id="playBtn" class="bigBtn" onclick="goToGame()">LET'S PLAY 🎡</button>
+    </div>
+    <button id="backBtn" onclick="backToWelcome()">← BACK</button>
+  </div>
+
+  <div id="screenGame" class="hidden">
+    <div class="topBar">
+      <h2 id="helloText">Hello, Player!</h2>
+      <button onclick="speak('Hello ' + playerName + '! Choose your songs and spin the wheel!')">🔊 AI VOICE</button>
+    </div>
+    <p>Choose mode, type songs, SPIN!</p>
+    <div class="modes">
+      <button id="btn5" class="active" onclick="setMode(5)">5 OPTIONS</button>
+      <button id="btn8" onclick="setMode(8)">8 OPTIONS</button>
+      <button id="btn10" onclick="setMode(10)">10 OPTIONS</button>
+    </div>
+    <div class="wrap">
+      <div class="wheel-box">
+        <div id="pointer">▼</div>
+        <canvas id="wheel" width="380" height="380"></canvas>
+        <button id="centerBtn" onclick="spin()">SPIN</button>
+      </div>
+      <div class="inputs">
+        <h3 id="inputTitle">Type 5 Songs:</h3>
+        <div id="inputList"></div>
+        <button id="spinBtn" onclick="spin()">🎡 SPIN THE WHEEL!</button>
+        <div id="result">The selected song will appear here...</div>
+      </div>
+    </div>
+    <br><button id="backBtn" onclick="backToWelcome()">← BACK TO HOME</button>
+  </div>
+
+</div>
+
+<script>
+let mode = 5;
+let rotation = 0; // TOTAL ROTASI SAAT INI, BIAR GAK LONCAT
+let spinning = false;
+let playerName = "Player";
+let currentWinner = ""; // SIMPAN PEMENANG, BIAR AI NGOMONG YANG SAMA PERSIS
+
+const colors = ['#FFD93D','#FF9AA2','#B5EAD7','#C7CEEA','#FFDAC1','#E2BEF1','#A2D2FF','#BFFCC6','#FFB7B2','#FFF1A8'];
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+
+function speak(text){
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 1.0; u.pitch = 1.1; u.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const female = voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('aria') || v.name.toLowerCase().includes('jenny')));
+  if(female) u.voice = female;
+  window.speechSynthesis.speak(u);
+}
+
+function goToName(){
+  document.getElementById('screenWelcome').classList.add('hidden');
+  document.getElementById('screenName').classList.remove('hidden');
+  speak("Welcome to My Ainun Spin Game! Please enter your name to start!");
+  setTimeout(()=>document.getElementById('playerName').focus(), 300);
+}
+function backToWelcome(){
+  document.getElementById('screenName').classList.add('hidden');
+  document.getElementById('screenGame').classList.add('hidden');
+  document.getElementById('screenWelcome').classList.remove('hidden');
+  window.speechSynthesis.cancel();
+}
+function goToGame(){
+  let name = document.getElementById('playerName').value.trim();
+  if(!name) name = "Player";
+  playerName = name;
+  document.getElementById('helloText').innerText = "Hello, " + playerName + "! 🎡";
+  document.getElementById('screenName').classList.add('hidden');
+  document.getElementById('screenGame').classList.remove('hidden');
+  buildInputs();
+  speak("Hello " + playerName + "! Welcome to My Ainun Spin Game! Type your songs and spin the wheel!");
+}
+
+function getValues(){
+  let vals = [];
+  for(let i=0;i<mode;i++){
+    let v = document.getElementById('in'+i)?.value.trim();
+    vals.push(v || ('SONG '+(i+1)));
+  }
+  return vals;
+}
+
+function draw(){
+  const vals = getValues();
+  const cx=190, cy=190, r=185;
+  ctx.clearRect(0,0,380,380);
+  const slice = (Math.PI*2)/mode;
+  for(let i=0;i<mode;i++){
+    const start = i*slice, end = start+slice;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,end); ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+    ctx.strokeStyle='#000'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(start + slice/2); ctx.textAlign='right';
+    ctx.fillStyle='#000000'; ctx.font='900 18px Arial';
+    ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=4;
+    ctx.strokeText(vals[i].slice(0,20), r-18, 7);
+    ctx.fillText(vals[i].slice(0,20), r-18, 7);
+    ctx.restore();
+  }
+}
+
+function buildInputs(){
+  const list = document.getElementById('inputList'); list.innerHTML='';
+  document.getElementById('inputTitle').innerText = 'Type '+mode+' Songs:';
+  for(let i=0;i<mode;i++){
+    const inp = document.createElement('input');
+    inp.id='in'+i; inp.placeholder='SONG '+(i+1)+' - type song title'; inp.value = 'SONG '+(i+1); inp.oninput = draw;
+    list.appendChild(inp);
+  }
+  document.querySelectorAll('.modes button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn'+mode).classList.add('active');
+  draw();
+}
+
+function setMode(n){
+  mode=n; rotation=0;
+  canvas.style.transition='none'; canvas.style.transform='rotate(0deg)';
+  buildInputs();
+  document.getElementById('result').innerText='The selected song will appear here...';
+  currentWinner = "";
+  speak("You chose " + n + " options mode!");
+}
+
+// ===== INI YANG DIBENERIN - RUMUS POINTER ATAS =====
+function spin(){
+  if(spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('centerBtn').disabled = true;
+
+  const vals = getValues();
+
+  // 1. PILIH PEMENANG DULU, SIMPAN DI VARIABEL
+  const winnerIndex = Math.floor(Math.random()*mode);
+  currentWinner = vals[winnerIndex]; // INI YANG AKAN DITAMPILIN + DIOMONGIN AI, JADI PASTI SAMA!
+
+  // 2. HITUNG SUDUT BIAR TENGAH SLICE PEMENANG TEPAT DI BAWAH POINTER (ATAS = 270 derajat)
+  const sliceDeg = 360 / mode;
+  const winnerCenter = winnerIndex * sliceDeg + sliceDeg / 2; // posisi awal tengah slice pemenang
+  const pointerAngle = 270; // POINTER ▼ ADA DI ATAS = 270 DERAJAT, BUKAN 0!
+  // Berapa rotasi yang dibutuhkan dari posisi sekarang?
+  let targetRotation = pointerAngle - winnerCenter; // rotasi agar tengah slice sampai di pointer
+  // Normalisasi ke 0-360
+  targetRotation = ((targetRotation % 360) + 360) % 360;
+  // Tambah 6 putaran penuh biar muternya lama + hitung dari posisi sekarang
+  const currentMod = ((rotation % 360) + 360) % 360;
+  let delta = targetRotation - currentMod;
+  if(delta < 0) delta += 360;
+  delta += 360 * 6; // 6x putaran
+
+  rotation += delta;
+
+  canvas.style.transition='transform 4s cubic-bezier(.15,.9,.25,1)';
+  canvas.style.transform='rotate('+rotation+'deg)';
+  document.getElementById('result').innerText='Spinning...';
+  speak("Spinning! Which song will it be, " + playerName + "?");
+
+  setTimeout(()=>{
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    document.getElementById('centerBtn').disabled = false;
+    // 3. PAKAI VARIABEL YANG SAMA PERSIS UNTUK TAMPILAN & SUARA - JADI GAK MUNGKIN BEDA!
+    document.getElementById('result').innerText='🎵 SELECTED: '+currentWinner+' 🎵';
+    speak("And the winner is... " + currentWinner + "! Let's play it, " + playerName + "!");
+  },4100);
+}
+
+window.speechSynthesis.onvoiceschanged = ()=>{};
+buildInputs();
+</script>
+</body>
+</html>
