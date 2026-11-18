@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Korean - All Levels Open</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+KR:wght@400;700&display=swap');
+body{margin:0;font-family:'Fredoka',sans-serif;background:#FFF0F5;display:flex;justify-content:center;padding:15px 0;min-height:100vh}
+.card{background:white;width:92%;max-width:460px;border-radius:28px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
+h1{color:#FF4D8D;font-size:26px;margin:8px 0}
+h2{color:#333;font-size:18px}
+.sub{color:#888;font-size:12px;line-height:1.5}
+.btn{background:#FF4D8D;color:white;border:none;padding:14px;border-radius:30px;font-size:16px;font-weight:600;width:100%;cursor:pointer;margin-top:10px}
+.btn2{background:#eee;color:#666}
+.input{width:100%;padding:14px;border-radius:20px;border:2px solid #FFD1E3;outline:none;font-size:16px;text-align:center;box-sizing:border-box}
+.korean{font-family:'Noto Sans KR',sans-serif;font-size:38px;line-height:1.4;color:#FF4D8D;font-weight:700;margin:12px 0;word-break:break-word}
+.option{display:block;background:#FFF0F5;border:2px solid #FFD1E3;padding:13px 15px;border-radius:16px;margin:7px 0;text-align:left;cursor:pointer;font-size:14px}
+.option.correct{background:#22C55E;color:white;border-color:#22C55E}
+.option.wrong{background:#EF4444;color:white;border-color:#EF4444}
+.progress{height:8px;background:#FFD1E3;border-radius:10px;overflow:hidden;margin:10px 0}
+.bar{height:100%;background:#FF4D8D;transition:.3s}
+.hide{display:none}
+.levelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.levelCard{background:#FFF0F5;border:2px solid #FFD1E3;border-radius:18px;padding:14px;cursor:pointer;text-align:left}
+.levelCard b{font-size:15px}
+.levelCard p{margin:4px 0 0;font-size:11px;color:#888}
+.levelCard .emoji{font-size:24px}
+.badge{display:inline-block;background:#FFD1E3;color:#FF4D8D;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.speakBtn{background:#222;color:white;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;margin:8px 0}
+.result-box{text-align:left;background:#FFF0F5;padding:16px;border-radius:18px;font-size:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="card" id="intro">
+<div style="font-size:55px">🇰🇷</div>
+<h1>Learn Korean<br>Baca Tulisan Korea</h1>
+<p class="sub">Level 1: 40 Huruf Hangul<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+<input class="input" id="playerName" placeholder="Type your name...">
+<button class="btn" onclick="goLevels()">START ▶</button>
+</div>
+
+<div class="card hide" id="levelScreen">
+<h2 id="helloName">Hi!</h2>
+<p class="sub">⭐ Score: <b id="totalScore">0</b> | 🔓 Semua Level Terbuka!</p>
+<div class="levelGrid" id="levelGrid"></div>
+<button class="btn btn2" onclick="location.reload()">Ganti Nama</button>
+</div>
+
+<div class="card hide" id="quizScreen">
+<div class="progress"><div class="bar" id="bar"></div></div>
+<p class="sub" id="qCount"></p>
+<span class="badge" id="qLevel"></span>
+<div class="korean" id="qKorean"></div>
+<button class="speakBtn" onclick="speakKorean()">🔊 Dengerin Bunyinya</button>
+<h2 id="qTitle"></h2>
+<div id="qOptions"></div>
+<button class="btn hide" id="nextBtn" onclick="nextQ()">Next ➜</button>
+<p class="sub" id="reviewTxt"></p>
+</div>
+
+<div class="card hide" id="resultScreen">
+<div style="font-size:48px">🎉</div>
+<h1 id="resTitle"></h1>
+<div class="result-box" id="resText"></div>
+<button class="btn" onclick="backToLevels()">Pilih Level Lagi</button>
+<button class="btn btn2" onclick="retryLevel()">Ulangi Level Ini</button>
+</div>
+
+<script>
+let name="You", currentLevel=1, idx=0, score=0, totalScore=0, currentQ=null, currentPool=[];
+function speakKorean(text){ const t=text||document.getElementById('qKorean').innerText; if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='ko-KR'; u.rate=0.65; speechSynthesis.speak(u);} }
+function speakEN(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);} }
+function goLevels(){ name=document.getElementById('playerName').value||"You"; document.getElementById('intro').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); document.getElementById('helloName').innerText=`Hi ${name}! 🇰🇷`; renderLevels(); speakEN(`Hi ${name}, welcome to Learn Korean! All levels are open!`); }
+
+// ===== LEVEL 1: 40 HURUF HANGUL =====
+const L1 = [
+["ㄱ","G / k"],["ㄴ","N / n"],["ㄷ","D / t"],["ㄹ","R / L"],["ㅁ","M / m"],["ㅂ","B / p"],["ㅅ","S / s"],["ㅇ","Ng / silent"],["ㅈ","J / j"],["ㅊ","Ch / ch"],
+["ㅋ","K / k"],["ㅌ","T / t"],["ㅍ","P / p"],["ㅎ","H / h"],["ㄲ","Kk"],["ㄸ","Tt"],["ㅃ","Pp"],["ㅆ","Ss"],["ㅉ","Jj"],
+["ㅏ","A"],["ㅑ","Ya"],["ㅓ","Eo"],["ㅕ","Yeo"],["ㅗ","O"],["ㅛ","Yo"],["ㅜ","U"],["ㅠ","Yu"],["ㅡ","Eu"],["ㅣ","I"],
+["ㅐ","Ae"],["ㅒ","Yae"],["ㅔ","E"],["ㅖ","Ye"],["ㅘ","Wa"],["ㅙ","Wae"],["ㅚ","Oe"],["ㅝ","Wo"],["ㅞ","We"],["ㅟ","Wi"],["ㅢ","Ui"]
+];
+
+// ===== LEVEL 2: 200 KATA =====
+const L2 = [
+["개","Dog"],["고양이","Cat"],["새","Bird"],["물고기","Fish"],["닭","Chicken"],["돼지","Pig"],["소","Cow"],["코끼리","Elephant"],["말","Horse"],["원숭이","Monkey"],
+["호랑이","Tiger"],["사자","Lion"],["뱀","Snake"],["개구리","Frog"],["오리","Duck"],["토끼","Rabbit"],["쥐","Mouse"],["곰","Bear"],["여우","Fox"],["늑대","Wolf"],
+["물","Water"],["밥","Rice"],["빵","Bread"],["우유","Milk"],["커피","Coffee"],["차","Tea"],["오렌지 주스","Orange juice"],["맥주","Beer"],["와인","Wine"],["과일","Fruit"],
+["집","House"],["학교","School"],["병원","Hospital"],["시장","Market"],["절","Temple"],["가게","Shop"],["호텔","Hotel"],["공항","Airport"],["역","Station"],["공원","Park"],
+["엄마","Mother"],["아빠","Father"],["오빠","Older brother (for girl)"],["형","Older brother (for boy)"],["언니","Older sister (for girl)"],["누나","Older sister (for boy)"],["동생","Younger sibling"],["아들","Son"],["딸","Daughter"],["친구","Friend"],
+["남자친구","Boyfriend"],["여자친구","Girlfriend"],["선생님","Teacher"],["의사","Doctor"],["경찰","Police"],["사랑","Love"],["좋아하다","Like"],["보고 싶다","Miss"],["무섭다","Afraid"],["화나다","Angry"],
+["슬프다","Sad"],["행복하다","Happy"],["피곤하다","Tired"],["배고프다","Hungry"],["먹다","Eat"],["마시다","Drink"],["자다","Sleep"],["일어나다","Wake up"],["뛰다","Run"],["걷다","Walk"],
+["앉다","Sit"],["서다","Stand"],["말하다","Speak"],["듣다","Listen"],["보다","Watch / See"],["읽다","Read"],["쓰다","Write"],["공부하다","Study"],["일하다","Work"],["놀다","Play"],
+["노래하다","Sing"],["춤추다","Dance"],["수영하다","Swim"],["운전하다","Drive"],["예쁘다","Beautiful"],["잘생기다","Handsome"],["크다","Big"],["작다","Small"],["키가 크다","Tall"],["덥다","Hot"],
+["춥다","Cold"],["빠르다","Fast"],["느리다","Slow"],["새롭다","New"],["오래되다","Old"],["좋다","Good"],["비싸다","Expensive"],["싸다","Cheap"],["쉽다","Easy"],["어렵다","Difficult"],
+["빨간색","Red"],["파란색","Blue"],["초록색","Green"],["노란색","Yellow"],["검은색","Black"],["흰색","White"],["분홍색","Pink"],["보라색","Purple"],["주황색","Orange"],["갈색","Brown"],
+["하나","One"],["둘","Two"],["셋","Three"],["넷","Four"],["다섯","Five"],["여섯","Six"],["일곱","Seven"],["여덟","Eight"],["아홉","Nine"],["열","Ten"],
+["오늘","Today"],["내일","Tomorrow"],["어제","Yesterday"],["아침","Morning"],["저녁","Evening"],["지금","Now"],["매일","Every day"],["주","Week"],["달","Month"],["년","Year"],
+["시간","Time"],["바다","Sea"],["산","Mountain"],["강","River"],["숲","Forest"],["꽃","Flower"],["나무","Tree"],["태양","Sun"],["달","Moon"],["별","Star"],
+["비","Rain"],["구름","Cloud"],["바람","Wind"],["하늘","Sky"],["불","Fire"],["셔츠","Shirt"],["바지","Pants"],["치마","Skirt"],["드레스","Dress"],["신발","Shoes"],
+["모자","Hat"],["안경","Glasses"],["가방","Bag"],["시계","Watch"],["반지","Ring"],["머리","Head"],["눈","Eye"],["코","Nose"],["입","Mouth"],["귀","Ear"],
+["손","Hand"],["발","Foot"],["팔","Arm"],["다리","Leg"],["머리카락","Hair"],["심장","Heart"],["몸","Body"],["피부","Skin"],["이","Teeth"],["노래","Song"],
+["영화","Movie"],["책","Book"],["게임","Game"],["전화","Phone"],["컴퓨터","Computer"],["차","Car"],["기차","Train"],["배","Boat"],["비행기","Airplane"],["음식","Food"],
+["채소","Vegetable"],["고기","Meat"],["계란","Egg"],["소금","Salt"],["설탕","Sugar"],["고추","Chili"],["맛있다","Delicious"],["맵다","Spicy"],["달다","Sweet"],["시다","Sour"],
+["짜다","Salty"],["깨끗하다","Clean"],["더럽다","Dirty"],["조용하다","Quiet"],["시끄럽다","Loud"],["밝다","Bright"],["어둡다","Dark"],["넓다","Wide"],["좁다","Narrow"],["길다","Long"],
+["짧다","Short"],["무겁다","Heavy"],["가볍다","Light"],["딱딱하다","Hard"],["부드럽다","Soft"],["마르다","Dry"],["젖다","Wet"],["가득하다","Full"],["비어 있다","Empty"],["가깝다","Near"],
+["멀다","Far"],["안","Inside"],["밖","Outside"],["왼쪽","Left"],["오른쪽","Right"],["가운데","Middle"],["앞","Front"],["뒤","Back"],["위","Above"],["아래","Below"],
+["돈","Money"],["금","Gold"],["다이아몬드","Diamond"],["돌","Stone"],["전화번호","Phone number"],["주소","Address"],["이름","Name"],["나이","Age"],["가족","Family"],["부모님","Parents"]
+];
+
+// ===== LEVEL 3: 200 KALIMAT =====
+const L3 = [
+["안녕하세요","Hello"],["안녕","Hi / Bye"],["잘 지냈어요?","How have you been?"],["잘 지내요","I am doing well"],["감사합니다","Thank you"],["고마워요","Thank you (casual)"],["죄송합니다","Sorry"],["미안해요","Sorry (casual)"],["괜찮아요","It's okay"],["이름이 뭐예요?","What is your name?"],
+["제 이름은 안난이에요","My name is Annan"],["어디에서 왔어요?","Where are you from?"],["인도네시아에서 왔어요","I am from Indonesia"],["한국에서 왔어요","I am from Korea"],["몇 살이에요?","How old are you?"],["스무 살이에요","I am twenty years old"],["만나서 반갑습니다","Nice to meet you"],["만나서 반가워요","Nice to meet you too"],["사랑해요","I love you"],["사랑해","I love you (casual)"],
+["보고 싶어요","I miss you"],["보고 싶어","I miss you (casual)"],["너무 보고 싶어요","I miss you so much"],["너 정말 예뻐","You are very beautiful"],["너 정말 잘생겼어","You are very handsome"],["너 정말 귀여워","You are very cute"],["좋아해요","I like you"],["여자친구가 되어줄래?","Will you be my girlfriend?"],["결혼해줄래?","Will you marry me?"],["밥 먹었어요?","Have you eaten?"],
+["밥 먹었어?","Have you eaten? (casual)"],["밥 먹었어요","I have eaten"],["아직 안 먹었어요","I haven't eaten yet"],["배고파요","I am hungry"],["밥 먹고 싶어요","I want to eat rice"],["뭐 먹고 싶어요?","What do you want to eat?"],["김치찌개 먹고 싶어요","I want to eat kimchi stew"],["음식이 정말 맛있어요","The food is very delicious"],["안 매워요","Not spicy"],["너무 매워요","Very spicy"],
+["어디 가요?","Where are you going?"],["학교에 가요","I am going to school"],["회사에 가요","I am going to work"],["시장에 가요","I am going to the market"],["여행 가요","I am going traveling"],["여행 가자","Let's travel together"],["밥 먹으러 가자","Let's go eat"],["영화 보러 가자","Let's go watch a movie"],["같이 갈래?","Do you want to go together?"],["같이 가자","Let's go together"],
+["오늘 날씨가 좋아요","Today the weather is good"],["오늘 정말 더워요","Today is very hot"],["오늘 추워요","Today is cold"],["비가 와요","It's raining"],["내일 어디 갈 거예요?","Where will you go tomorrow?"],["어제 어디 갔어요?","Where did you go yesterday?"],["지금 뭐 해요?","What are you doing now?"],["지금 집에 있어요","I am at home now"],["지금 학교에 있어요","I am at school now"],["뭐 하고 있어요?","What are you doing?"],
+["공부하고 있어요","I am studying"],["일하고 있어요","I am working"],["밥 먹고 있어요","I am eating"],["자고 있어요","I am sleeping"],["게임하고 있어요","I am playing a game"],["노래 듣고 있어요","I am listening to music"],["영화 보고 있어요","I am watching a movie"],["책 읽고 있어요","I am reading a book"],["운전하고 있어요","I am driving"],["걷고 있어요","I am walking"],
+["도와주세요","Help!"],["도와줄 수 있어요?","Can you help me?"],["천천히 말해주세요","Please speak slowly"],["다시 말해줄 수 있어요?","Can you say it again?"],["이해가 안 돼요","I don't understand"],["이해했어요","I understand now"],["이해했어요?","Do you understand?"],["알아요","I know"],["몰라요","I don't know"],["얼마예요?","How much?"],
+["이거 얼마예요?","How much is this?"],["너무 비싸요","Too expensive"],["깎아줄 수 있어요?","Can you give a discount?"],["정말 싸요","Very cheap"],["이거 살게요","I will buy this"],["안 살게요","I won't buy"],["다른 색 있어요?","Do you have another color?"],["더 큰 사이즈 있어요?","Do you have a bigger size?"],["화장실이 어디예요?","Where is the bathroom?"],["병원이 어디예요?","Where is the hospital?"],
+["기차역이 어디예요?","Where is the train station?"],["공항이 어디예요?","Where is the airport?"],["시장이 어디예요?","Where is the market?"],["어느 쪽으로 가야 해요?","Which way should I go?"],["왼쪽으로 가세요","Turn left"],["오른쪽으로 가세요","Turn right"],["직진하세요","Go straight"],["가까워요","It's nearby"],["피곤해요","I am tired"],["졸려요","I am sleepy"],
+["아파요","I am sick"],["머리가 아파요","I have a headache"],["배가 아파요","I have a stomachache"],["병원에 가야 해요","I have to go to the hospital"],["약을 먹어야 해요","I have to take medicine"],["쉬어야 해요","I have to rest"],["잘 자요","Sleep well"],["좋은 꿈 꿔요","Sweet dreams"],["행운을 빌어요","Good luck"],["힘내세요","Fighting! You can do it"],
+["정말 잘했어요","You did very well"],["걱정하지 마세요","Don't worry"],["무서워하지 마세요","Don't be afraid"],["진정하세요","Calm down"],["울지 마세요","Don't cry"],["웃어봐요","Smile"],["네가 최고야","You are the best"],["한국에 가고 싶어요","I want to go to Korea"],["한국어를 배우고 싶어요","I want to learn Korean"],["한국어는 어려워요","Korean is difficult"],
+["한국어는 재미있어요","Korean is fun"],["한국어 조금 할 수 있어요","I can speak a little Korean"],["한국어 못 해요","I can't speak Korean"],["가르쳐 주세요","Please teach me"],["정말 잘 가르쳐요","You teach very well"],["가르쳐줘서 고마워요","Thank you for teaching me"],["오늘 정말 재미있었어요","Today was so fun"],["내일 만나요","See you tomorrow"],["나중에 만나요","See you later"],["안녕히 가세요","Goodbye"],
+["잘 지내세요","Take care of yourself"],["보고 싶어","Miss you"],["사랑해","Love you"],["뽀뽀","Kiss"],["안아줘","Give me a hug"],["같이 있어줘","Stay with me"],["너랑 있고 싶어","I want to be with you"],["어디 있어?","Where are you?"],["뭐 하고 있어?","What are you doing?"],["나 보고 싶어?","Do you miss me?"],
+["나 사랑해?","Do you love me?"],["너만 사랑해","I love only you"],["너는 내 전부야","You are my everything"],["너는 내 세상이야","You are my world"],["너 없이 못 살아","Without you I can't live"],["너가 제일 소중해","You are the most precious"],["오늘은 무슨 요일이에요?","What day is today?"],["오늘은 월요일이에요","Today is Monday"],["오늘은 금요일이에요","Today is Friday"],["생일 축하해요","Happy birthday"],
+["새해 복 많이 받으세요","Happy New Year"],["행운을 빌어요","I wish you good luck"],["행복하세요","I wish you happiness"],["건강하세요","I wish you good health"],["물 마시고 싶어요","I want to drink water"],["커피 마시고 싶어요","I want to drink coffee"],["아이스크림 먹고 싶어요","I want to eat ice cream"],["과일 먹고 싶어요","I want to eat fruit"],["바다에 가고 싶어요","I want to go to the sea"],["산에 가고 싶어요","I want to go to the mountain"],
+["절에 가고 싶어요","I want to go to the temple"],["사진 찍고 싶어요","I want to take a photo"],["같이 사진 찍어줘","Please take a photo with me"],["사진이 정말 예뻐요","The photo is very beautiful"],["어떤 노래를 좋아해요?","What song do you like?"],["한국 노래를 좋아해요","I like Korean songs"],["어떤 영화를 좋아해요?","What movie do you like?"],["영화 보는 것을 좋아해요","I like watching movies"],["게임하는 것을 좋아해요?","Do you like playing games?"],["게임하는 것을 좋아해요","I like playing games"],
+["어떤 색을 좋아해요?","What color do you like?"],["분홍색을 좋아해요","I like pink"],["검은색을 좋아해요","I like black"],["흰색을 좋아해요","I like white"],["너의 집은 어디야?","Where is your house?"],["내 집은 가까워요","My house is nearby"],["내 집은 정말 커요","My house is very big"],["내 방","My room"],["내 방은 작아요","My room is small"],["내 고양이","My cat"],
+["내 강아지","My dog"],["내 친구","My friend"],["내 가족","My family"],["내 부모님","My parents"],["오늘 행복해요","Today I am happy"],["오늘 슬퍼요","Today I am sad"],["오늘 화가 나요","Today I am angry"],["오늘 지루해요","Today I am bored"],["오늘 신나요","Today I am excited"],["오늘 걱정돼요","Today I am worried"],
+["슬퍼하지 마세요","Don't be sad"],["화내지 마세요","Don't be angry"],["괜찮아요?","Are you okay?"],["괜찮아요","I am okay"],["지금 몇 시예요?","What time is it?"],["지금 몇 시야?","What time is it now?"],["지금 정오예요","It's noon now"],["지금 저녁이에요","It's evening now"],["내일 아침에 만나요","See you tomorrow morning"],["오늘 밤에 만나요","See you tonight"],
+["다음 주에 만나요","See you next week"],["내년에 만나요","See you next year"],["오랜만이에요","Long time no see"],["오랫동안 못 봤어요","Haven't seen you in a long time"]
+];
+
+const L4 = [["일","1"],["이","2"],["삼","3"],["사","4"],["오","5"],["육","6"],["칠","7"],["팔","8"],["구","9"],["십","10"],["이십","20"],["백","100"],["천","1000"]];
+const L5 = [["ㅏ","A"],["ㅑ","Ya"],["ㅓ","Eo"],["ㅕ","Yeo"],["ㅗ","O"],["ㅛ","Yo"],["ㅜ","U"],["ㅠ","Yu"],["ㅡ","Eu"],["ㅣ","I"]];
+const L6 = [
+["김치찌개","Kimchi stew"],["비빔밥","Bibimbap"],["불고기","Bulgogi"],["김밥","Kimbap"],["떡볶이","Tteokbokki"],["삼겹살","Samgyeopsal"],["치킨","Fried chicken"],["라면","Ramen"],["짜장면","Jjajangmyeon"],["짬뽕","Jjamppong"],
+["김치","Kimchi"],["밥","Rice"],["국","Soup"],["찌개","Stew"],["반찬","Side dish"],["된장찌개","Doenjang stew"],["삼계탕","Samgyetang"],["갈비","Galbi"],["파전","Pajeon"],["잡채","Japchae"],
+["냉면","Naengmyeon"],["칼국수","Kalguksu"],["만두","Dumpling"],["떡","Rice cake"],["죽","Porridge"],["샐러드","Salad"],["샌드위치","Sandwich"],["피자","Pizza"],["버거","Burger"],["국수","Noodles"],
+["찹쌀떡","Sticky rice cake"],["망고","Mango"],["바나나","Banana"],["오렌지","Orange"],["사과","Apple"],["포도","Grape"],["수박","Watermelon"],["오렌지 주스","Orange juice"],["코코넛 워터","Coconut water"],["커피","Coffee"],
+["아이스 커피","Iced coffee"],["차","Tea"],["아이스티","Iced tea"],["밀크티","Milk tea"],["물","Water"],["탄산수","Sparkling water"],["우유","Milk"],["아이스크림","Ice cream"],["케이크","Cake"],["과자","Snack"],["초콜릿","Chocolate"]
+];
+const L7 = [["빨간색","Red"],["파란색","Blue"],["초록색","Green"],["노란색","Yellow"],["검은색","Black"],["흰색","White"],["분홍색","Pink"],["좋다","Good"],["똑똑하다","Smart"],["재미있다","Fun"]];
+const L8 = [
+["아빠","Father"],["엄마","Mother"],["오빠","Older brother (for girl)"],["형","Older brother (for boy)"],["언니","Older sister (for girl)"],["누나","Older sister (for boy)"],["남동생","Younger brother"],["여동생","Younger sister"],["동생","Younger sibling"],["아들","Son"],
+["딸","Daughter"],["자식","Child"],["손자","Grandchild"],["할아버지","Grandfather"],["할머니","Grandmother"],["삼촌","Uncle"],["이모","Aunt"],["고모","Aunt (dad side)"],["조카","Nephew / Niece"],["남편","Husband"],
+["아내","Wife"],["친구","Friend"],["베스트 프렌드","Best friend"],["동료","Coworker"],["사장님","Boss"],["직원","Employee"],["선생님","Teacher"],["학생","Student"],["의사","Doctor"],["간호사","Nurse"],
+["경찰","Police"],["군인","Soldier"],["농부","Farmer"],["요리사","Chef"],["직원","Staff"],["운전기사","Driver"],["기술자","Technician"],["가수","Singer"],["배우","Actor"],["운동선수","Athlete"],
+["한국 사람","Korean person"],["인도네시아 사람","Indonesian person"],["중국 사람","Chinese person"],["일본 사람","Japanese person"],["태국 사람","Thai person"],["영국 사람","English person"],["미국 사람","American person"],["아이","Child / Kid"],["어른","Adult"],["가족","Family"]
+];
+const L9 = [
+["오늘","Today"],["내일","Tomorrow"],["어제","Yesterday"],["모레","Day after tomorrow"],["그저께","Day before yesterday"],["지금","Now"],["아침","Morning"],["늦은 아침","Late morning"],["정오","Noon"],["오후","Afternoon"],
+["저녁","Evening"],["밤","Night"],["새벽","Dawn"],["매일","Every day"],["매일 아침","Every morning"],["매일 밤","Every night"],["이번 주","This week"],["다음 주","Next week"],["지난주","Last week"],["이번 달","This month"],
+["다음 달","Next month"],["지난달","Last month"],["올해","This year"],["내년","Next year"],["작년","Last year"],["새해","New Year"],["월요일","Monday"],["화요일","Tuesday"],["수요일","Wednesday"],["목요일","Thursday"],
+["금요일","Friday"],["토요일","Saturday"],["일요일","Sunday"],["휴일","Holiday"],["생일","Birthday"],["결혼식","Wedding day"],["시간","Time"],["시간","Hour"],["분","Minute"],["초","Second"],
+["아침","Morning"],["저녁","Evening"],["한밤중","Midnight"],["새벽 1시","1 AM"],["오전 6시","6 AM"],["오후 6시","6 PM"],["이른 아침","Early morning"],["오후 1시","1 PM"],["오후 2시","2 PM"],["오후 9시","9 PM"],
+["오후 10시","10 PM"],["오후 11시","11 PM"],["오늘 아침","This morning"],["어젯밤","Last night"],["오늘 밤","Tonight"],["내일 밤","Tomorrow night"],["1월","January"],["2월","February"],["3월","March"],["4월","April"],
+["5월","May"],["6월","June"],["7월","July"],["8월","August"],["9월","September"],["10월","October"],["11월","November"],["12월","December"],["여름","Summer"],["장마","Rainy season"],
+["겨울","Winter"],["봄","Spring"],["가을","Autumn"],["월초","Beginning of month"],["월말","End of month"],["월중","Middle of month"],["과거","Past"],["현재","Present"],["미래","Future"],["오래전","Long time ago"],
+["곧","Soon"],["지금 당장","Right now"],["잠시","A moment"],["잠깐","A while"],["항상","Always"],["가끔","Sometimes"],["자주","Often"],["절대","Never"],["언제나","Always"],["집","House"],
+["방","Room"],["침실","Bedroom"],["화장실","Bathroom"],["부엌","Kitchen"],["거실","Living room"],["교실","Classroom"],["학교","School"],["대학교","University"],["병원","Hospital"],["약국","Pharmacy"],
+["시장","Market"],["슈퍼마켓","Supermarket"],["가게","Shop"],["쇼핑몰","Mall"],["식당","Restaurant"],["카페","Coffee shop"],["호텔","Hotel"],["절","Temple"],["교회","Church"],["모스크","Mosque"],
+["공원","Park"],["동물원","Zoo"],["박물관","Museum"],["영화관","Cinema"],["극장","Theater"],["공항","Airport"],["기차역","Train station"],["버스 정류장","Bus station"],["항구","Port"],["버스 정류장","Bus stop"],
+["도로","Road"],["다리","Bridge"],["사거리","Intersection"],["신호등","Traffic light"],["주차장","Parking lot"],["바다","Sea"],["해변","Beach"],["섬","Island"],["강","River"],["운하","Canal"],
+["호수","Lake"],["폭포","Waterfall"],["산","Mountain"],["숲","Forest"],["논","Rice field"],["마을","Village"],["도시","City"],["도","Province"],["나라","Country"],["구","District"],
+["동","Neighborhood"],["골목","Alley"],["건물","Building"],["빌딩","Building / Tower"],["콘도","Condo"],["기숙사","Dormitory"],["게스트하우스","Guest house"],["사무실","Office"],["회사","Company"],["은행","Bank"],
+["우체국","Post office"],["경찰서","Police station"],["소방서","Fire station"],["도서관","Library"],["운동장","Stadium"],["축구장","Football field"],["수영장","Swimming pool"],["놀이공원","Amusement park"],["서점","Bookstore"],["옷 가게","Clothing store"],
+["미용실","Barbershop"],["미용실","Beauty salon"],["벼룩시장","Flea market"],["수상시장","Floating market"],["아침 시장","Morning market"],["저녁 시장","Evening market"],["편의점","Convenience store"],["빵집","Bakery"],["꽃집","Flower shop"],["농장","Farm"],
+["과수원","Orchard"],["국경","Border"],["국제공항","International airport"],["대사관","Embassy"],["유치원","Kindergarten"],["초등학교","Primary school"],["고등학교","High school"],["대학","College"],["회의실","Meeting room"],["사무실","Office room"],
+["창고","Storage room"],["지하실","Basement"],["1층","First floor"],["2층","Second floor"],["3층","Third floor"],["엘리베이터","Elevator"],["계단","Stairs"],["문","Door"],["창문","Window"],["지붕","Roof"],
+["벽","Wall"],["울타리","Fence"],["대문","Main gate"],["주차장","Parking area"],["안","Inside"],["밖","Outside"],["위","Above"],["아래","Below"],["앞","In front"],["뒤","Behind"],
+["왼쪽","On the left"],["오른쪽","On the right"],["가운데","In the middle"],["가까이","Nearby"],["멀리","Far away"],["여기","Here"],["저기","There"],["어디","Where"],["어디든","Everywhere"],["직장","Workplace"],
+["집에서","At home"],["학교에서","At school"],["절에서","At the temple"],["시장에서","At the market"],["카페에서","At the cafe"],["회사에서","At the company"],["도서관에서","At the library"],["병원에서","At the hospital"],["공원에서","At the park"],["바다에서","At the sea"]
+];
+
+// ===== LEVEL 10: 1000 KALIMAT LOGIS KOREA =====
+const L10_MANUAL = [
+["당신의 이름은 뭐예요?","What is your name?"],["여기서 뭐 하고 있어요?","What are you doing here?"],["어제 왜 병원에 갔어요? 무슨 일이 있었어요?","Why did you go to the hospital yesterday? What happened?"],
+["어제 어디 갔어요?","Where did you go yesterday?"],["내일 어디 갈 거예요?","Where will you go tomorrow?"],["지금 뭐 하고 있어요?","What are you doing now?"],["어디 있어요?","Where are you?"],["괜찮아요?","Are you okay?"],
+["나를 사랑해요?","Do you love me?"],["나를 보고 싶어 해요?","Do you miss me?"],["나를 기억해요?","Do you remember me?"],
+["사랑해요","I love you"],["너무 사랑해요","I love you so much"],["보고 싶어요","I miss you"],["매일 보고 싶어요","I miss you every day"],["매일 밤 당신을 꿈꿔요","I dream of you every night"],
+["당신과 함께 있고 싶어요","I want to be with you"],["당신과 평생 함께 있고 싶어요","I want to be with you forever"],["당신을 평생 돌보고 싶어요","I want to take care of you forever"],["당신은 내 세상이에요","You are my world"],["당신은 내 전부예요","You are my everything"],
+["당신은 내 행복이에요","You are my happiness"],["당신 없이 못 살아요","Without you I can't live"],["당신이 제일 소중해요","You are the most precious"],["당신은 세상에서 제일 예뻐요","You are the most beautiful in the world"],["당신은 꿈이 이루어진 거예요","You are a dream come true"],
+["내 인생에 와줘서 고마워요","Thank you for coming into my life"],["나와 함께 있어줘","Stay with me"],["나를 떠나지 마세요","Don't leave me"],["안아줘요","Hug me"],["날 꼭 안아줘요","Hug me tightly"],
+["오늘 밥 먹었어요?","Have you eaten today?"],["밥 먹고 싶어요","I want to eat rice"],["김치찌개 먹고 싶어요","I want to eat kimchi stew"],["오늘 집에서 밥 먹었어요","Today I ate rice at home"],["내일 당신과 밥 먹을 거예요","Tomorrow I will eat with you"],
+["같이 밥 먹자","Let's eat together"],["음식이 정말 맛있어요","The food is very delicious"],["음식이 너무 매워요","The food is very spicy"],["물 마시고 싶어요","I want to drink water"],["커피 마시고 싶어요","I want to drink coffee"],
+["이거 얼마예요?","How much is this?"],["너무 비싸요","Too expensive"],["깎아줄 수 있어요?","Can you give a discount?"],["이거 살게요","I will buy this"],["다른 색 있어요?","Do you have another color?"],
+["아파요","I am sick"],["머리가 아파요","I have a headache"],["배가 아파요","I have a stomachache"],["병원에 가야 해요","I have to go to the hospital"],["약을 먹어야 해요","I have to take medicine"],
+["많이 쉬세요","Rest a lot"],["이제 괜찮아졌어요?","Are you better now?"],["이제 괜찮아졌어요","I am better now"],["잘 지내세요","Take care of yourself"],["오늘 날씨가 좋아요","Today the weather is good"],
+["오늘 정말 더워요","Today is very hot"],["오늘 비가 와요","Today it rains"],["어제 비가 많이 왔어요","Yesterday it rained a lot"],["바다에 가고 싶어요","I want to go to the sea"],["내일 바다에 갈 거예요","Tomorrow I will go to the sea"],
+["바다가 정말 아름다워요","The sea is very beautiful"],["산에 가고 싶어요","I want to go to the mountain"],["절에 가고 싶어요","I want to go to the temple"],["사진 찍고 싶어요","I want to take a photo"],["같이 사진 찍어줘요","Please take a photo with me"],
+["한국에 가고 싶어요","I want to go to Korea"],["한국어를 배우고 싶어요","I want to learn Korean"],["한국어는 어려워요","Korean is difficult"],["한국어는 재미있어요","Korean is fun"],["한국어 조금 할 수 있어요","I can speak a little Korean"],
+["가르쳐 주세요","Please teach me"],["가르쳐줘서 고마워요","Thank you for teaching me"],["내일 만나요","See you tomorrow"],["오늘 밤에 만나요","See you tonight"],["다음 주에 만나요","See you next week"],
+["오랜만이에요","Long time no see"],["오랫동안 못 봤어요","Haven't seen you in a long time"],["정말 보고 싶었어요","I really missed you"],["지금 몇 시예요?","What time is it?"],["내일 아침에 만나요","See you tomorrow morning"],
+["오늘 행복해요","Today I am happy"],["오늘 슬퍼요","Today I am sad"],["오늘 화가 나요","Today I am angry"],["슬퍼하지 마세요","Don't be sad"],["화내지 마세요","Don't be angry"],
+["힘내세요","Fighting!"],["잘했어요","You did very well"],["정말 잘했어요","You did very well"],["당신을 믿어요","I believe in you"],["당신이 자랑스러워요","I am proud of you"],
+["내일 일해야 해요","Tomorrow I have to work"],["오늘 회의가 있어요","Today I have a meeting"],["내일 아침에 회의가 있어요","Tomorrow I have a meeting in the morning"],["고객이 새 프로젝트를 원해요","The customer wants a new project"],["고객이 아직 답장을 안 했어요","The customer hasn't replied yet"],
+["오늘 숙제가 있어요","Today I have homework"],["내일 시험이 있어요","Tomorrow I have an exam"],["어제 시험에 떨어졌어요","Yesterday I failed the exam"],["오늘 시험에 합격했어요","Today I passed the exam"],["선생님이 정말 잘 가르쳐요","My teacher teaches very well"],
+["매일 한국어 공부해요","I study Korean every day"],["한국어를 유창하게 말하고 싶어요","I want to speak Korean fluently"],["책을 매일 밤 읽어요","I read a book every night"],["당신에게 편지를 쓸게요","I will write a letter to you"],["당신에게 메시지를 보낼게요","I will send a message to you"],
+["전화해줄 수 있어요?","Can you call me?"],["오늘 밤에 전화할게요","I will call you tonight"],["사진을 보내줄게요","I will send you a photo"],["지금 일하고 있어요","I am working now"],["지금 공부하고 있어요","I am studying now"],
+["지금 바빠요","I am busy now"],["지금 한가해요","I am free now"],["내일 한가해요","Tomorrow I am free"],["내일 학교에서 만나요","See you tomorrow at school"],["내일 회사에서 만나요","See you tomorrow at work"],
+["집에서 기다릴게요","I will wait for you at home"],["지각하지 마세요","Don't be late"],["오늘 지각했어요","Today I was late"],["오늘 교통체증이 심해요","Today traffic is very bad"],["지갑을 잊어버렸어요","I forgot my wallet"],
+["핸드폰을 잊어버렸어요","I forgot my phone"],["기억이 안 나요","I don't remember"],["당신을 기억해요","I remember you"],["당신의 생일을 기억해요","I remember your birthday"],["미안해요, 잊어버렸어요","Sorry, I forgot"],
+["이해했어요","I understand now"],["이해가 안 돼요","I don't understand"],["다시 설명해줄 수 있어요?","Can you explain again?"],["천천히 말해주세요","Please speak slowly"],["도와주세요","Please help me"],
+["도와줘서 고마워요","Thank you for helping me"],["기다려줘서 고마워요","Thank you for waiting for me"],["만나러 와줘서 고마워요","Thank you for coming to see me"],["걱정하지 마세요","Don't worry"],["진정하세요","Calm down"],
+["울지 마세요","Don't cry"],["나는 여기 당신과 함께 있어요","I am here with you"],["나는 당신을 떠나지 않을 거예요","I will not leave you"],["나는 항상 당신 옆에 있을 거예요","I will always be beside you"],["나는 당신을 돌볼 거예요","I will take care of you"],
+["나는 당신을 보호할 거예요","I will protect you"],["평생 사랑할 것을 약속해요","I promise I will love you forever"],["잘 자요, 자기야","Good night, my love"],["일어났어요, 자기야?","Are you awake, my love?"],["밥 먹었어요, 자기야?","Have you eaten, my love?"],
+["잘 지내세요, 자기야","Take care of yourself, my love"],["보고 싶어요, 자기야","Miss you, my love"],["사랑해요, 자기야","Love you, my love"],["당신은 내 특별한 사람이에요","You are my special person"],["당신은 최고의 선물이에요","You are the best gift"],
+["당신을 만난 것은 가장 큰 행운이에요","Meeting you is the luckiest"],["당신이 있어서 행운이에요","I am lucky to have you"],["당신의 미소가 좋아요","I like your smile"],["당신의 목소리가 좋아요","I like your voice"],["당신과 함께 있을 때 행복해요","I am happy when I am with you"],
+["당신이 없으면 외로워요","I am lonely without you"],["당신이 답장을 안 하면 슬퍼요","I am sad when you don't reply"],["당신이 거짓말하면 화가 나요","I am angry when you lie"],["당신이 날 떠날까 봐 무서워요","I am afraid you will leave me"],["평생 나를 사랑해줄 거예요?","Will you love me forever?"],
+["나와 결혼해줄래요?","Will you marry me?"],["나와 결혼하고 싶어요","I want to marry you"],["당신과 아이를 갖고 싶어요","I want to have a child with you"],["당신과 함께 늙고 싶어요","I want to grow old with you"],["당신은 내가 사랑하는 유일한 사람이에요","You are the only one I love"],
+["당신을 만난 이후로 내 인생이 바뀌었어요","Since I met you my life changed"],["당신을 만난 이후로 행복해요","Since I met you I am happy"],["당신을 볼 때마다 심장이 빨리 뛰어요","Every time I see you my heart beats fast"],["생일 축하해요","Happy birthday"],["새해 복 많이 받으세요","Happy New Year"],
+["행운을 빌어요","I wish you good luck"],["행복하세요","I wish you happiness"],["건강하세요","I wish you good health"],["아이스크림 먹고 싶어요","I want to eat ice cream"],["과일 먹고 싶어요","I want to eat fruit"],
+["꽃을 사고 싶어요","I want to buy flowers"],["꽃이 정말 아름다워요","The flowers are very beautiful"],["장미를 좋아해요","I like roses"],["초콜릿 먹는 것을 좋아해요","I like eating chocolate"],["고기를 안 먹어요","I don't eat meat"],
+["술을 안 마셔요","I don't drink alcohol"],["담배를 안 피워요","I don't smoke"],["살을 빼고 싶어요","I want to lose weight"],["운동하고 싶어요","I want to exercise"],["내일 공원에서 뛸 거예요","Tomorrow I will run at the park"],
+["오늘 공원에서 뛰었어요","Today I ran at the park"],["수영하고 싶어요","I want to swim"],["내일 수영하러 갈 거예요","Tomorrow I will go swimming"],["수영장이 어디예요?","Where is the swimming pool?"],["수영을 못 해요","I can't swim"],
+["수영을 가르쳐 주세요","Please teach me to swim"],["축구를 좋아해요","I like playing football"],["게임하는 것을 좋아해요?","Do you like playing games?"],["당신과 게임하는 것을 좋아해요","I like playing games with you"],["오늘 밤 같이 게임하자","Tonight let's play games together"],
+["어젯밤 게임을 밤새 했어요","Last night I played games all night"],["게임 때문에 늦게 잤어요","I slept late because I played games"],["기침이 나요","I cough"],["감기에 걸렸어요","I have a cold"],["다리가 아파요","My leg hurts"],
+["팔이 아파요","My arm hurts"],["넘어졌어요","I fell down"],["다쳤어요","I am injured"],["의사 선생님이 쉬어야 한대요","The doctor said I have to rest"],["의사 선생님이 약을 먹어야 한대요","The doctor said I have to take medicine"],
+["제시간에 약을 먹으세요","Take medicine on time"],["약을 먹는 것을 잊지 마세요","Don't forget to take medicine"],["많이 쉬세요","Rest a lot"],["이제 나았어요?","Are you better now?"],["이제 나았어요","I am better now"],
+["아직 안 나았어요","I am not better yet"],["오늘 날씨가 좋아요","Today the weather is good"],["오늘 날씨가 정말 더워요","Today the weather is very hot"],["오늘 날씨가 추워요","Today the weather is cold"],["오늘 비가 와요","Today it rains"],
+["어제 비가 많이 왔어요","Yesterday it rained heavily"],["내일 비가 올까요?","Will it rain tomorrow?"],["오늘 구름이 많아요","Today there are many clouds"],["오늘 바람이 세요","Today the wind is strong"],["오늘 햇빛이 강해요","Today the sun is strong"],
+["모자를 쓰세요","Wear a hat"],["겨울 옷을 입으세요","Wear a jacket"],["우산을 잊지 마세요","Don't forget to bring an umbrella"],["비에 젖었어요","I got wet from the rain"],["셔츠가 젖었어요","My shirt is wet"],
+["내일 절에 갈 거예요","Tomorrow I will go to the temple"],["어제 엄마와 절에 갔어요","Yesterday I went to the temple with my mother"],["절이 정말 아름다워요","The temple is very beautiful"],["절에서 사진 찍고 싶어요","I want to take photos at the temple"],["사진이 정말 예뻐요","The photo is very beautiful"],
+["이 사진은 어디서 찍었어요?","Where was this photo taken?"],["방콕에 가고 싶어요","I want to go to Bangkok"],["방콕에 가본 적 있어요?","Have you ever been to Bangkok?"],["방콕에 가본 적 있어요","I have been to Bangkok"],["방콕에 가본 적 없어요","I have never been to Bangkok"],
+["인도네시아에 가고 싶어요","I want to go to Indonesia"],["인도네시아에 가본 적 있어요?","Have you ever been to Indonesia?"],["비행기가 몇 시예요?","What time is the flight?"],["공항이 어디예요?","Where is the airport?"],["내일 공항에 갈 거예요","I will go to the airport tomorrow"],
+["기차가 몇 시에 출발해요?","What time does the train leave?"],["기차역이 어디예요?","Where is the train station?"],["기차를 타고 방콕에 갈 거예요","I will take the train to Bangkok"],["이 버스는 어디로 가요?","Where does this bus go?"],["요금이 얼마예요?","How much is the fare?"],
+["왼쪽으로 가세요","Turn left"],["오른쪽으로 가세요","Turn right"],["직진하세요","Go straight"],["가까워요","It's nearby"],["정말 멀어요","It's very far"],
+["호텔이 어디예요?","Where is the hotel?"],["호텔에 묵고 있어요","I stay at the hotel"],["호텔을 예약했어요","I have booked the hotel"],["내 방은 2층에 있어요","My room is on the second floor"],["방 열쇠를 잃어버렸어요","My room key is gone"],
+["차를 빌리고 싶어요","I want to rent a car"],["운전을 못 해요","I can't drive"],["운전할 수 있어요?","Can you drive?"],["조심해서 운전하세요","Drive carefully"],["내 차가 고장 났어요","My car is broken"],
+["내 차에 기름이 떨어졌어요","My car ran out of gas"],["길을 잊어버렸어요","I forgot the way"],["길을 잃었어요","I am lost"],["길을 알려주세요","Please tell me the way"],["어느 쪽으로 가야 해요?","Which way should I go?"],
+["가까이에 있어요?","Are you near?"],["당신 집 근처에 있어요","I am near your house"],["당신을 보러 가고 있어요","I am going to see you"],["잠시만 기다려주세요","Wait for me a moment"],["집에서 기다려주세요","Wait for me at home"],
+["지금 집에 가고 있어요","I am going home now"],["집에 도착했어요","I have arrived home"],["집에 도착했어요?","Have you arrived home?"],["도착하면 알려주세요","Tell me when you arrive"],["안전하게 여행하세요","Have a safe trip"],
+["조심해서 운전하세요","Drive carefully"],["내일 만나요","See you tomorrow"],["오늘 밤에 만나요","See you tonight"],["다음 주에 만나요","See you next week"],["오랜만이에요","Long time no see"],
+];
+
+// ===== LEVEL 10 FIX: SUSUNAN SUBYEK BENAR KOREA =====
+// Pola BENAR: Subjek + Waktu + Tempat + Objek + Verb (Verb paling belakang!)
+// Contoh BENAR:
+// 저는 오늘 집에서 밥을 먹어요 = Saya hari ini di rumah makan nasi
+// 당신은 내일 카페에서 커피를 마셔요 = Kamu besok di kafe minum kopi
+// 그는 어제 학교에서 한국어를 공부해요 = Dia kemarin di sekolah belajar bahasa Korea
+// ===== LEVEL 10 FIX: JAWABAN FULL ENGLISH, SOAL FULL KOREA =====
+// Format: [verb Korea, verb English, objek Korea, objek English, tempat Korea, tempat English]
+
+const LOGICAL_PAIRS_KR = [
+  ["먹어요","eat","밥을","rice","집에서","at home"],
+  ["먹어요","eat","과일을","fruit","집에서","at home"],
+  ["먹어요","eat","김치찌개를","kimchi stew","식당에서","at the restaurant"],
+  ["마셔요","drink","물을","water","집에서","at home"],
+  ["마셔요","drink","커피를","coffee","카페에서","at the cafe"],
+  ["마셔요","drink","차를","tea","집에서","at home"],
+  ["읽어요","read","책을","book","방에서","in the room"],
+  ["읽어요","read","편지를","letter","집에서","at home"],
+  ["써요","write","편지를","letter","집에서","at home"],
+  ["써요","write","책을","book","방에서","in the room"],
+  ["봐요","watch","영화를","movie","집에서","at home"],
+  ["들어요","listen to","노래를","song","집에서","at home"],
+  ["해요","play","게임을","game","집에서","at home"],
+  ["해요","play","축구를","football","운동장에서","at the field"],
+  ["공부해요","study","한국어를","Korean","학교에서","at school"],
+  ["공부해요","study","영어를","English","학교에서","at school"],
+  ["일해요","work","","","회사에서","at work"],
+  ["청소해요","clean","방을","room","집에서","at home"],
+  ["요리해요","cook","밥을","rice","집에서","at home"],
+  ["요리해요","cook","음식을","food","집에서","at home"],
+  ["사요","buy","셔츠를","shirt","쇼핑몰에서","at the mall"],
+  ["사요","buy","과일을","fruit","시장에서","at the market"],
+  ["사요","buy","꽃을","flower","시장에서","at the market"],
+  ["팔아요","sell","셔츠를","shirt","시장에서","at the market"],
+  ["찍어요","take a photo of","사진을","photo","절에서","at the temple"],
+  ["찍어요","take a photo of","사진을","photo","바다에서","at the sea"],
+  ["수영해요","swim","","","수영장에서","at the swimming pool"],
+  ["뛰어요","run","","","공원에서","at the park"],
+  ["걸어요","walk","","","공원에서","at the park"],
+  ["운전해요","drive","차를","car","회사로","to work"],
+  ["가요","go","학교에","to school","",""],
+  ["가요","go","시장에","to market","",""],
+  ["가요","go","절에","to temple","",""],
+  ["가요","go","바다에","to the sea","",""],
+  ["가요","go","병원에","to hospital","",""],
+  ["와요","come","집에","home","",""],
+  ["와요","come","학교에","to school","",""],
+  ["자요","sleep","","","집에서","at home"],
+  ["일어나요","wake up","","","아침에","in the morning"],
+  ["노래해요","sing","노래를","song","집에서","at home"],
+  ["춤춰요","dance","","","집에서","at home"],
+  ["도와줘요","help","친구를","friend","학교에서","at school"],
+  ["가르쳐요","teach","한국어를","Korean","학교에서","at school"],
+  ["전화해요","call","당신에게","you","",""],
+  ["메시지를 보내요","send a message to","당신에게","you","",""],
+  ["기다려요","wait for","당신을","you","집에서","at home"],
+  ["보고 싶어해요","miss","당신을","you","",""],
+  ["사랑해요","love","당신을","you","",""],
+  ["안아줘요","hug","당신을","you","",""],
+  ["돌봐요","take care of","당신을","you","",""],
+  ["방문해요","visit","엄마를","mother","집에서","at home"],
+  ["방문해요","visit","친구를","friend","병원에서","at the hospital"],
+];
+
+function buildL10(){
+  let out=[...L10_MANUAL];
+  let seen=new Set(out.map(x=>x[0]));
+  const times=[
+    ["오늘","today"],["내일","tomorrow"],["어제","yesterday"],
+    ["아침에","in the morning"],["저녁에","in the evening"],
+    ["매일","every day"],["지금","now"]
+  ];
+  let idx=0;
+  while(out.length<1000 && idx<6000){
+    idx++;
+    const p=LOGICAL_PAIRS_KR[idx%LOGICAL_PAIRS_KR.length];
+    const t=times[idx%times.length];
+    const subjKr=["저는","당신은","그는","우리는"][idx%4];
+    const subjEn=["I","You","He","We"][idx%4];
+
+    // Soal: Korea - Subjek + Waktu + Tempat + Objek + Verb (Verb paling belakang)
+    // Jawaban: English - Subjek + Verb + Objek + Tempat + Waktu (Verb di depan)
+    const verbKr=p[0], verbEn=p[1], objKr=p[2], objEn=p[3], placeKr=p[4], placeEn=p[5];
+    const timeKr=t[0], timeEn=t[1];
+
+    let thai, eng;
+    if(objKr==="" && placeKr===""){
+      thai=`${subjKr} ${timeKr} ${verbKr}`;
+      eng=`${subjEn} ${verbEn} ${timeEn}`;
+    } else if(objKr===""){
+      thai=`${subjKr} ${timeKr} ${placeKr} ${verbKr}`;
+      eng=`${subjEn} ${verbEn} ${placeEn} ${timeEn}`;
+    } else if(placeKr===""){
+      thai=`${subjKr} ${timeKr} ${objKr} ${verbKr}`;
+      eng=`${subjEn} ${verbEn} ${objEn} ${timeEn}`;
+    } else {
+      thai=`${subjKr} ${timeKr} ${placeKr} ${objKr} ${verbKr}`;
+      eng=`${subjEn} ${verbEn} ${objEn} ${placeEn} ${timeEn}`;
+    }
+
+    thai=thai.replace(/\s+/g,' ').trim();
+    eng=eng.replace(/\s+/g,' ').trim();
+    if(!seen.has(thai) && thai.length>5){ seen.add(thai); out.push([thai, eng]); }
+  }
+  return out.slice(0,1000);
+}
+const L10 = buildL10();
+
+const LEVELS=[
+{ id:1, emoji:"🔤", title:"Level 1 - 40 Huruf", desc:"40 Soal • Hangul", q:"How to read this?", pool:L1 },
+{ id:2, emoji:"📚", title:"Level 2 - 200 Kata", desc:"200 Soal", q:"What does this mean?", pool:L2 },
+{ id:3, emoji:"💬", title:"Level 3 - 200 Kalimat", desc:"200 Soal • Kalimat penuh", q:"What does this sentence mean?", pool:L3 },
+{ id:4, emoji:"🔢", title:"Level 4 - Angka", desc:"13 Soal", q:"What number is this?", pool:L4 },
+{ id:5, emoji:"🅰️", title:"Level 5 - Vokal", desc:"10 Soal", q:"How to read this?", pool:L5 },
+{ id:6, emoji:"🍜", title:"Level 6 - Makanan", desc:"50 Soal", q:"What does this mean?", pool:L6 },
+{ id:7, emoji:"🎨", title:"Level 7 - Warna", desc:"10 Soal", q:"What does this mean?", pool:L7 },
+{ id:8, emoji:"👨‍👩‍👧", title:"Level 8 - Keluarga", desc:"50 Soal", q:"What does this mean?", pool:L8 },
+{ id:9, emoji:"📅", title:"Level 9 - Waktu & Tempat", desc:"200 Soal", q:"What does this mean?", pool:L9 },
+{ id:10, emoji:"👑", title:"Level 10 - MASTER", desc:"645 Soal • MASTER TEST", q:"What does this mean?", pool:L10 },
+];
+
+function renderLevels(){
+  const grid=document.getElementById('levelGrid'); grid.innerHTML='';
+  document.getElementById('totalScore').innerText=totalScore;
+  LEVELS.forEach(l=>{
+    const div=document.createElement('div'); div.className='levelCard';
+    div.innerHTML=`<div class="emoji">${l.emoji}</div><b>${l.title}</b><p>${l.desc}</p><p>▶ Mainkan</p>`;
+    div.onclick=()=>{ startLevel(l.id); };
+    grid.appendChild(div);
+  });
+}
+function startLevel(id){
+  currentLevel=id; idx=0; score=0;
+  const lvl=LEVELS.find(l=>l.id===id);
+  currentPool=[...lvl.pool].sort(()=>Math.random()-0.5);
+  document.getElementById('levelScreen').classList.add('hide');
+  document.getElementById('quizScreen').classList.remove('hide');
+  showQ();
+}
+function getOptions(correct, allAnswers){
+  let others=[...new Set(allAnswers.filter(a=>a!==correct))].sort(()=>Math.random()-0.5).slice(0,3);
+  return [correct, ...others].sort(()=>Math.random()-0.5);
+}
+function showQ(){
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const curPair=currentPool[idx];
+  const kor=curPair[0], ans=curPair[1];
+  currentQ={thai:kor, ans};
+  const allAns = currentPool.map(p=>p[1]);
+  const opts=getOptions(ans, allAns);
+  document.getElementById('qCount').innerText=`Question ${idx+1} of ${currentPool.length} • Score: ${score}`;
+  document.getElementById('qLevel').innerText=lvl.title;
+  document.getElementById('bar').style.width=((idx/currentPool.length)*100)+'%';
+  document.getElementById('qKorean').innerText=kor;
+  document.getElementById('qTitle').innerText=lvl.q;
+  document.getElementById('reviewTxt').innerText='';
+  const box=document.getElementById('qOptions'); box.innerHTML='';
+  opts.forEach(o=>{
+    let d=document.createElement('div'); d.className='option'; d.innerText=o;
+    d.onclick=()=>{
+      if(d.classList.contains('correct')||d.classList.contains('wrong')) return;
+      document.querySelectorAll('.option').forEach(x=>{
+        if(x.innerText===ans) x.classList.add('correct');
+        else if(x===d) x.classList.add('wrong');
+        x.style.pointerEvents='none';
+      });
+      if(o===ans){ score+=10; totalScore+=10; speakEN('Correct!'); } else { speakEN('Wrong.'); }
+      document.getElementById('reviewTxt').innerText=`${kor} = ${ans}`;
+      document.getElementById('nextBtn').classList.remove('hide');
+      setTimeout(()=>speakKorean(kor), 500);
+    };
+    box.appendChild(d);
+  });
+  document.getElementById('nextBtn').classList.add('hide');
+  speakKorean(kor);
+}
+function nextQ(){ idx++; if(idx<currentPool.length) showQ(); else showResult(); }
+function showResult(){
+  document.getElementById('quizScreen').classList.add('hide');
+  document.getElementById('resultScreen').classList.remove('hide');
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const max=currentPool.length*10;
+  const pass = score >= max*0.6;
+  document.getElementById('resTitle').innerText= pass ? `Level ${currentLevel} LULUS! 🎉` : `Level ${currentLevel} Belum Lulus 😅`;
+  document.getElementById('resText').innerText=`Hi ${name}!\n\nLevel: ${lvl.title}\nScore: ${score} / ${max}\nTotal Soal: ${currentPool.length}\n\n${pass ? 'Kamu hebat!' : 'Butuh 60% buat lulus. Coba lagi ya!'}\n\nTotal Score: ${totalScore}`;
+  speakEN(pass ? `Congratulations ${name}, you passed level ${currentLevel}` : `Keep trying ${name}`);
+}
+function backToLevels(){ document.getElementById('resultScreen').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); renderLevels(); }
+function retryLevel(){ document.getElementById('resultScreen').classList.add('hide'); startLevel(currentLevel); }
+</script>
+</body>
+</html>
