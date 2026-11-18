@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ainun Ideal Type - Full Detail</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+body{margin:0;font-family:'Fredoka',sans-serif;background:#FFF0F5;display:flex;justify-content:center;min-height:100vh;padding:15px 0}
+.card{background:white;width:92%;max-width:430px;border-radius:28px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
+h1{color:#FF6B9D;font-size:26px;margin:8px 0}
+h2{color:#333;font-size:19px;margin:5px 0}
+.sub{color:#888;font-size:12px;line-height:1.5}
+.cat{display:inline-block;background:#FFD6E7;color:#FF6B9D;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.btn{background:#FF6B9D;color:white;border:none;padding:14px;border-radius:30px;font-size:16px;font-weight:600;width:100%;cursor:pointer;margin-top:10px}
+.input{width:100%;padding:14px;border-radius:20px;border:2px solid #FFD6E7;outline:none;font-size:16px;text-align:center;box-sizing:border-box}
+.specInput{width:100%;padding:13px 15px;border-radius:16px;border:2px solid #FFD6E7;outline:none;font-size:15px;box-sizing:border-box;margin:7px 0}
+.specInput:focus{border-color:#FF6B9D}
+.option{display:block;background:#FFF5F8;border:2px solid #FFD6E7;padding:12px 15px;border-radius:16px;margin:7px 0;text-align:left;cursor:pointer;font-size:15px}
+.option.selected{background:#FF6B9D;color:white;border-color:#FF6B9D}
+.progress{height:8px;background:#FFE3ED;border-radius:10px;overflow:hidden;margin:10px 0}
+.bar{height:100%;background:#FF6B9D;transition:.3s}
+.hide{display:none}
+.result-box{text-align:left;background:#FFF5F8;padding:16px;border-radius:18px;font-size:13.5px;line-height:1.7;color:#444;white-space:pre-line}
+.poster{width:100%;border-radius:22px;object-fit:cover;display:block;box-shadow:0 8px 20px rgba(255,107,157,.25);cursor:pointer}
+.start-text{margin-top:14px;font-size:20px;font-weight:600;color:#FF6B9D;letter-spacing:1px;cursor:pointer;animation:pulse 1.5s infinite}
+.start-text small{display:block;font-size:12px;color:#888;font-weight:400;letter-spacing:0;margin-top:4px}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="card" id="intro">
+<img src="myainunideal.jpg" alt="My Ainun Ideal Type" class="poster" onclick="startGame()">
+<div class="start-text" onclick="startGame()">▶ START GAME
+<small>Tap image or text to start</small>
+</div>
+<p class="sub" style="margin-top:10px">38 Detailed Questions + Your 3 Specific Specs!</p>
+</div>
+
+<div class="card hide" id="nameScreen">
+<h2>Let's get to know you...</h2>
+<input class="input" id="playerName" placeholder="Type your name...">
+<button class="btn" onclick="goQuiz()">Continue ➜</button>
+</div>
+
+<div class="card hide" id="quizScreen">
+<div class="progress"><div class="bar" id="bar"></div></div>
+<p class="sub" id="qCount"></p>
+<div class="cat" id="qCat"></div>
+<h2 id="qTitle"></h2>
+<div id="qOptions"></div>
+<button class="btn hide" id="nextBtn" onclick="nextQ()">Next ➜</button>
+</div>
+
+<div class="card hide" id="specScreen">
+<div style="font-size:40px">✍️</div>
+<h2>Last Step!</h2>
+<p class="sub">Mention 3 specific specs you are looking for<br>in your ideal partner. Be honest & specific!</p>
+<input class="specInput" id="spec1" placeholder="1. Example: Must love cats, tall, funny...">
+<input class="specInput" id="spec2" placeholder="2. Example: Good at cooking, religious...">
+<input class="specInput" id="spec3" placeholder="3. Example: Doesn't smoke, loves traveling...">
+<button class="btn" onclick="goResult()">See My Result 💌</button>
+<button class="btn" style="background:#eee;color:#888" onclick="skipSpecs()">Skip, I don't have any</button>
+</div>
+
+<div class="card hide" id="resultScreen">
+<div style="font-size:48px">💌</div>
+<h1 id="resName"></h1>
+<div class="result-box" id="resText"></div>
+<button class="btn" onclick="speakResult()">🔊 Read with AI Voice</button>
+<button class="btn" style="background:#444" onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+const db=[
+{cat:"HAIR",q:"What is their ideal hair length?",opts:["shoulder length","above shoulder / bob","back length","waist length","bald / buzz","short buzzcut"]},
+{cat:"HAIR",q:"What is their ideal hair color?",opts:["jet black","dark brown","light brown / blonde","blonde / gold","red / auburn","white / grey"]},
+{cat:"HAIR",q:"What is their hair texture?",opts:["straight","wavy","curly","thin","thick / voluminous"]},
+{cat:"HAIR",q:"How about their bangs?",opts:["with bangs","no bangs","partially grey"]},
+{cat:"HEIGHT & POSTURE",q:"What is their ideal height?",opts:["around 150 cm","around 160 cm","around 170 cm","around 180 cm","around 190 cm"]},
+{cat:"HEIGHT & POSTURE",q:"What is their posture?",opts:["short","medium","tall / lanky","upright / confident","slightly hunched"]},
+{cat:"BODY SHAPE",q:"What is their body shape?",opts:["skinny","medium / ideal","chubby / curvy","muscular / athletic"]},
+{cat:"BODY SHAPE",q:"How are their shoulders?",opts:["broad shoulders","narrow shoulders"]},
+{cat:"BODY SHAPE",q:"Hands & legs?",opts:["long hands","short hands","long / slim legs","short legs","long fingers","short fingers"]},
+{cat:"EYES",q:"What is their ideal eye shape?",opts:["monolid / small","big / round eyes","round","almond"]},
+{cat:"EYES",q:"What is their eye color?",opts:["black","brown","hazel","blue"]},
+{cat:"EYES",q:"How are their eyebrows?",opts:["thick eyebrows","thin eyebrows","straight eyebrows"]},
+{cat:"EYES",q:"How are their lashes?",opts:["long lashes","short lashes","with eye bags","wears glasses / nearsighted"]},
+{cat:"NOSE",q:"What is their nose like?",opts:["sharp nose","flat nose","medium nose","big nose","small nose","straight nose"]},
+{cat:"LIPS & MOUTH",q:"What are their lips like?",opts:["thin lips","thick lips","medium lips","upper lip thinner"]},
+{cat:"LIPS & MOUTH",q:"What about their teeth?",opts:["snaggletooth","braces","gapped teeth","neat teeth"]},
+{cat:"CHIN & JAW",q:"Chin & jaw?",opts:["pointed chin","cleft chin","round chin","strong / square jaw","slim jaw"]},
+{cat:"SKIN & FACE",q:"What is their skin tone?",opts:["pale white","yellowish","tan / sawo matang","dark brown"]},
+{cat:"SKIN & FACE",q:"What is their skin type?",opts:["oily skin","dry skin","acne-prone skin","clear skin"]},
+{cat:"SKIN & FACE",q:"What is their face shape?",opts:["round face","oval face","square face","slim / V-shape face"]},
+{cat:"SKIN & FACE",q:"How are their cheeks?",opts:["chubby cheeks","slim cheeks","mole on face","freckles"]},
+{cat:"OTHERS",q:"Ears & neck?",opts:["small ears","big ears","long neck","short neck","long nails","short nails"]},
+{cat:"OTHERS",q:"How is their voice?",opts:["deep / bass voice","high / soft voice"]},
+{cat:"FAVORITE COLOR",q:"What is their favorite color?",opts:["black","white","grey","red","maroon","pink","hot pink","baby pink"]},
+{cat:"FAVORITE COLOR",q:"Their favorite color (2)?",opts:["orange","yellow","mustard yellow","dark green","sage green","sky blue","navy blue","pastel blue"]},
+{cat:"FAVORITE COLOR",q:"Their favorite color (3)?",opts:["purple","lilac","brown","cream / beige","gold","silver","teal","pastel colors","earth tone","monochrome","rainbow / colorful"]},
+{cat:"FAVORITE CLOTHES",q:"What is their favorite top?",opts:["oversized t-shirt","crop top","plain t-shirt","flannel shirt","white formal shirt","hoodie","sweater / crewneck","cardigan"]},
+{cat:"FAVORITE CLOTHES",q:"What is their favorite jacket?",opts:["denim jacket","leather jacket","bomber jacket","varsity jacket","blazer"]},
+{cat:"FAVORITE CLOTHES",q:"What is their favorite bottom?",opts:["long dress","mini dress","mini skirt","long skirt","skinny jeans","baggy jeans","cargo pants","shorts","culottes","leggings"]},
+{cat:"FAVORITE CLOTHES",q:"What is their favorite style?",opts:["sporty / athletic","kebaya / traditional","batik","vintage / retro","all black","layering","anything comfortable"]},
+{cat:"INTELLIGENCE",q:"What type of intelligence do you love most?",opts:["logical / math","linguistic / language","visual / spatial design","musical","kinesthetic / sporty","interpersonal / social","intrapersonal / self-aware","naturalist / nature lover"]},
+{cat:"INTELLIGENCE",q:"Second intelligence you love?",opts:["EQ emotional","SQ spiritual wise","creative out of the box","tech / IT","financial / business","humor","street smart","book smart academic","artistic","strong memory","good at debate"]},
+{cat:"EMOTION",q:"What emotion do you love most?",opts:["stable / calm","cheerful / happy","calm / chill","patient","affectionate / loving","romantic","mature","open / honest","sensitive"]},
+{cat:"EMOTION",q:"What emotional type is addictive for you?",opts:["cold outside warm inside","tsundere - shy but loving","clingy / sweet","independent no drama","melancholic / mellow","passionate / fiery","funny","cool / mysterious","easily excited","moody but manageable","ambivert"]},
+{cat:"BONUS",q:"When you fight, they should...?",opts:["apologize right away","give space first","debate logically","hug immediately","stay silent then talk"]},
+{cat:"BONUS",q:"What is their main love language?",opts:["words of affirmation","quality time","physical touch","acts of service","receiving gifts"]},
+{cat:"BONUS",q:"What is your dream date with them?",opts:["watching at home","aesthetic cafe","evening walk","concert","picnic","gaming together","travel"]},
+{cat:"BONUS",q:"What do you want them to call you?",opts:["babe","baby","honey","my love","just your name","funny / random nickname"]}
+];
+let idx=0, answers=[], name="", specs=[];
+function speak(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=1; speechSynthesis.speak(u);} }
+function startGame(){ document.getElementById('intro').classList.add('hide'); document.getElementById('nameScreen').classList.remove('hide'); speak("Welcome to My Ainun Ideal Type. Let's answer 38 detailed questions!"); }
+function goQuiz(){ name=document.getElementById('playerName').value||"You"; if(name.length<2) return alert("Please type your name"); document.getElementById('nameScreen').classList.add('hide'); document.getElementById('quizScreen').classList.remove('hide'); showQ(); }
+function showQ(){ const cur=db[idx]; document.getElementById('qCount').innerText=`Question ${idx+1} of ${db.length}`; document.getElementById('qCat').innerText=cur.cat; document.getElementById('bar').style.width=((idx/db.length)*100)+'%'; document.getElementById('qTitle').innerText=cur.q; const box=document.getElementById('qOptions'); box.innerHTML=''; cur.opts.forEach(o=>{ let d=document.createElement('div'); d.className='option'; d.innerText=o; d.onclick=()=>{ document.querySelectorAll('.option').forEach(x=>x.classList.remove('selected')); d.classList.add('selected'); document.getElementById('nextBtn').classList.remove('hide'); answers[idx]=o; }; box.appendChild(d); }); document.getElementById('nextBtn').classList.add('hide'); speak(cur.q); }
+function nextQ(){ idx++; if(idx<db.length) showQ(); else showSpecScreen(); }
+function showSpecScreen(){ document.getElementById('quizScreen').classList.add('hide'); document.getElementById('specScreen').classList.remove('hide'); speak("Last step! Mention 3 specific specs you are looking for in your ideal partner."); }
+function goResult(){ specs=[document.getElementById('spec1').value, document.getElementById('spec2').value, document.getElementById('spec3').value].filter(s=>s.trim()!==""); showResult(); }
+function skipSpecs(){ specs=[]; showResult(); }
+function showResult(){
+  document.getElementById('specScreen').classList.add('hide');
+  document.getElementById('resultScreen').classList.remove('hide');
+  document.getElementById('resName').innerText=`Ideal Type of ${name}`;
+  let t=`Hi ${name}! 💘 Here is your full result:\n\n`;
+  t+=`👱‍♀️ HAIR: ${answers[0]}, color ${answers[1]}, texture ${answers[2]}, ${answers[3]}\n`;
+  t+=`📏 HEIGHT & BODY: ${answers[4]}, posture ${answers[5]}, body ${answers[6]}, ${answers[7]}, ${answers[8]}\n`;
+  t+=`👀 EYES: shape ${answers[9]}, color ${answers[10]}, ${answers[11]}, ${answers[12]}\n`;
+  t+=`👃 NOSE: ${answers[13]}\n`;
+  t+=`👄 LIPS: ${answers[14]}, teeth ${answers[15]}, ${answers[16]}\n`;
+  t+=`✨ FACE & SKIN: skin ${answers[17]}, type ${answers[18]}, face ${answers[19]}, ${answers[20]}\n`;
+  t+=`👂 OTHERS: ${answers[21]}, voice ${answers[22]}\n`;
+  t+=`🎨 COLORS: ${answers[23]} + ${answers[24]} + ${answers[25]}\n`;
+  t+=`👗 STYLE: top ${answers[26]}, jacket ${answers[27]}, bottom ${answers[28]}, style ${answers[29]}\n`;
+  t+=`🧠 BRAIN: smart in ${answers[30]} & ${answers[31]}\n`;
+  t+=`❤️ EMOTION: ${answers[32]}, type ${answers[33]}\n`;
+  t+=`💡 BONUS: when fighting ${answers[34]}, love language ${answers[35]}, dream date ${answers[36]}, calls you ${answers[37]}\n\n`;
+  if(specs.length>0){
+    t+=`⭐ YOUR 3 SPECIFIC SPECS:\n`;
+    specs.forEach((s,i)=>{ t+=`${i+1}. ${s}\n`; });
+    t+=`\nThese 3 are your NON-NEGOTIABLE. If they don't have these, they are not your ideal type!\n\n`;
+  }
+  t+=`CONCLUSION: Your type is a "Detail-Oriented Lover" - you know exactly what you want, from eye shape to how they fight. Once you find the right one, you can't move on!`;
+  document.getElementById('resText').innerText=t; window._last=t;
+  let voice = `Hi ${name}, your full result is ready. You love someone with ${answers[0]} hair, ${answers[9]} eyes, style ${answers[29]}, smart in ${answers[30]} and emotion ${answers[32]}.`;
+  if(specs.length>0){ voice += ` And your 3 specific specs are: ${specs.join(', ')}. So perfect!`; }
+  speak(voice);
+}
+function speakResult(){ speak(window._last); }
+</script>
+</body>
+</html>
