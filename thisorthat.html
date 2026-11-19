@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>This Or That - Ainun Edition</title>
+<style>
+*{box-sizing:border-box;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+body{margin:0;background:#2C3E5A;background-image:radial-gradient(circle at 15% 10%, rgba(120,160,210,.25), transparent 45%),radial-gradient(circle at 90% 90%, rgba(20,35,60,.6), transparent 50%),linear-gradient(180deg,#33466B,#2C3E5A,#223350);color:#EAF0F7;min-height:100vh;padding:14px}
+h1{text-align:center;margin:8px 0 4px;font-size:28px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,#8FB8E8,#A8C8F0,#7AA8D8,#8FB8E8);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:shine 3s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{text-align:center;color:#B8CBE8;font-size:12px;margin:0 0 12px;font-weight:600}
+.poster-wrap{max-width:420px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.45);position:relative;background:#1E2A44}
+.poster-wrap img{width:100%;display:block;aspect-ratio:9/16;object-fit:cover}
+.poster-overlay{position:absolute;left:0;right:0;bottom:0;padding:22px 16px 16px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55) 35%,rgba(15,25,45,.92));text-align:center}
+.poster-overlay h2{font-size:28px;line-height:1.1;margin:10px 0 6px;font-weight:900;color:white;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.poster-overlay h2 span{color:#FFD166}
+.poster-overlay p{font-size:13px;color:#DCE8F8;margin:0 0 12px}
+.btn-row{display:flex;gap:8px;justify-content:center}
+.btn-voice{padding:16px 14px;border:none;border-radius:18px;background:#EAF0F7;color:#2C3E5A;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #5A7396}
+.start-below{max-width:420px;margin:14px auto 0;text-align:center}
+.btn-start-big{width:100%;padding:18px;border:none;border-radius:20px;background:#FFD166;color:#3A2A00;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #8A6A00;letter-spacing:1px}
+.btn-start-big:active{transform:translateY(4px);box-shadow:0 4px 0 #8A6A00}
+.start-sub{font-size:11px;color:#B8CBE8;font-weight:700;margin-top:8px}
+.modal{position:fixed;inset:0;background:rgba(15,25,45,.75);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:99;padding:16px}
+.modal.show{display:flex}
+.modal-box{background:#F2F5FA;color:#222;border-radius:24px;padding:24px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.modal-box input{width:100%;padding:14px;border:2px solid #B8CBE8;border-radius:14px;font-size:16px;font-weight:700;text-align:center;outline:none;margin:12px 0;background:white}
+.modal-box input:focus{border-color:#3A5A7D}
+.modal-box button{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#3A5A7D,#2C3E5A);color:white;font-weight:900;cursor:pointer;font-size:15px}
+.modal-box button:disabled{opacity:.4}
+#game{display:none}
+.top{max-width:520px;margin:0 auto;display:flex;gap:8px}
+.stat{flex:1;background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px;text-align:center}
+.stat b{font-size:18px;color:#FFD166;display:block}
+.stat span{font-size:10px;color:#B8CBE8;font-weight:800}
+.progress{max-width:520px;margin:12px auto;display:flex;gap:3px;flex-wrap:wrap}
+.progress div{flex:1;min-width:6px;height:8px;background:rgba(255,255,255,.18);border-radius:10px}
+.progress div.done{background:#FFD166}
+.card{max-width:520px;margin:0 auto;background:#F2F5FA;color:#222;border-radius:24px;padding:20px;text-align:center;box-shadow:0 15px 35px rgba(0,0,0,.35)}
+.question{font-size:22px;font-weight:900;margin:10px 0 16px;color:#1E2A44}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:3px solid #D6DEEB;background:white;border-radius:20px;padding:18px 10px;cursor:pointer;transition:.15s}
+.choice:active{transform:scale(.96)}
+.choice:hover{border-color:#3A5A7D;background:#EAF0F7}
+.choice .emoji{font-size:48px;display:block;margin-bottom:8px}
+.choice .label{font-size:17px;font-weight:900;line-height:1.2;color:#1E2A44}
+.choice .desc{font-size:11px;color:#888;font-weight:600;margin-top:4px}
+.vs{font-size:28px;font-weight:900;color:#2C3E5A;margin:8px 0}
+.controls{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.controls button{border:none;padding:12px 16px;border-radius:20px;font-weight:900;cursor:pointer}
+.result-emoji{font-size:70px}
+.result-title{font-size:26px;font-weight:900;margin:8px 0}
+.result-desc{font-size:14px;color:#555;line-height:1.5}
+.bar-row{display:flex;align-items:center;gap:8px;margin:8px 0;text-align:left}
+.bar-row b{width:110px;font-size:12px}
+.bar-track{flex:1;height:10px;background:#D6DEEB;border-radius:20px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,#5A7CA6,#2C3E5A)}
+.bar-row span{font-size:12px;font-weight:800;width:35px;text-align:right}
+</style>
+
+</head>
+<body>
+
+<div id="posterScreen">
+  <div class="poster-wrap">
+    <img src="thisorthat.jpg" alt="This Or That Game">
+    <div class="poster-overlay">
+      <h2>THIS OR <span>THAT</span>! 🤔</h2>
+      <p>Hi! I'm Ainun! Pick one! 200 Questions, 50 Random Each Game!</p>
+      <div class="btn-row"><button class="btn-voice" id="btnVoicePoster" onclick="toggleSound(event)">🔊 Tap To Hear Ainun</button></div>
+    </div>
+  </div>
+  <div class="start-below">
+    <button class="btn-start-big" onclick="openName()">▶️ START GAME</button>
+    <div class="start-sub">Tap START GAME to enter your name & play! 50 random questions from 200!</div>
+  </div>
+</div>
+
+<div class="modal" id="nameModal">
+  <div class="modal-box">
+    <div style="font-size:50px">👋</div>
+    <h2 style="margin:8px 0 4px">Your Name?</h2>
+    <p style="color:#666;font-size:13px;margin:0">Enter your name first, then play This Or That!</p>
+    <input id="nameInput" placeholder="Example: Alex / Mia..." maxlength="15" oninput="checkName()">
+    <button id="btnEnter" onclick="enterGame()" disabled>➡️ ENTER GAME</button>
+    <p style="font-size:11px;color:#999;margin-top:10px;cursor:pointer" onclick="closeName()">⬅️ Back to Poster</p>
+  </div>
+</div>
+
+<div id="game">
+  <h1>🤔 THIS OR THAT 🤔</h1>
+  <p class="sub">Hello <b id="playerNameDisplay" style="color:#1E5AA8">You</b>! Pick One - No Wrong Answer!</p>
+  <div class="top">
+    <div class="stat"><b id="qNum">1 / 50</b><span>❓ QUESTION</span></div>
+    <div class="stat"><b id="pickedCount">0 Picked</b><span>✅ YOUR CHOICE</span></div>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div class="card">
+    <div style="font-size:40px" id="ainunEmoji">👧</div>
+    <div style="color:#666;font-size:13px">Ainun asks, <span id="ainunName">You</span>...</div>
+    <div class="question" id="question">Beach or Mountains?</div>
+    <div class="choice-grid">
+      <div class="choice" onclick="pick('A')"><span class="emoji" id="emojiA">🏖️</span><div class="label" id="labelA">Beach</div><div class="desc" id="descA">Pick this one!</div></div>
+      <div class="choice" onclick="pick('B')"><span class="emoji" id="emojiB">🏔️</span><div class="label" id="labelB">Mountains</div><div class="desc" id="descB">Or pick this!</div></div>
+    </div>
+    <div class="vs">VS</div>
+    <div id="feedback" style="font-weight:900;margin-top:6px;min-height:22px;color:#1E5AA8"></div>
+  </div>
+  <div class="controls">
+    <button onclick="startGame()" style="background:linear-gradient(135deg,#5AB0FF,#1E5AA8);color:white">🔄 RESTART</button>
+    <button onclick="toggleSound(event)" id="btnVoiceGame" style="background:white">🔊 Ainun Voice: ON</button>
+    <button onclick="backToPoster()" style="background:white">🏠 POSTER</button>
+  </div>
+</div>
+
+<div class="modal" id="endModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="result-emoji" id="endEmoji">🌟</div>
+    <h2 class="result-title" id="endTitle">You Are...</h2>
+    <p class="result-desc" id="endText"></p>
+    <div id="resultBars"></div>
+    <button onclick="speakResult()" style="margin-top:12px">🔊 Hear Ainun Say It</button>
+    <button onclick="startGame()" style="margin-top:8px">🔄 PLAY AGAIN - NEW 50 QUESTIONS</button>
+    <button onclick="backToPoster()" style="background:#eee;color:#222;margin-top:8px">🏠 BACK TO POSTER</button>
+  </div>
+</div>
+
+<script>
+let playerName="You";
+let qIndex=0, playing=false, currentQ=null;
+let TOTAL_QUESTIONS = 50;
+let questionBank = [];
+let scores = { adventurous:0, cozy:0, romantic:0, funny:0, chill:0 };
+let picks = [];
+let soundOn=true, ainunVoice=null;
+
+// ===== BANK 200 SOAL - FULL ENGLISH - SUDAH DIBENERIN SEMUA =====
+// Format: [Question, EmojiA, LabelA, TypeA, EmojiB, LabelB, TypeB]
+const RAW = [
+["Beach or Mountains?","🏖️","Beach","chill","🏔️","Mountains","adventurous"],
+["Morning or Night?","🌅","Morning","cozy","🌙","Night Owl","funny"],
+["Coffee or Tea?","☕","Coffee","adventurous","🍵","Tea","cozy"],
+["Cats or Dogs?","🐱","Cats","cozy","🐶","Dogs","funny"],
+["City or Village?","🏙️","City","adventurous","🏡","Village","cozy"],
+["Sweet or Salty?","🍰","Sweet","romantic","🍟","Salty","funny"],
+["Movie Night or Party?","🎬","Movie Night","cozy","🎉","Party","funny"],
+["Text or Call?","💬","Text","chill","📞","Call","romantic"],
+["Summer or Winter?","☀️","Summer","adventurous","❄️","Winter","cozy"],
+["Books or Movies?","📚","Books","cozy","🎥","Movies","chill"],
+["Money or Love?","💰","Money","adventurous","❤️","Love","romantic"],
+["Solo Travel or With Friends?","🧳","Solo","adventurous","👯","With Friends","funny"],
+["Spicy or Not Spicy?","🌶️","Spicy","adventurous","🧀","Not Spicy","cozy"],
+["Sing or Dance?","🎤","Sing","romantic","💃","Dance","funny"],
+["Rain or Snow?","🌧️","Rain","romantic","🌨️","Snow","cozy"],
+["Online Shop or Mall?","🛒","Online","chill","🛍️","Mall","funny"],
+["Early Bird or Sleep In?","⏰","Early Bird","adventurous","😴","Sleep In","chill"],
+["Adventurous Food or Safe Food?","🦑","Adventurous","adventurous","🍔","Safe Food","cozy"],
+["Big Wedding or Small Wedding?","💒","Big Wedding","romantic","💍","Small Wedding","romantic"],
+["Famous or Rich?","🌟","Famous","funny","💎","Rich","chill"],
+["Horror or Comedy?","👻","Horror","adventurous","😂","Comedy","funny"],
+["Beach Vacation or City Vacation?","🏝️","Beach Vacation","chill","🗽","City Vacation","adventurous"],
+["Pizza or Burger?","🍕","Pizza","funny","🍔","Burger","chill"],
+["Old Songs or New Songs?","📻","Old Songs","romantic","🎧","New Songs","funny"],
+["Stay Home or Go Out?","🏠","Stay Home","cozy","🚗","Go Out","adventurous"],
+["Sweet Talk or Honest Talk?","🍯","Sweet Talk","romantic","💎","Honest Talk","chill"],
+["Sunrise or Sunset?","🌄","Sunrise","adventurous","🌇","Sunset","romantic"],
+["Phone or Laptop?","📱","Phone","funny","💻","Laptop","chill"],
+["Ice Cream or Cake?","🍦","Ice Cream","funny","🎂","Cake","romantic"],
+["Dress Up or Casual?","👗","Dress Up","romantic","👕","Casual","chill"],
+["K-Pop or Western Pop?","🎤","K-Pop","funny","🎸","Western Pop","chill"],
+["Anime or Drama?","🎌","Anime","cozy","🎭","Drama","romantic"],
+["TikTok or Instagram?","🎵","TikTok","funny","📸","Instagram","chill"],
+["YouTube or Netflix?","▶️","YouTube","funny","🍿","Netflix","cozy"],
+["Chocolate or Vanilla?","🍫","Chocolate","romantic","🍦","Vanilla","cozy"],
+["Fried Chicken or Steak?","🍗","Fried Chicken","funny","🥩","Steak","adventurous"],
+["Soda or Juice?","🥤","Soda","funny","🧃","Juice","chill"],
+["Pancakes or Waffles?","🥞","Pancakes","cozy","🧇","Waffles","funny"],
+["Sneakers or Heels?","👟","Sneakers","chill","👠","Heels","romantic"],
+["Hoodie or Jacket?","🧥","Hoodie","cozy","🧣","Jacket","chill"],
+["Long Hair or Short Hair?","💇‍♀️","Long Hair","romantic","💇","Short Hair","adventurous"],
+["Makeup or No Makeup?","💄","Makeup","romantic","✨","No Makeup","chill"],
+["Gold or Silver?","🥇","Gold","romantic","🥈","Silver","chill"],
+["Pink or Black?","🩷","Pink","romantic","🖤","Black","chill"],
+["Red or Blue?","❤️","Red","adventurous","💙","Blue","chill"],
+["Spring or Autumn?","🌸","Spring","romantic","🍂","Autumn","cozy"],
+["Lake or Ocean?","🏞️","Lake","cozy","🌊","Ocean","adventurous"],
+["Camping or Hotel?","⛺","Camping","adventurous","🏨","Hotel","cozy"],
+["Road Trip or Flight?","🚗","Road Trip","adventurous","✈️","Flight","chill"],
+["Zoo or Aquarium?","🦁","Zoo","funny","🐠","Aquarium","romantic"],
+["Museum or Amusement Park?","🏛️","Museum","cozy","🎢","Amusement Park","funny"],
+["Gym or Yoga?","🏋️","Gym","adventurous","🧘","Yoga","chill"],
+["Running or Swimming?","🏃","Running","adventurous","🏊","Swimming","chill"],
+["Football or Basketball?","⚽","Football","funny","🏀","Basketball","adventurous"],
+["Chess or Cards?","♟️","Chess","cozy","🃏","Cards","funny"],
+["Video Games or Board Games?","🎮","Video Games","funny","🎲","Board Games","cozy"],
+["Drawing or Painting?","✏️","Drawing","cozy","🎨","Painting","romantic"],
+["Singing or Rapping?","🎤","Singing","romantic","🎙️","Rapping","funny"],
+["Dancing or Acting?","💃","Dancing","funny","🎭","Acting","romantic"],
+["Photography or Videography?","📷","Photography","romantic","🎥","Videography","adventurous"],
+["Cooking or Baking?","🍳","Cooking","cozy","🧁","Baking","romantic"],
+["Spicy Ramen or Sushi?","🍜","Spicy Ramen","adventurous","🍣","Sushi","chill"],
+["Fried Rice or Fried Noodles?","🍚","Fried Rice","funny","🍝","Fried Noodles","chill"],
+["Satay or Meatball Soup?","🍢","Satay","adventurous","🍲","Meatball Soup","cozy"],
+["Durian or Mango?","🥭","Mango","romantic","🟢","Durian","adventurous"],
+["Iced Tea or Orange Juice?","🧋","Iced Tea","chill","🍊","Orange Juice","funny"],
+["Boba or Coffee Latte?","🧋","Boba","funny","☕","Latte","romantic"],
+["Pancake or Rice Cake?","🥞","Pancake","cozy","🍡","Rice Cake","romantic"],
+["Day or Night?","☀️","Day","adventurous","🌙","Night","romantic"],
+["Rainy or Hot?","🌧️","Rainy","romantic","🔥","Hot","adventurous"],
+["Beach or Mountain?","🏖️","Beach","chill","⛰️","Mountain","adventurous"],
+["Jakarta or Bali?","🏙️","Jakarta","adventurous","🏝️","Bali","chill"],
+["Korea or Japan?","🇰🇷","Korea","funny","🇯🇵","Japan","cozy"],
+["BTS or Blackpink?","💜","BTS","funny","🩷","Blackpink","romantic"],
+["Horror or Romance Movie?","👻","Horror","adventurous","💕","Romance","romantic"],
+["Action or Drama?","💥","Action","adventurous","😢","Drama","romantic"],
+["Comedy or Thriller?","😂","Comedy","funny","😱","Thriller","adventurous"],
+["Cartoon or Live Action?","🐰","Cartoon","funny","🎬","Live Action","chill"],
+["Doraemon or Shinchan?","🔵","Doraemon","cozy","🔴","Shinchan","funny"],
+["Naruto or One Piece?","🍥","Naruto","adventurous","🏴‍☠️","One Piece","funny"],
+["K-Drama or Thai Drama?","🇰🇷","K-Drama","romantic","🇹🇭","Thai Drama","funny"],
+["Pop or Rock?","🎤","Pop","romantic","🎸","Rock","adventurous"],
+["Jazz or Hip Hop?","🎷","Jazz","chill","🎤","Hip Hop","funny"],
+["Slow Song or Fast Song?","🎵","Slow Song","romantic","🎶","Fast Song","funny"],
+["Concert or Festival?","🎪","Concert","romantic","🎡","Festival","funny"],
+["Karaoke or Hang Out?","🎤","Karaoke","funny","☕","Hang Out","chill"],
+["Shopping or Saving?","🛍️","Shopping","funny","💰","Saving","chill"],
+["Branded or Thrift?","👑","Branded","romantic","♻️","Thrift","chill"],
+["Online Class or Offline Class?","💻","Online","chill","🏫","Offline","funny"],
+["Math or English?","🧮","Math","adventurous","🔤","English","chill"],
+["Science or History?","🔬","Science","adventurous","📜","History","cozy"],
+["Art or Sport?","🎨","Art","romantic","⚽","Sport","adventurous"],
+["Public Speaking or Writing?","🎤","Speaking","adventurous","✍️","Writing","cozy"],
+["Leader or Follower?","👑","Leader","adventurous","🤝","Follower","chill"],
+["Introvert or Extrovert?","🤫","Introvert","cozy","🗣️","Extrovert","funny"],
+["Morning Shower or Night Shower?","🚿","Morning Shower","adventurous","🌙","Night Shower","cozy"],
+["Cold Water or Hot Water?","🧊","Cold Water","adventurous","🔥","Hot Water","cozy"],
+["AC or Fan?","❄️","AC","chill","💨","Fan","cozy"],
+["Window Seat or Aisle Seat?","🪟","Window Seat","romantic","🚶","Aisle Seat","chill"],
+["Train or Bus?","🚆","Train","romantic","🚌","Bus","funny"],
+["Motorbike or Car?","🏍️","Motorbike","adventurous","🚗","Car","chill"],
+["Bike or Walk?","🚲","Bike","adventurous","🚶","Walk","cozy"],
+["Beach Sunset or City Lights?","🌇","Sunset","romantic","🌃","City Lights","adventurous"],
+["Stars or Moon?","⭐","Stars","romantic","🌙","Moon","cozy"],
+["Forest or Desert?","🌲","Forest","adventurous","🏜️","Desert","chill"],
+["Snowman or Sandcastle?","⛄","Snowman","cozy","🏰","Sandcastle","funny"],
+["Skating or Surfing?","⛸️","Skating","adventurous","🏄","Surfing","chill"],
+["Skiing or Diving?","⛷️","Skiing","adventurous","🤿","Diving","romantic"],
+["Horse Riding or Cycling?","🐎","Horse Riding","romantic","🚲","Cycling","adventurous"],
+["Fishing or Hunting?","🎣","Fishing","chill","🏹","Hunting","adventurous"],
+["Picnic or BBQ?","🧺","Picnic","romantic","🍖","BBQ","funny"],
+["Garden or Pool?","🌷","Garden","romantic","🏊","Pool","funny"],
+["Farm or Beach House?","🐄","Farm","cozy","🏖️","Beach House","chill"],
+["Castle or Treehouse?","🏰","Castle","romantic","🌳","Treehouse","adventurous"],
+["Villa or Apartment?","🏡","Villa","chill","🏢","Apartment","funny"],
+["Tiny House or Big House?","🏠","Tiny House","cozy","🏰","Big House","adventurous"],
+["Pet Cat or Pet Dog?","🐈","Pet Cat","cozy","🐕","Pet Dog","funny"],
+["Rabbit or Hamster?","🐰","Rabbit","romantic","🐹","Hamster","funny"],
+["Bird or Fish?","🐦","Bird","chill","🐟","Fish","cozy"],
+["Snake or Lizard?","🐍","Snake","adventurous","🦎","Lizard","chill"],
+["Butterfly or Bee?","🦋","Butterfly","romantic","🐝","Bee","adventurous"],
+["Unicorn or Dragon?","🦄","Unicorn","romantic","🐉","Dragon","adventurous"],
+["Mermaid or Fairy?","🧜‍♀️","Mermaid","romantic","🧚","Fairy","cozy"],
+["Superhero or Villain?","🦸","Superhero","adventurous","🦹","Villain","funny"],
+["Magic or Technology?","🪄","Magic","romantic","🤖","Technology","adventurous"],
+["Time Travel or Teleport?","⏳","Time Travel","adventurous","🌀","Teleport","chill"],
+["Invisible or Fly?","👻","Invisible","funny","🦅","Fly","adventurous"],
+["Mind Reading or Future Seeing?","🧠","Mind Reading","adventurous","🔮","Future Seeing","romantic"],
+["Rich or Happy?","💰","Rich","adventurous","😊","Happy","cozy"],
+["Famous or Anonymous?","🌟","Famous","funny","🕶️","Anonymous","chill"],
+["Young Forever or Rich Forever?","👶","Young Forever","romantic","💎","Rich Forever","adventurous"],
+["One True Love or Many Friends?","❤️","True Love","romantic","👯","Many Friends","funny"],
+["Long Distance or Close?","📱","Long Distance","romantic","🏠","Close","cozy"],
+["First Love or Last Love?","💘","First Love","romantic","💍","Last Love","romantic"],
+["Crush or Best Friend?","😍","Crush","romantic","👯","Best Friend","funny"],
+["Call or Video Call?","📞","Call","romantic","📹","Video Call","funny"],
+["Handwritten Letter or Chat?","💌","Letter","romantic","💬","Chat","chill"],
+["Flowers or Chocolate?","🌹","Flowers","romantic","🍫","Chocolate","cozy"],
+["Hug or Kiss?","🤗","Hug","cozy","😘","Kiss","romantic"],
+["Date Night or Movie Night?","🍽️","Date Night","romantic","🍿","Movie Night","cozy"],
+["Surprise Gift or Planned Gift?","🎁","Surprise","romantic","📋","Planned","chill"],
+["Beach Date or Cafe Date?","🏖️","Beach Date","romantic","☕","Cafe Date","cozy"],
+["Slow Dance or Fast Dance?","💃","Slow Dance","romantic","🕺","Fast Dance","funny"],
+["Love Song or Sad Song?","❤️","Love Song","romantic","😢","Sad Song","cozy"],
+["Wedding in Bali or Paris?","🏝️","Bali","romantic","🗼","Paris","romantic"],
+["Honeymoon or Adventure Trip?","🍯","Honeymoon","romantic","🏔️","Adventure Trip","adventurous"],
+["Kids or No Kids?","👶","Kids","cozy","🐶","No Kids","chill"],
+["Morning Kiss or Goodnight Kiss?","🌅","Morning Kiss","romantic","🌙","Goodnight Kiss","romantic"],
+["Jealous or Trusting?","😤","Jealous","romantic","🤝","Trusting","chill"],
+["Clingy or Independent?","🥺","Clingy","romantic","🦅","Independent","adventurous"],
+["Romantic or Funny Partner?","💖","Romantic","romantic","😂","Funny","funny"],
+["Rich Partner or Loyal Partner?","💰","Rich","adventurous","❤️","Loyal","romantic"],
+["Handsome or Smart?","😍","Handsome","romantic","🧠","Smart","chill"],
+["Tall or Short Partner?","📏","Tall","romantic","🧸","Short","cozy"],
+["Cute or Hot?","🥰","Cute","romantic","🔥","Hot","adventurous"],
+["Shy or Bold Partner?","🙈","Shy","cozy","😎","Bold","adventurous"],
+["Singer or Dancer Partner?","🎤","Singer","romantic","💃","Dancer","funny"],
+["Chef or Artist Partner?","👨‍🍳","Chef","cozy","🎨","Artist","romantic"],
+["Gamer or Athlete?","🎮","Gamer","funny","🏃","Athlete","adventurous"],
+["Quiet or Loud Partner?","🤫","Quiet","cozy","📢","Loud","funny"],
+["Long Distance Call or Meet Up?","📞","Call","romantic","🤗","Meet Up","adventurous"],
+["Chat All Day or Quality Time?","💬","Chat All Day","romantic","⏰","Quality Time","cozy"],
+["Valentine or Birthday?","💘","Valentine","romantic","🎂","Birthday","funny"],
+["Anniversary or Random Surprise?","📅","Anniversary","romantic","🎁","Random Surprise","funny"],
+["Holding Hands or Hugging?","🤝","Holding Hands","romantic","🤗","Hugging","cozy"],
+["Stargazing or Sunset Watching?","⭐","Stargazing","romantic","🌇","Sunset Watching","romantic"],
+["Picnic Date or Cinema Date?","🧺","Picnic","romantic","🎬","Cinema","cozy"],
+["Photo Together or Video Together?","📸","Photo","romantic","🎥","Video","funny"],
+["Matching Outfit or Matching Phone?","👕","Outfit","romantic","📱","Phone","funny"],
+["Couple Goals or Best Friends?","💑","Couple Goals","romantic","👯","Best Friends","funny"],
+["Study Together or Play Together?","📚","Study","cozy","🎮","Play","funny"],
+["Cook Together or Eat Out?","🍳","Cook","cozy","🍽️","Eat Out","chill"],
+["Sleep Call or Chat Till Morning?","📞","Sleep Call","romantic","🌙","Chat Till Morning","funny"],
+["Morning Text or Goodnight Text?","🌅","Morning Text","romantic","🌙","Goodnight Text","cozy"],
+["Big Family or Small Family?","👨‍👩‍👧‍👦","Big Family","funny","👨‍👩‍👧","Small Family","cozy"],
+["Live in City or Village After Married?","🏙️","City","adventurous","🏡","Village","cozy"],
+["Pet Together or Plant Together?","🐶","Pet","funny","🌱","Plant","cozy"],
+["Travel The World or Stay Home?","🌍","Travel","adventurous","🏠","Stay Home","cozy"],
+["Adventure Date or Chill Date?","🧗","Adventure","adventurous","🛋️","Chill","chill"],
+["Spontaneous or Planned Date?","⚡","Spontaneous","adventurous","📋","Planned","chill"],
+["Night Drive or Morning Walk?","🚗","Night Drive","romantic","🚶","Morning Walk","cozy"],
+["Karaoke Date or Bowling Date?","🎤","Karaoke","funny","🎳","Bowling","funny"],
+["Ice Skating or Roller Coaster?","⛸️","Ice Skating","romantic","🎢","Roller Coaster","adventurous"],
+["Haunted House or Water Park?","👻","Haunted House","adventurous","💦","Water Park","funny"],
+["Zoo Date or Museum Date?","🦁","Zoo","funny","🏛️","Museum","cozy"],
+["Library Date or Bookstore Date?","📚","Library","cozy","📖","Bookstore","romantic"],
+["Coffee Date or Boba Date?","☕","Coffee","chill","🧋","Boba","funny"],
+["Street Food or Fine Dining?","🍢","Street Food","funny","🍽️","Fine Dining","romantic"],
+["Breakfast Date or Dinner Date?","🥞","Breakfast","cozy","🌙","Dinner","romantic"],
+["Sunset Beach or Sunrise Hill?","🌇","Sunset Beach","romantic","🌄","Sunrise Hill","adventurous"],
+["Rainy Day Date or Sunny Day Date?","🌧️","Rainy Day","romantic","☀️","Sunny Day","adventurous"],
+["Winter Date or Summer Date?","❄️","Winter","cozy","☀️","Summer","funny"],
+["Spring Date or Autumn Date?","🌸","Spring","romantic","🍂","Autumn","cozy"],
+["Indoor Date or Outdoor Date?","🏠","Indoor","cozy","🌳","Outdoor","adventurous"],
+["Luxury Date or Simple Date?","💎","Luxury","romantic","🧺","Simple","cozy"],
+["Old Movie or New Movie?","📼","Old Movie","romantic","🎬","New Movie","funny"],
+["Sad Movie or Happy Movie?","😢","Sad Movie","romantic","😂","Happy Movie","funny"],
+["K-Drama Date or Anime Date?","🇰🇷","K-Drama","romantic","🎌","Anime","funny"],
+["TikTok Together or Game Together?","🎵","TikTok","funny","🎮","Game","funny"],
+["Selfie or Candid?","🤳","Selfie","funny","📸","Candid","romantic"],
+["Filter or No Filter?","✨","Filter","romantic","📷","No Filter","chill"],
+["Instagram Story or TikTok Video?","📸","Story","funny","🎵","TikTok","funny"],
+["Vlog or Photo Dump?","🎥","Vlog","adventurous","📸","Photo Dump","chill"],
+["Live or Post?","📡","Live","adventurous","📝","Post","chill"],
+["DM or Comment?","💬","DM","romantic","💭","Comment","funny"],
+["Online Friend or Real Friend?","💻","Online","chill","🤝","Real","funny"],
+["Group Chat or Private Chat?","👥","Group","funny","🔒","Private","romantic"],
+["Voice Note or Text?","🎙️","Voice Note","romantic","⌨️","Text","chill"],
+["Sticker or Emoji?","🦋","Sticker","funny","😍","Emoji","romantic"],
+["Meme or Song?","😂","Meme","funny","🎵","Song","romantic"],
+["Good Morning or Good Night?","🌅","Good Morning","romantic","🌙","Good Night","cozy"],
+["Miss You or Love You?","🥺","Miss You","romantic","❤️","Love You","romantic"],
+["Hug Emoji or Kiss Emoji?","🤗","Hug","cozy","😘","Kiss","romantic"],
+["Best Friend or Soulmate?","👯","Best Friend","funny","💖","Soulmate","romantic"],
+["Forever or Now?","♾️","Forever","romantic","⏰","Now","chill"],
+["Dream or Reality?","💭","Dream","romantic","🌍","Reality","chill"],
+["Past or Future?","⏮️","Past","cozy","⏭️","Future","adventurous"],
+["Memories or New Memories?","📸","Memories","romantic","✨","New Memories","adventurous"],
+];
+
+const RESULTS = {
+  adventurous:{emoji:"🔥", title:"THE ADVENTURER!", desc:"You love excitement, challenges, and new experiences! You are brave, bold, and you never say no to an adventure. Life with you is never boring!"},
+  cozy:{emoji:"🧸", title:"THE COZY SOUL!", desc:"You love comfort, warmth, and peaceful moments. Your ideal day is blanket, warm drink, and people you love. You make everyone feel safe!"},
+  romantic:{emoji:"💖", title:"THE ROMANTIC!", desc:"You have a big heart! You love love, sweet moments, and deep feelings. You are the type who remembers small details and makes people feel special!"},
+  funny:{emoji:"😂", title:"THE FUNNY ONE!", desc:"You are the life of the party! You love laughing, joking, and making everyone happy. Being around you is always fun and full of energy!"},
+  chill:{emoji:"😎", title:"THE CHILL VIBE!", desc:"You are calm, cool, and easy going. Nothing stresses you out. You go with the flow and everyone loves your chill energy!"}
+};
+
+function generateQuestionBank(){
+  let shuffled = [...RAW].sort(()=>Math.random()-0.5).slice(0, TOTAL_QUESTIONS);
+  return shuffled.map(row=>{
+    let q = {q:row[0], a:{emoji:row[1], label:row[2], desc:"Pick this one!", type:row[3]}, b:{emoji:row[4], label:row[5], desc:"Or pick this!", type:row[6]}};
+    if(Math.random()<0.5) return q;
+    else return {q:q.q, a:q.b, b:q.a};
+  });
+}
+function loadAinunVoice(){
+  let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  ainunVoice = voices.find(v=>v.lang==='en-US' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Google US English'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Samantha'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Zira'))
+    || voices.find(v=>v.lang==='en-GB' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang.startsWith('en'))
+    || voices[0];
+}
+if('speechSynthesis' in window){ loadAinunVoice(); window.speechSynthesis.onvoiceschanged = loadAinunVoice; }
+function speakAinun(text, rate=1.15){
+  if(!soundOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  let u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1.35; u.volume = 1;
+  if(ainunVoice) u.voice = ainunVoice;
+  window.speechSynthesis.speak(u);
+}
+function toggleSound(e){
+  if(e) e.stopPropagation();
+  soundOn = !soundOn;
+  document.getElementById('btnVoicePoster').innerText = soundOn ? '🔊 Tap To Hear Ainun' : '🔇 Sound Off';
+  document.getElementById('btnVoiceGame').innerText = soundOn ? '🔊 Ainun Voice: ON' : '🔇 Ainun Voice: OFF';
+  if(soundOn) speakAinun("Hi! I am Ainun! Let's play This Or That!");
+  else if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function openName(){
+  document.getElementById('nameModal').classList.add('show');
+  speakAinun("Hi! What is your name? Tell me your name!");
+  setTimeout(()=>document.getElementById('nameInput').focus(),100);
+}
+function closeName(){ document.getElementById('nameModal').classList.remove('show'); }
+function checkName(){ let v=document.getElementById('nameInput').value.trim(); document.getElementById('btnEnter').disabled = v.length<2; }
+function enterGame(){
+  playerName=document.getElementById('nameInput').value.trim() || "You";
+  document.getElementById('nameModal').classList.remove('show');
+  document.getElementById('posterScreen').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('playerNameDisplay').innerText=playerName;
+  document.getElementById('ainunName').innerText=playerName;
+  speakAinun(`Welcome ${playerName}! Let's play This Or That! Pick one! No wrong answer!`);
+  startGame();
+}
+function backToPoster(){
+  document.getElementById('endModal').classList.remove('show');
+  document.getElementById('game').style.display='none';
+  document.getElementById('posterScreen').style.display='block';
+  playing=false;
+  speakAinun("Bye bye! Come back and play again!");
+}
+function makeQ(){
+  currentQ = questionBank[qIndex];
+  document.getElementById('qNum').innerText=(qIndex+1)+' / '+TOTAL_QUESTIONS;
+  document.getElementById('pickedCount').innerText=picks.length+' Picked';
+  document.getElementById('question').innerText=currentQ.q;
+  document.getElementById('emojiA').innerText=currentQ.a.emoji;
+  document.getElementById('labelA').innerText=currentQ.a.label;
+  document.getElementById('emojiB').innerText=currentQ.b.emoji;
+  document.getElementById('labelB').innerText=currentQ.b.label;
+  document.getElementById('feedback').innerText='';
+  document.getElementById('ainunEmoji').innerText='👧';
+  updateProgress();
+  speakAinun(`${currentQ.q} ${currentQ.a.label} or ${currentQ.b.label}? Pick one!`, 1.15);
+}
+function pick(side){
+  if(!playing) return;
+  let chosen = side==='A' ? currentQ.a : currentQ.b;
+  scores[chosen.type]++;
+  picks.push(chosen.label);
+  document.getElementById('feedback').innerText=`You picked ${chosen.emoji} ${chosen.label}!`;
+  document.getElementById('ainunEmoji').innerText='🥳';
+  speakAinun(`Nice! You picked ${chosen.label}!`, 1.2);
+  setTimeout(()=>{ qIndex++; if(qIndex>=TOTAL_QUESTIONS){finish();return;} makeQ(); },600);
+}
+function updateProgress(){
+  let p=document.getElementById('progress'); p.innerHTML='';
+  for(let i=0;i<TOTAL_QUESTIONS;i++){let d=document.createElement('div'); if(i<qIndex)d.className='done'; p.appendChild(d);}
+}
+function startGame(){
+  qIndex=0; picks=[]; playing=true;
+  scores={adventurous:0, cozy:0, romantic:0, funny:0, chill:0};
+  questionBank = generateQuestionBank();
+  document.getElementById('endModal').classList.remove('show');
+  makeQ();
+}
+function getTopResult(){
+  let entries = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  return entries[0][0];
+}
+function finish(){
+  playing=false;
+  let top = getTopResult();
+  let res = RESULTS[top];
+  let total = TOTAL_QUESTIONS;
+  document.getElementById('endEmoji').innerText=res.emoji;
+  document.getElementById('endTitle').innerText=`${playerName}, You Are ${res.title}`;
+  document.getElementById('endText').innerText=res.desc;
+  let bars = Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{
+    let pct = Math.round(v/total*100);
+    let label = k.charAt(0).toUpperCase()+k.slice(1);
+    return `<div class="bar-row"><b>${label}</b><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+  }).join('');
+  document.getElementById('resultBars').innerHTML=bars;
+  document.getElementById('endModal').classList.add('show');
+  speakAinun(`${playerName}, you are ${res.title}! ${res.desc}`);
+}
+function speakResult(){
+  let top = getTopResult();
+  let res = RESULTS[top];
+  speakAinun(`${playerName}, you are ${res.title}! ${res.desc}`);
+}
+document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter' && !document.getElementById('btnEnter').disabled) enterGame(); });
+document.addEventListener('click', function firstClick(){ speakAinun("Hi! Welcome to This Or That! I am Ainun!"); document.removeEventListener('click', firstClick); }, {once:true});
+</script>
+</body>
+</html>

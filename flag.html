@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flag Quiz - Guess The Country</title>
+<style>
+*{box-sizing:border-box;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+body{margin:0;background:#E8B4B8;background-image:radial-gradient(circle at 15% 10%, rgba(255,255,255,.45), transparent 40%),radial-gradient(circle at 90% 90%, rgba(192,123,123,.45), transparent 45%),linear-gradient(180deg,#EBC0C0,#E8B4B8,#D9A0A0);color:#4A2C2C;min-height:100vh;padding:14px}
+h1{text-align:center;margin:8px 0 4px;font-size:28px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,#8E3A3A,#C05A5A,#E88A8A,#8E3A3A);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:shine 3s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{text-align:center;color:#7A4A4A;font-size:12px;margin:0 0 12px;font-weight:600}
+.poster-wrap{max-width:420px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(120,60,60,.35);position:relative;background:#fff}
+.poster-wrap img{width:100%;display:block;aspect-ratio:9/16;object-fit:cover}
+.poster-overlay{position:absolute;left:0;right:0;bottom:0;padding:22px 16px 16px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55) 35%,rgba(60,20,20,.88));text-align:center}
+.poster-overlay h2{font-size:28px;line-height:1.1;margin:10px 0 6px;font-weight:900;color:white;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.poster-overlay h2 span{color:#FFD166}
+.poster-overlay p{font-size:13px;color:#FFEFEF;margin:0 0 12px}
+.btn-row{display:flex;gap:8px;justify-content:center}
+.btn-voice{padding:16px 14px;border:none;border-radius:18px;background:white;color:#8E3A3A;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #D9A0A0}
+/* START GAME DI BAWAH POSTER */
+.start-below{max-width:420px;margin:14px auto 0;text-align:center}
+.btn-start-big{width:100%;padding:18px;border:none;border-radius:20px;background:#FFD166;color:#5c3d00;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #B45309;letter-spacing:1px}
+.btn-start-big:active{transform:translateY(4px);box-shadow:0 4px 0 #B45309}
+.start-sub{font-size:11px;color:#7A4A4A;font-weight:700;margin-top:8px}
+.modal{position:fixed;inset:0;background:rgba(74,44,44,.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:99;padding:16px}
+.modal.show{display:flex}
+.modal-box{background:white;color:#222;border-radius:24px;padding:24px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal-box input{width:100%;padding:14px;border:2px solid #EBC0C0;border-radius:14px;font-size:16px;font-weight:700;text-align:center;outline:none;margin:12px 0}
+.modal-box input:focus{border-color:#C05A5A}
+.modal-box button{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#D98A8A,#B85A5A);color:white;font-weight:900;cursor:pointer;font-size:15px}
+.modal-box button:disabled{opacity:.4}
+#game{display:none}
+.top{max-width:520px;margin:0 auto;display:flex;gap:8px}
+.stat{flex:1;background:rgba(255,255,255,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:10px;text-align:center}
+.stat b{font-size:18px;color:#B85A5A;display:block}
+.stat span{font-size:10px;color:#7A4A4A;font-weight:800}
+.timer-bar{max-width:520px;margin:10px auto;height:10px;background:rgba(255,255,255,.6);border-radius:20px;overflow:hidden}
+.timer-bar div{height:100%;background:linear-gradient(90deg,#22c55e,#FFD166,#ef4444);transition:.1s linear;width:100%}
+.time-big{text-align:center;font-size:36px;font-weight:900;color:#8E3A3A;margin:4px 0;text-shadow:0 1px 0 white}
+.time-big.danger{color:#ef4444;animation:blink .3s infinite}
+@keyframes blink{50%{opacity:.4}}
+.card{max-width:520px;margin:0 auto;background:white;color:#222;border-radius:24px;padding:20px;text-align:center;box-shadow:0 15px 35px rgba(120,60,60,.2)}
+.flag-box{width:100%;max-width:380px;margin:10px auto;border-radius:16px;overflow:hidden;border:3px solid #F5E0E0;box-shadow:0 10px 25px rgba(0,0,0,.15);background:#f8f8f8}
+.flag-box img{width:100%;display:block;aspect-ratio:3/2;object-fit:cover}
+.question{font-size:22px;font-weight:900;margin:14px 0 4px}
+.question span{color:#C05A5A}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.opts button{padding:16px 10px;border:2px solid #F5E0E0;background:#FFF7F7;border-radius:16px;font-size:16px;font-weight:900;cursor:pointer;color:#222}
+.opts button:hover{border-color:#D98A8A;background:#FFF0F0}
+.opts button.correct{background:#22c55e!important;color:white}
+.opts button.wrong{background:#ef4444!important;color:white}
+.opts button:disabled{opacity:.7}
+.controls{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.controls button{border:none;padding:12px 16px;border-radius:20px;font-weight:900;cursor:pointer}
+.progress{max-width:520px;margin:8px auto;display:flex;gap:3px;flex-wrap:wrap}
+.progress div{flex:1;min-width:12px;height:6px;background:rgba(255,255,255,.6);border-radius:10px}
+.progress div.done{background:#22c55e}.progress div.wrong{background:#ef4444}
+</style>
+</head>
+<body>
+
+<!-- 1. POSTER -->
+<div id="posterScreen">
+  <div class="poster-wrap">
+    <img src="flag.jpg" alt="Flag Quiz Game">
+    <div class="poster-overlay">
+      <h2>GUESS THE <span>FLAG</span>! 🌍🏳️</h2>
+      <p>Hi! I'm Ainun! Can you guess which country is this flag? 20 Flags • 10 Seconds!</p>
+      <div class="btn-row">
+        <button class="btn-voice" id="btnVoicePoster" onclick="toggleSound(event)">🔊 Tap To Hear Ainun</button>
+      </div>
+    </div>
+  </div>
+  <!-- START GAME DI BAWAH POSTER -->
+  <div class="start-below">
+    <button class="btn-start-big" onclick="openName()">▶️ START GAME</button>
+    <div class="start-sub">Tap START GAME to enter your name & play!</div>
+  </div>
+</div>
+
+<!-- 2. YOUR NAME -->
+<div class="modal" id="nameModal">
+  <div class="modal-box">
+    <div style="font-size:50px">👋</div>
+    <h2 style="margin:8px 0 4px">Your Name?</h2>
+    <p style="color:#666;font-size:13px;margin:0">Enter your name first, then enter the Flag Quiz!</p>
+    <input id="nameInput" placeholder="Example: Alex / Mia..." maxlength="15" oninput="checkName()">
+    <button id="btnEnter" onclick="enterGame()" disabled>➡️ ENTER GAME</button>
+    <p style="font-size:11px;color:#999;margin-top:10px;cursor:pointer" onclick="closeName()">⬅️ Back to Poster</p>
+  </div>
+</div>
+
+<!-- 3. GAME -->
+<div id="game">
+  <h1>🌍 FLAG QUIZ 🌍</h1>
+  <p class="sub">Hello <b id="playerNameDisplay" style="color:#8E3A3A">You</b>! 20 Flags • Only 10 Seconds!</p>
+  <div class="top">
+    <div class="stat"><b id="score">0</b><span>⭐ SCORE</span></div>
+    <div class="stat"><b id="qNum">1 / 20</b><span>🏳️ FLAG</span></div>
+    <div class="stat"><b id="acc">-</b><span>🎯 ACCURACY</span></div>
+  </div>
+  <div class="time-big" id="timeBig">10.0</div>
+  <div class="timer-bar"><div id="timeBar"></div></div>
+  <div class="progress" id="progress"></div>
+  <div class="card">
+    <div style="font-size:40px" id="ainunEmoji">👧</div>
+    <div id="ainunText" style="color:#666;font-size:13px">Good luck, <span id="ainunName">You</span>!</div>
+    <div class="flag-box"><img id="flagImg" src="" alt="Guess the flag"></div>
+    <div class="question">Which country is this flag? 🤔</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedback" style="font-weight:900;margin-top:12px;min-height:22px"></div>
+  </div>
+  <div class="controls">
+    <button onclick="startGame()" style="background:linear-gradient(135deg,#D98A8A,#B85A5A);color:white">▶️ RESTART</button>
+    <button onclick="toggleSound(event)" id="btnVoiceGame" style="background:white">🔊 Ainun Voice: ON</button>
+    <button onclick="backToPoster()" style="background:white">🏠 POSTER</button>
+  </div>
+</div>
+
+<div class="modal" id="endModal">
+  <div class="modal-box">
+    <div style="font-size:60px" id="endEmoji">🏆</div>
+    <h2 id="endTitle">FINISHED!</h2>
+    <p id="endText"></p>
+    <button onclick="startGame()">🔄 PLAY AGAIN</button>
+    <button onclick="backToPoster()" style="background:#eee;color:#222;margin-top:8px">🏠 BACK TO POSTER</button>
+  </div>
+</div>
+
+<script>
+let playerName="You";
+let score=0,qIndex=0,correctCount=0,combo=0,playing=false,currentQ=null,progressArr=[],timeLeft=10.0,timer=null;
+let soundOn=true, ainunVoice=null;
+let TOTAL_QUESTIONS = 20;
+let TIME_PER_Q = 10;
+let questionBank = [];
+let currentId = 0;
+let answered = false;
+
+// ===== BANK 50 NEGARA - BENDERA ASLI DARI FLAGCDN =====
+const COUNTRIES = [
+  {name:"Indonesia", code:"id"}, {name:"Malaysia", code:"my"}, {name:"Singapore", code:"sg"},
+  {name:"Thailand", code:"th"}, {name:"Vietnam", code:"vn"}, {name:"Philippines", code:"ph"},
+  {name:"Japan", code:"jp"}, {name:"South Korea", code:"kr"}, {name:"China", code:"cn"},
+  {name:"India", code:"in"}, {name:"United States", code:"us"}, {name:"Canada", code:"ca"},
+  {name:"Mexico", code:"mx"}, {name:"Brazil", code:"br"}, {name:"Argentina", code:"ar"},
+  {name:"United Kingdom", code:"gb"}, {name:"France", code:"fr"}, {name:"Germany", code:"de"},
+  {name:"Italy", code:"it"}, {name:"Spain", code:"es"}, {name:"Portugal", code:"pt"},
+  {name:"Netherlands", code:"nl"}, {name:"Switzerland", code:"ch"}, {name:"Sweden", code:"se"},
+  {name:"Norway", code:"no"}, {name:"Denmark", code:"dk"}, {name:"Finland", code:"fi"},
+  {name:"Russia", code:"ru"}, {name:"Turkey", code:"tr"}, {name:"Egypt", code:"eg"},
+  {name:"South Africa", code:"za"}, {name:"Nigeria", code:"ng"}, {name:"Kenya", code:"ke"},
+  {name:"Australia", code:"au"}, {name:"New Zealand", code:"nz"}, {name:"Saudi Arabia", code:"sa"},
+  {name:"United Arab Emirates", code:"ae"}, {name:"Israel", code:"il"}, {name:"Pakistan", code:"pk"},
+  {name:"Bangladesh", code:"bd"}, {name:"Nepal", code:"np"}, {name:"Mongolia", code:"mn"},
+  {name:"Poland", code:"pl"}, {name:"Greece", code:"gr"}, {name:"Austria", code:"at"},
+  {name:"Belgium", code:"be"}, {name:"Ireland", code:"ie"}, {name:"Ukraine", code:"ua"}
+];
+
+function generateQuestionBank(){
+  // Acak 50 negara, ambil 20 yang pertama - tiap game beda
+  let shuffled = [...COUNTRIES].sort(()=>Math.random()-0.5);
+  let picked = shuffled.slice(0, TOTAL_QUESTIONS);
+  let bank = picked.map(country=>{
+    // Jawaban pengecoh: ambil 3 negara lain secara acak
+    let others = [...COUNTRIES].filter(c=>c.name!==country.name).sort(()=>Math.random()-0.5).slice(0,3).map(c=>c.name);
+    let opts = [country.name, ...others].sort(()=>Math.random()-0.5); // Acak posisi jawaban benar
+    return {
+      country: country.name,
+      code: country.code,
+      flagUrl: `https://flagcdn.com/w640/${country.code}.png`,
+      ans: country.name,
+      opts: opts
+    };
+  });
+  return bank;
+}
+
+function loadAinunVoice(){
+  let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  ainunVoice = voices.find(v=>v.lang==='en-US' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Google US English'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Samantha'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Zira'))
+    || voices.find(v=>v.lang==='en-GB' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang.startsWith('en'))
+    || voices[0];
+}
+if('speechSynthesis' in window){ loadAinunVoice(); window.speechSynthesis.onvoiceschanged = loadAinunVoice; }
+function speakAinun(text, rate=1.15){
+  if(!soundOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  let u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1.35; u.volume = 1;
+  if(ainunVoice) u.voice = ainunVoice;
+  window.speechSynthesis.speak(u);
+}
+function toggleSound(e){
+  if(e) e.stopPropagation();
+  soundOn = !soundOn;
+  document.getElementById('btnVoicePoster').innerText = soundOn ? '🔊 Tap To Hear Ainun' : '🔇 Sound Off';
+  document.getElementById('btnVoiceGame').innerText = soundOn ? '🔊 Ainun Voice: ON' : '🔇 Ainun Voice: OFF';
+  if(soundOn) speakAinun("Hi! I am Ainun! Let's guess the flags!");
+  else if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function openName(){
+  document.getElementById('nameModal').classList.add('show');
+  speakAinun("Hi! What is your name? Tell me your name!");
+  setTimeout(()=>document.getElementById('nameInput').focus(),100);
+}
+function closeName(){ document.getElementById('nameModal').classList.remove('show'); }
+function checkName(){ let v=document.getElementById('nameInput').value.trim(); document.getElementById('btnEnter').disabled = v.length<2; }
+function enterGame(){
+  playerName=document.getElementById('nameInput').value.trim() || "You";
+  document.getElementById('nameModal').classList.remove('show');
+  document.getElementById('posterScreen').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('playerNameDisplay').innerText=playerName;
+  document.getElementById('ainunName').innerText=playerName;
+  speakAinun(`Welcome ${playerName}! Let's guess the flags! You have twenty flags! Go go go!`);
+  startGame();
+}
+function backToPoster(){
+  document.getElementById('endModal').classList.remove('show');
+  document.getElementById('game').style.display='none';
+  document.getElementById('posterScreen').style.display='block';
+  clearInterval(timer); playing=false;
+  speakAinun("Bye bye! Come back and play again!");
+}
+function makeQ(){
+  currentQ = questionBank[qIndex];
+  currentId++; answered = false;
+  let myId = currentId;
+  document.getElementById('flagImg').src = currentQ.flagUrl;
+  document.getElementById('qNum').innerText=(qIndex+1)+' / '+TOTAL_QUESTIONS;
+  document.getElementById('feedback').innerText='';
+  document.getElementById('ainunEmoji').innerText='👧';
+  let el=document.getElementById('opts'); el.innerHTML='';
+  currentQ.opts.forEach(v=>{
+    let btn=document.createElement('button');
+    btn.innerText=v;
+    btn.dataset.value = v;
+    btn.dataset.qid = myId;
+    btn.onclick=()=>check(btn.dataset.value, btn, Number(btn.dataset.qid));
+    el.appendChild(btn);
+  });
+  speakAinun(`Flag number ${qIndex+1}. Which country is this flag?`, 1.15);
+  startTimer(myId);
+}
+function startTimer(myId){
+  clearInterval(timer); timeLeft=TIME_PER_Q;
+  document.getElementById('timeBig').innerText=timeLeft.toFixed(1);
+  document.getElementById('timeBig').classList.remove('danger');
+  document.getElementById('timeBar').style.width='100%';
+  timer=setInterval(()=>{
+    if(myId !== currentId) { clearInterval(timer); return; }
+    timeLeft-=0.1; if(timeLeft<0)timeLeft=0;
+    document.getElementById('timeBig').innerText=timeLeft.toFixed(1);
+    document.getElementById('timeBar').style.width=(timeLeft/TIME_PER_Q*100)+'%';
+    if(timeLeft<=3)document.getElementById('timeBig').classList.add('danger');
+    if(timeLeft<=0){clearInterval(timer); timeout(myId);}
+  },100);
+}
+function check(v, btn, qid){
+  if(!playing) return;
+  if(qid !== currentId) return;
+  if(answered) return;
+  answered = true;
+  clearInterval(timer);
+  let correctAns = currentQ.ans;
+  let chosen = v;
+  document.querySelectorAll('#opts button').forEach(b=>b.disabled=true);
+  if(chosen === correctAns){
+    btn.classList.add('correct');
+    let pts=10+Math.round(timeLeft*10); score+=pts; correctCount++; combo++; progressArr.push('done');
+    document.getElementById('feedback').innerHTML=`✅ CORRECT ${playerName}! +${pts} | It's ${correctAns}!`;
+    document.getElementById('feedback').style.color='#22c55e';
+    document.getElementById('ainunEmoji').innerText='🥳';
+    speakAinun(combo>=3 ? `Wow! Amazing ${playerName}! Combo!` : `Yay! Correct! It's ${correctAns}! Good job ${playerName}!`);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#opts button').forEach(b=>{ if(b.dataset.value===correctAns) b.classList.add('correct'); });
+    combo=0; progressArr.push('wrong');
+    document.getElementById('feedback').innerHTML=`❌ WRONG! It's ${correctAns}!`;
+    document.getElementById('feedback').style.color='#ef4444';
+    document.getElementById('ainunEmoji').innerText='😢';
+    speakAinun(`Oops! Wrong! It's ${correctAns}. Try again!`);
+  }
+  updateUI();
+  setTimeout(()=>{ if(qid===currentId) nextQ(); },1300);
+}
+function timeout(myId){
+  if(myId !== currentId) return;
+  if(answered) return;
+  answered = true;
+  let correctAns = currentQ.ans;
+  document.querySelectorAll('#opts button').forEach(b=>{ b.disabled=true; if(b.dataset.value===correctAns) b.classList.add('correct'); });
+  progressArr.push('wrong');
+  document.getElementById('feedback').innerHTML=`⏰ TIME'S UP! It's ${correctAns}!`;
+  document.getElementById('feedback').style.color='#ef4444';
+  document.getElementById('ainunEmoji').innerText='⏰';
+  speakAinun(`Time is up! Too slow! It's ${correctAns}`);
+  updateUI();
+  setTimeout(()=>{ if(myId===currentId) nextQ(); },1300);
+}
+function nextQ(){ qIndex++; if(qIndex>=TOTAL_QUESTIONS){finish();return;} makeQ(); }
+function updateUI(){
+  document.getElementById('score').innerText=score;
+  let answeredCount=progressArr.length;
+  document.getElementById('acc').innerText=answeredCount>0?Math.round(correctCount/answeredCount*100)+'%':'-';
+  let p=document.getElementById('progress'); p.innerHTML='';
+  for(let i=0;i<TOTAL_QUESTIONS;i++){let d=document.createElement('div'); if(progressArr[i])d.className=progressArr[i]; p.appendChild(d);}
+}
+function startGame(){
+  score=0;qIndex=0;correctCount=0;combo=0;progressArr=[];playing=true;
+  clearInterval(timer);
+  questionBank = generateQuestionBank();
+  document.getElementById('endModal').classList.remove('show');
+  updateUI(); makeQ();
+}
+function finish(){
+  playing=false; clearInterval(timer); let acc=Math.round(correctCount/TOTAL_QUESTIONS*100);
+  document.getElementById('endEmoji').innerText=acc>=70?'🏆':'👧';
+  document.getElementById('endTitle').innerText=`Great, ${playerName}!`;
+  document.getElementById('endText').innerText=`You got ${correctCount} out of ${TOTAL_QUESTIONS} correct! Score ${score} • Accuracy ${acc}%`;
+  document.getElementById('endModal').classList.add('show');
+  speakAinun(acc>=70 ? `Wow ${playerName}! You are a flag genius! You got ${correctCount} correct!` : `Good job ${playerName}! You got ${correctCount} correct! Let's play again!`);
+}
+document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter' && !document.getElementById('btnEnter').disabled) enterGame(); });
+document.addEventListener('click', function firstClick(){ speakAinun("Hi! Welcome to my flag quiz! I am Ainun!"); document.removeEventListener('click', firstClick); }, {once:true});
+</script>
+</body>
+</html>

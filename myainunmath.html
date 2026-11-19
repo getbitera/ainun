@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Ainun Math Game</title>
+<style>
+*{box-sizing:border-box;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+body{margin:0;background:#E8B4B8;background-image:radial-gradient(circle at 15% 10%, rgba(255,255,255,.45), transparent 40%),radial-gradient(circle at 90% 90%, rgba(192,123,123,.45), transparent 45%),linear-gradient(180deg,#EBC0C0,#E8B4B8,#D9A0A0);color:#4A2C2C;min-height:100vh;padding:14px}
+h1{text-align:center;margin:8px 0 4px;font-size:28px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,#8E3A3A,#C05A5A,#E88A8A,#8E3A3A);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:shine 3s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{text-align:center;color:#7A4A4A;font-size:12px;margin:0 0 12px;font-weight:600}
+.poster-wrap{max-width:420px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(120,60,60,.35);position:relative;background:#fff}
+.poster-wrap img{width:100%;display:block;aspect-ratio:9/16;object-fit:cover}
+.poster-overlay{position:absolute;left:0;right:0;bottom:0;padding:22px 16px 16px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55) 35%,rgba(60,20,20,.88));text-align:center}
+.poster-overlay h2{font-size:28px;line-height:1.1;margin:10px 0 6px;font-weight:900;color:white;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.poster-overlay h2 span{color:#FFD166}
+.poster-overlay p{font-size:13px;color:#FFEFEF;margin:0 0 12px}
+.btn-row{display:flex;gap:8px;justify-content:center}
+.btn-start{flex:1;padding:16px;border:none;border-radius:18px;background:#FFD166;color:#5c3d00;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #B45309}
+.btn-start:active{transform:translateY(4px);box-shadow:0 4px 0 #B45309}
+.btn-voice{padding:16px 14px;border:none;border-radius:18px;background:white;color:#8E3A3A;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 8px 0 #D9A0A0}
+.modal{position:fixed;inset:0;background:rgba(74,44,44,.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:99;padding:16px}
+.modal.show{display:flex}
+.modal-box{background:white;color:#222;border-radius:24px;padding:24px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal-box input{width:100%;padding:14px;border:2px solid #EBC0C0;border-radius:14px;font-size:16px;font-weight:700;text-align:center;outline:none;margin:12px 0}
+.modal-box input:focus{border-color:#C05A5A}
+.modal-box button{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#D98A8A,#B85A5A);color:white;font-weight:900;cursor:pointer;font-size:15px}
+.modal-box button:disabled{opacity:.4}
+#game{display:none}
+.top{max-width:520px;margin:0 auto;display:flex;gap:8px}
+.stat{flex:1;background:rgba(255,255,255,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:10px;text-align:center}
+.stat b{font-size:18px;color:#B85A5A;display:block}
+.stat span{font-size:10px;color:#7A4A4A;font-weight:800}
+.timer-bar{max-width:520px;margin:10px auto;height:10px;background:rgba(255,255,255,.6);border-radius:20px;overflow:hidden}
+.timer-bar div{height:100%;background:linear-gradient(90deg,#22c55e,#FFD166,#ef4444);transition:.1s linear;width:100%}
+.time-big{text-align:center;font-size:36px;font-weight:900;color:#8E3A3A;margin:4px 0;text-shadow:0 1px 0 white}
+.time-big.danger{color:#ef4444;animation:blink .3s infinite}
+@keyframes blink{50%{opacity:.4}}
+.card{max-width:520px;margin:0 auto;background:white;color:#222;border-radius:24px;padding:20px;text-align:center;box-shadow:0 15px 35px rgba(120,60,60,.2)}
+.question{font-size:44px;font-weight:900;margin:14px 0 4px}
+.question span{color:#C05A5A}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.opts button{padding:18px;border:2px solid #F5E0E0;background:#FFF7F7;border-radius:16px;font-size:22px;font-weight:900;cursor:pointer;color:#222}
+.opts button:hover{border-color:#D98A8A;background:#FFF0F0}
+.opts button.correct{background:#22c55e!important;color:white}
+.opts button.wrong{background:#ef4444!important;color:white}
+.opts button:disabled{opacity:.7}
+.controls{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.controls button{border:none;padding:12px 16px;border-radius:20px;font-weight:900;cursor:pointer}
+.progress{max-width:520px;margin:8px auto;display:flex;gap:3px;flex-wrap:wrap}
+.progress div{flex:1;min-width:12px;height:6px;background:rgba(255,255,255,.6);border-radius:10px}
+.progress div.done{background:#22c55e}.progress div.wrong{background:#ef4444}
+</style>
+</head>
+<body>
+
+<div id="posterScreen">
+  <div class="poster-wrap">
+    <img src="myainunmathgame.jpg" alt="Welcome to Math Game My Ainun">
+    <div class="poster-overlay">
+      <h2>WELCOME TO <span>MATH GAME</span> MY AINUN! 🧮</h2>
+      <p>Hi! I'm Ainun! Can you answer 250 - 159 in 3 seconds?</p>
+      <div class="btn-row">
+        <button class="btn-start" onclick="openName()">▶️ START</button>
+        <button class="btn-voice" id="btnVoicePoster" onclick="toggleSound(event)">🔊</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="nameModal">
+  <div class="modal-box">
+    <div style="font-size:50px">👋</div>
+    <h2 style="margin:8px 0 4px">Your Name?</h2>
+    <p style="color:#666;font-size:13px;margin:0">Enter your name first, then enter Ainun's game!</p>
+    <input id="nameInput" placeholder="Example: Alex / Mia..." maxlength="15" oninput="checkName()">
+    <button id="btnEnter" onclick="enterGame()" disabled>➡️ ENTER GAME</button>
+    <p style="font-size:11px;color:#999;margin-top:10px;cursor:pointer" onclick="closeName()">⬅️ Back to Poster</p>
+  </div>
+</div>
+
+<div id="game">
+  <h1>⚡ AINUN MATH QUIZ ⚡</h1>
+  <p class="sub">Hello <b id="playerNameDisplay" style="color:#8E3A3A">You</b>! 100 Questions • Only 3 Seconds!</p>
+  <div class="top">
+    <div class="stat"><b id="score">0</b><span>⭐ SCORE</span></div>
+    <div class="stat"><b id="qNum">1 / 100</b><span>📝 QUESTION</span></div>
+    <div class="stat"><b id="acc">-</b><span>🎯 ACCURACY</span></div>
+  </div>
+  <div class="time-big" id="timeBig">3.0</div>
+  <div class="timer-bar"><div id="timeBar"></div></div>
+  <div class="progress" id="progress"></div>
+  <div class="card">
+    <div style="font-size:40px" id="ainunEmoji">👧</div>
+    <div id="ainunText" style="color:#666;font-size:13px">Good luck, <span id="ainunName">You</span>!</div>
+    <div class="question" id="question">250 - 159 = ?</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedback" style="font-weight:900;margin-top:12px;min-height:22px"></div>
+  </div>
+  <div class="controls">
+    <button onclick="startGame()" style="background:linear-gradient(135deg,#D98A8A,#B85A5A);color:white">▶️ RESTART</button>
+    <button onclick="toggleSound(event)" id="btnVoiceGame" style="background:white">🔊 Ainun Voice: ON</button>
+    <button onclick="backToPoster()" style="background:white">🏠 POSTER</button>
+  </div>
+</div>
+
+<div class="modal" id="endModal">
+  <div class="modal-box">
+    <div style="font-size:60px" id="endEmoji">🏆</div>
+    <h2 id="endTitle">FINISHED!</h2>
+    <p id="endText"></p>
+    <button onclick="startGame()">🔄 PLAY AGAIN</button>
+    <button onclick="backToPoster()" style="background:#eee;color:#222;margin-top:8px">🏠 BACK TO POSTER</button>
+  </div>
+</div>
+
+<script>
+let playerName="You";
+let score=0,qIndex=0,correctCount=0,combo=0,playing=false,currentQ=null,progressArr=[],timeLeft=3.0,timer=null;
+let soundOn=true, ainunVoice=null;
+let TOTAL_QUESTIONS = 100;
+let questionBank = [];
+let currentId = 0; // KUNCI SOAL - biar gak ketukar sama soal lain
+let answered = false; // Biar 1 soal cuma bisa dijawab 1x, gak double
+
+// ===== HITUNG JAWABAN DARI SOALNYA LANGSUNG - PASTI BENER =====
+function calc(a, op, b){
+  if(op==='+') return a+b;
+  if(op==='-') return a-b;
+  if(op==='×') return a*b;
+  if(op==='÷') return a/b;
+  return 0;
+}
+function verify(txt, ans){
+  // Contoh txt = "250 - 159", pecah jadi [250, -, 159]
+  let parts = txt.split(' ');
+  let a = Number(parts[0]), op = parts[1], b = Number(parts[2]);
+  return calc(a, op, b) === Number(ans);
+}
+
+function generateQuestionBank(){
+  let bank = [];
+  let used = new Set();
+  let guard = 0;
+  while(bank.length < TOTAL_QUESTIONS && guard < 5000){
+    guard++;
+    let a,b,op,ans,txt;
+    let type = Math.floor(Math.random()*4);
+    if(type===0){
+      op='+'; a=100+Math.floor(Math.random()*800); b=100+Math.floor(Math.random()*800);
+      if(a+b > 999) continue; // Maksimal 3 digit hasilnya
+      ans=calc(a,op,b);
+    }
+    else if(type===1){
+      op='-'; a=150+Math.floor(Math.random()*850); b=50+Math.floor(Math.random()*80);
+      if(b>=a) continue; // PASTI a > b, hasil gak negatif
+      ans=calc(a,op,b);
+    }
+    else if(type===2){
+      op='×'; a=11+Math.floor(Math.random()*89); b=2+Math.floor(Math.random()*7);
+      ans=calc(a,op,b);
+    }
+    else {
+      op='÷';
+      b=3+Math.floor(Math.random()*20);
+      ans=11+Math.floor(Math.random()*80); // Ini HASIL baginya
+      a=b*ans; // Jadi a PASTI habis dibagi b
+      if(a>999) continue;
+      if(a % b !== 0) continue; // PASTI bulat, gak ada koma
+    }
+    txt=`${a} ${op} ${b}`;
+    if(used.has(txt)) continue;
+    // VERIFIKASI WAJIB - kalau hitungan gak cocok, buang & bikin baru
+    if(!verify(txt, ans)) continue;
+    used.add(txt);
+
+    // Opsi jawaban - PASTI ada jawaban benar di dalamnya
+    let opts = new Set([Number(ans)]);
+    while(opts.size<4){
+      let offset = [1,-1,2,-2,3,-3,5,-5,10,-10,15,-15,20,-20,50,-50][Math.floor(Math.random()*16)];
+      let fake = Number(ans) + offset;
+      if(fake>=0 && fake!==Number(ans)) opts.add(fake);
+    }
+    let shuffledOpts = [...opts].sort(()=>Math.random()-0.5);
+    // Cek lagi: jawaban benar harus ada di opsi
+    if(!shuffledOpts.includes(Number(ans))) continue;
+    bank.push({txt, ans:Number(ans), opts: shuffledOpts});
+  }
+  return bank.sort(()=>Math.random()-0.5);
+}
+
+function loadAinunVoice(){
+  let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  ainunVoice = voices.find(v=>v.lang==='en-US' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Google US English'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Samantha'))
+    || voices.find(v=>v.lang==='en-US' && v.name.includes('Zira'))
+    || voices.find(v=>v.lang==='en-GB' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang.startsWith('en'))
+    || voices[0];
+}
+if('speechSynthesis' in window){ loadAinunVoice(); window.speechSynthesis.onvoiceschanged = loadAinunVoice; }
+function speakAinun(text, rate=1.15){
+  if(!soundOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  let u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1.35; u.volume = 1;
+  if(ainunVoice) u.voice = ainunVoice;
+  window.speechSynthesis.speak(u);
+}
+function toggleSound(e){
+  if(e) e.stopPropagation();
+  soundOn = !soundOn;
+  document.getElementById('btnVoicePoster').innerText = soundOn ? '🔊' : '🔇';
+  document.getElementById('btnVoiceGame').innerText = soundOn ? '🔊 Ainun Voice: ON' : '🔇 Ainun Voice: OFF';
+  if(soundOn) speakAinun("Hi! I am Ainun! Let's play!");
+  else if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function openName(){
+  document.getElementById('nameModal').classList.add('show');
+  speakAinun("Hi! What is your name? Tell me your name!");
+  setTimeout(()=>document.getElementById('nameInput').focus(),100);
+}
+function closeName(){ document.getElementById('nameModal').classList.remove('show'); }
+function checkName(){ let v=document.getElementById('nameInput').value.trim(); document.getElementById('btnEnter').disabled = v.length<2; }
+function enterGame(){
+  playerName=document.getElementById('nameInput').value.trim() || "You";
+  document.getElementById('nameModal').classList.remove('show');
+  document.getElementById('posterScreen').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('playerNameDisplay').innerText=playerName;
+  document.getElementById('ainunName').innerText=playerName;
+  speakAinun(`Welcome ${playerName}! Let's play math! You have 100 questions! You only have three seconds! Go go go!`);
+  startGame();
+}
+function backToPoster(){
+  document.getElementById('endModal').classList.remove('show');
+  document.getElementById('game').style.display='none';
+  document.getElementById('posterScreen').style.display='block';
+  clearInterval(timer); playing=false;
+  speakAinun("Bye bye! Come back and play again!");
+}
+function makeQ(){
+  currentQ = questionBank[qIndex];
+  currentId++; // ID baru untuk soal ini
+  answered = false; // Reset, soal ini belum dijawab
+  let myId = currentId; // Kunci ID ini di closure
+  document.getElementById('question').innerHTML=currentQ.txt+' = <span>?</span>';
+  document.getElementById('qNum').innerText=(qIndex+1)+' / '+TOTAL_QUESTIONS;
+  document.getElementById('feedback').innerText='';
+  document.getElementById('ainunEmoji').innerText='👧';
+  let el=document.getElementById('opts'); el.innerHTML='';
+  currentQ.opts.forEach(v=>{
+    let btn=document.createElement('button');
+    btn.innerText=v;
+    btn.dataset.value = Number(v); // Simpan nilai di dataset, bukan cuma di closure
+    btn.dataset.qid = myId; // Kunci tombol ini ke ID soal ini
+    btn.onclick=()=>check(Number(btn.dataset.value), btn, Number(btn.dataset.qid));
+    el.appendChild(btn);
+  });
+  let speakTxt = currentQ.txt.replace('+','plus').replace('-','minus').replace('×','times').replace('÷','divided by');
+  speakAinun(`Question ${qIndex+1}. ${speakTxt}. Quick quick!`, 1.25);
+  startTimer(myId);
+}
+function startTimer(myId){
+  clearInterval(timer); timeLeft=3.0;
+  document.getElementById('timeBig').innerText=timeLeft.toFixed(1);
+  document.getElementById('timeBig').classList.remove('danger');
+  document.getElementById('timeBar').style.width='100%';
+  timer=setInterval(()=>{
+    if(myId !== currentId) { clearInterval(timer); return; } // Kalau soal udah ganti, timer lama mati
+    timeLeft-=0.1; if(timeLeft<0)timeLeft=0;
+    document.getElementById('timeBig').innerText=timeLeft.toFixed(1);
+    document.getElementById('timeBar').style.width=(timeLeft/3*100)+'%';
+    if(timeLeft<=1)document.getElementById('timeBig').classList.add('danger');
+    if(timeLeft<=0){clearInterval(timer); timeout(myId);}
+  },100);
+}
+function check(v, btn, qid){
+  if(!playing) return;
+  if(qid !== currentId) return; // TOLAK kalau tombol ini dari soal lama
+  if(answered) return; // TOLAK kalau soal ini udah dijawab
+  answered = true;
+  clearInterval(timer);
+  let correctAns = Number(currentQ.ans);
+  let chosen = Number(v);
+  document.querySelectorAll('#opts button').forEach(b=>b.disabled=true);
+  if(chosen === correctAns){
+    btn.classList.add('correct');
+    let pts=10+Math.round(timeLeft*10); score+=pts; correctCount++; combo++; progressArr.push('done');
+    document.getElementById('feedback').innerHTML=`✅ CORRECT ${playerName}! +${pts} | Answer is ${correctAns}`;
+    document.getElementById('feedback').style.color='#22c55e';
+    document.getElementById('ainunEmoji').innerText='🥳';
+    speakAinun(combo>=3 ? `Wow! Amazing ${playerName}! Combo!` : `Yay! Correct! Good job ${playerName}!`);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#opts button').forEach(b=>{ if(Number(b.dataset.value)===correctAns) b.classList.add('correct'); });
+    combo=0; progressArr.push('wrong');
+    document.getElementById('feedback').innerHTML=`❌ WRONG! Answer is ${correctAns}`;
+    document.getElementById('feedback').style.color='#ef4444';
+    document.getElementById('ainunEmoji').innerText='😢';
+    speakAinun(`Oops! Wrong! The answer is ${correctAns}. Try again!`);
+  }
+  updateUI();
+  setTimeout(()=>{ if(qid===currentId) nextQ(); },1100);
+}
+function timeout(myId){
+  if(myId !== currentId) return;
+  if(answered) return;
+  answered = true;
+  let correctAns = Number(currentQ.ans);
+  document.querySelectorAll('#opts button').forEach(b=>{ b.disabled=true; if(Number(b.dataset.value)===correctAns) b.classList.add('correct'); });
+  progressArr.push('wrong');
+  document.getElementById('feedback').innerHTML=`⏰ TIME'S UP! Answer is ${correctAns}`;
+  document.getElementById('feedback').style.color='#ef4444';
+  document.getElementById('ainunEmoji').innerText='⏰';
+  speakAinun(`Time is up! Too slow! The answer is ${correctAns}`);
+  updateUI();
+  setTimeout(()=>{ if(myId===currentId) nextQ(); },1100);
+}
+function nextQ(){ qIndex++; if(qIndex>=TOTAL_QUESTIONS){finish();return;} makeQ(); }
+function updateUI(){
+  document.getElementById('score').innerText=score;
+  let answeredCount=progressArr.length;
+  document.getElementById('acc').innerText=answeredCount>0?Math.round(correctCount/answeredCount*100)+'%':'-';
+  let p=document.getElementById('progress'); p.innerHTML='';
+  for(let i=0;i<TOTAL_QUESTIONS;i++){let d=document.createElement('div'); if(progressArr[i])d.className=progressArr[i]; p.appendChild(d);}
+}
+function startGame(){
+  score=0;qIndex=0;correctCount=0;combo=0;progressArr=[];playing=true;
+  clearInterval(timer);
+  questionBank = generateQuestionBank();
+  document.getElementById('endModal').classList.remove('show');
+  updateUI(); makeQ();
+}
+function finish(){
+  playing=false; clearInterval(timer); let acc=Math.round(correctCount/TOTAL_QUESTIONS*100);
+  document.getElementById('endEmoji').innerText=acc>=70?'🏆':'👧';
+  document.getElementById('endTitle').innerText=`Great, ${playerName}!`;
+  document.getElementById('endText').innerText=`You got ${correctCount} out of ${TOTAL_QUESTIONS} correct! Score ${score} • Accuracy ${acc}%`;
+  document.getElementById('endModal').classList.add('show');
+  speakAinun(acc>=70 ? `Wow ${playerName}! You are a math genius! You got ${correctCount} correct!` : `Good job ${playerName}! You got ${correctCount} correct! Let's play again!`);
+}
+document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter' && !document.getElementById('btnEnter').disabled) enterGame(); });
+document.addEventListener('click', function firstClick(){ speakAinun("Hi! Welcome to my math game! I am Ainun!"); document.removeEventListener('click', firstClick); }, {once:true});
+</script>
+</body>
+</html>
