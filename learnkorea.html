@@ -30,22 +30,57 @@ h2{color:#333;font-size:18px}
 .badge{display:inline-block;background:#FFD1E3;color:#FF4D8D;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
 .speakBtn{background:#222;color:white;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;margin:8px 0}
 .result-box{text-align:left;background:#FFF0F5;padding:16px;border-radius:18px;font-size:14px;line-height:1.7}
+/* ===== COVER & NAME ===== */
+.coverImg{width:100%;border-radius:22px;overflow:hidden;background:#FFD1E3;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.coverImg img{width:100%;height:100%;object-fit:cover;display:block}
+.coverTitle{font-size:28px;font-weight:700;color:#FF4D8D;margin:14px 0 4px}
+.coverSub{color:#888;font-size:12px;line-height:1.5;margin:0 0 10px}
+.btnStart{width:100%;padding:16px;border:none;border-radius:30px;background:linear-gradient(135deg,#FF4D8D,#FF8A00);color:white;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(255,77,141,.4)}
+.btnStart:active{transform:scale(.98)}
+.backBtn{background:none;border:none;color:#aaa;cursor:pointer;margin-top:10px;font-size:13px}
+.nameError{color:#EF4444;font-size:12px;display:none;margin-top:8px}
 </style>
 </head>
 <body>
-<div class="card" id="intro">
-<div style="font-size:55px">🇰🇷</div>
-<h1>Learn Korean<br>Baca Tulisan Korea</h1>
-<p class="sub">Level 1: 40 Huruf Hangul<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
-<input class="input" id="playerName" placeholder="Type your name...">
-<button class="btn" onclick="goLevels()">START ▶</button>
+
+<!-- ========== SCREEN 1: COVER ========== -->
+<div class="card" id="coverScreen">
+  <div class="coverImg">
+    <!-- GAMBAR DARI FILE myainunlearnkorea.jpg -->
+    <img src="myainunlearnkorea.jpg" alt="Learn Korean - My Ainun" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
+    <div id="coverFallback" style="display:none;font-size:80px">🇰🇷<br><span style="font-size:18px;color:#FF4D8D;font-weight:700">Learn Korean</span></div>
+  </div>
+  <div class="coverTitle">Learn Korean<br>Baca Tulisan Korea</div>
+  <p class="coverSub">Level 1: 40 Huruf Hangul<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btnStart" onclick="goToName()">▶ START GAME</button>
+  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to learn Korean with Ainun!</p>
+</div>
+
+<!-- ========== SCREEN 2: WRITE YOUR NAME ========== -->
+<div class="card hide" id="nameScreen">
+  <div style="font-size:55px">👧🇰🇷</div>
+  <h1>Write Your Name</h1>
+  <p class="sub">Ainun wants to know your name!</p>
+  <input class="input" id="playerName" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') goLevels()">
+  <button class="btn" onclick="goLevels()">LET'S GO! →</button>
+  <button class="backBtn" onclick="showScreen('coverScreen')">← Back</button>
+  <p class="nameError" id="nameError">Please write your name first!</p>
+</div>
+
+<!-- ========== SCREEN 3: INTRO / GAME ========== -->
+<div class="card hide" id="intro">
+  <div style="font-size:55px">🇰🇷</div>
+  <h1>Learn Korean<br>Baca Tulisan Korea</h1>
+  <p class="sub">Level 1: 40 Huruf Hangul<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btn" onclick="goLevelsFromIntro()">CHOOSE LEVEL ▶</button>
+  <button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
 </div>
 
 <div class="card hide" id="levelScreen">
 <h2 id="helloName">Hi!</h2>
 <p class="sub">⭐ Score: <b id="totalScore">0</b> | 🔓 Semua Level Terbuka!</p>
 <div class="levelGrid" id="levelGrid"></div>
-<button class="btn btn2" onclick="location.reload()">Ganti Nama</button>
+<button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
 </div>
 
 <div class="card hide" id="quizScreen">
@@ -69,10 +104,42 @@ h2{color:#333;font-size:18px}
 </div>
 
 <script>
+// ===== SCREEN FLOW =====
+function showScreen(id){
+  ['coverScreen','nameScreen','intro','levelScreen','quizScreen','resultScreen'].forEach(s=>{
+    document.getElementById(s).classList.add('hide');
+  });
+  document.getElementById(id).classList.remove('hide');
+  window.scrollTo(0,0);
+}
+function goToName(){
+  showScreen('nameScreen');
+  setTimeout(()=>document.getElementById('playerName').focus(), 200);
+  speakEN("Hi! What is your name? Write your name, please!");
+}
+function goLevels(){
+  let v = document.getElementById('playerName').value.trim();
+  if(!v){
+    document.getElementById('nameError').style.display='block';
+    speakEN("Please write your name first!");
+    return;
+  }
+  document.getElementById('nameError').style.display='none';
+  name = v;
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇰🇷`;
+  renderLevels();
+  speakEN(`Hi ${name}, welcome to Learn Korean! All levels are open!`);
+}
+function goLevelsFromIntro(){
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇰🇷`;
+  renderLevels();
+}
+
 let name="You", currentLevel=1, idx=0, score=0, totalScore=0, currentQ=null, currentPool=[];
 function speakKorean(text){ const t=text||document.getElementById('qKorean').innerText; if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='ko-KR'; u.rate=0.65; speechSynthesis.speak(u);} }
 function speakEN(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);} }
-function goLevels(){ name=document.getElementById('playerName').value||"You"; document.getElementById('intro').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); document.getElementById('helloName').innerText=`Hi ${name}! 🇰🇷`; renderLevels(); speakEN(`Hi ${name}, welcome to Learn Korean! All levels are open!`); }
 
 // ===== LEVEL 1: 40 HURUF HANGUL =====
 const L1 = [
@@ -237,15 +304,6 @@ const L10_MANUAL = [
 ["조심해서 운전하세요","Drive carefully"],["내일 만나요","See you tomorrow"],["오늘 밤에 만나요","See you tonight"],["다음 주에 만나요","See you next week"],["오랜만이에요","Long time no see"],
 ];
 
-// ===== LEVEL 10 FIX: SUSUNAN SUBYEK BENAR KOREA =====
-// Pola BENAR: Subjek + Waktu + Tempat + Objek + Verb (Verb paling belakang!)
-// Contoh BENAR:
-// 저는 오늘 집에서 밥을 먹어요 = Saya hari ini di rumah makan nasi
-// 당신은 내일 카페에서 커피를 마셔요 = Kamu besok di kafe minum kopi
-// 그는 어제 학교에서 한국어를 공부해요 = Dia kemarin di sekolah belajar bahasa Korea
-// ===== LEVEL 10 FIX: JAWABAN FULL ENGLISH, SOAL FULL KOREA =====
-// Format: [verb Korea, verb English, objek Korea, objek English, tempat Korea, tempat English]
-
 const LOGICAL_PAIRS_KR = [
   ["먹어요","eat","밥을","rice","집에서","at home"],
   ["먹어요","eat","과일을","fruit","집에서","at home"],
@@ -316,12 +374,8 @@ function buildL10(){
     const t=times[idx%times.length];
     const subjKr=["저는","당신은","그는","우리는"][idx%4];
     const subjEn=["I","You","He","We"][idx%4];
-
-    // Soal: Korea - Subjek + Waktu + Tempat + Objek + Verb (Verb paling belakang)
-    // Jawaban: English - Subjek + Verb + Objek + Tempat + Waktu (Verb di depan)
     const verbKr=p[0], verbEn=p[1], objKr=p[2], objEn=p[3], placeKr=p[4], placeEn=p[5];
     const timeKr=t[0], timeEn=t[1];
-
     let thai, eng;
     if(objKr==="" && placeKr===""){
       thai=`${subjKr} ${timeKr} ${verbKr}`;
@@ -336,7 +390,6 @@ function buildL10(){
       thai=`${subjKr} ${timeKr} ${placeKr} ${objKr} ${verbKr}`;
       eng=`${subjEn} ${verbEn} ${objEn} ${placeEn} ${timeEn}`;
     }
-
     thai=thai.replace(/\s+/g,' ').trim();
     eng=eng.replace(/\s+/g,' ').trim();
     if(!seen.has(thai) && thai.length>5){ seen.add(thai); out.push([thai, eng]); }
@@ -372,8 +425,7 @@ function startLevel(id){
   currentLevel=id; idx=0; score=0;
   const lvl=LEVELS.find(l=>l.id===id);
   currentPool=[...lvl.pool].sort(()=>Math.random()-0.5);
-  document.getElementById('levelScreen').classList.add('hide');
-  document.getElementById('quizScreen').classList.remove('hide');
+  showScreen('quizScreen');
   showQ();
 }
 function getOptions(correct, allAnswers){
@@ -415,8 +467,7 @@ function showQ(){
 }
 function nextQ(){ idx++; if(idx<currentPool.length) showQ(); else showResult(); }
 function showResult(){
-  document.getElementById('quizScreen').classList.add('hide');
-  document.getElementById('resultScreen').classList.remove('hide');
+  showScreen('resultScreen');
   const lvl=LEVELS.find(l=>l.id===currentLevel);
   const max=currentPool.length*10;
   const pass = score >= max*0.6;
@@ -424,8 +475,8 @@ function showResult(){
   document.getElementById('resText').innerText=`Hi ${name}!\n\nLevel: ${lvl.title}\nScore: ${score} / ${max}\nTotal Soal: ${currentPool.length}\n\n${pass ? 'Kamu hebat!' : 'Butuh 60% buat lulus. Coba lagi ya!'}\n\nTotal Score: ${totalScore}`;
   speakEN(pass ? `Congratulations ${name}, you passed level ${currentLevel}` : `Keep trying ${name}`);
 }
-function backToLevels(){ document.getElementById('resultScreen').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); renderLevels(); }
-function retryLevel(){ document.getElementById('resultScreen').classList.add('hide'); startLevel(currentLevel); }
+function backToLevels(){ showScreen('levelScreen'); renderLevels(); }
+function retryLevel(){ startLevel(currentLevel); }
 </script>
 </body>
 </html>

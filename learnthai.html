@@ -30,22 +30,57 @@ h2{color:#333;font-size:18px}
 .badge{display:inline-block;background:#FFE0B2;color:#FF8A00;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
 .speakBtn{background:#222;color:white;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;margin:8px 0}
 .result-box{text-align:left;background:#FFF7E6;padding:16px;border-radius:18px;font-size:14px;line-height:1.7}
+/* ===== COVER & NAME ===== */
+.coverImg{width:100%;border-radius:22px;overflow:hidden;background:#FFE0B2;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.coverImg img{width:100%;height:100%;object-fit:cover;display:block}
+.coverTitle{font-size:28px;font-weight:700;color:#FF8A00;margin:14px 0 4px}
+.coverSub{color:#888;font-size:12px;line-height:1.5;margin:0 0 10px}
+.btnStart{width:100%;padding:16px;border:none;border-radius:30px;background:linear-gradient(135deg,#FF8A00,#FFB300);color:white;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(255,138,0,.4)}
+.btnStart:active{transform:scale(.98)}
+.backBtn{background:none;border:none;color:#aaa;cursor:pointer;margin-top:10px;font-size:13px}
+.nameError{color:#EF4444;font-size:12px;display:none;margin-top:8px}
 </style>
 </head>
 <body>
-<div class="card" id="intro">
-<div style="font-size:55px">🇹🇭</div>
-<h1>Learn Thai<br>Baca Tulisan Thailand</h1>
-<p class="sub">Level 1: 44 Huruf<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
-<input class="input" id="playerName" placeholder="Type your name...">
-<button class="btn" onclick="goLevels()">START ▶</button>
+
+<!-- ========== SCREEN 1: COVER ========== -->
+<div class="card" id="coverScreen">
+  <div class="coverImg">
+    <!-- GAMBAR DARI FILE myainunlearnthai.jpg -->
+    <img src="myainunlearnthai.jpg" alt="Learn Thai - My Ainun" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
+    <div id="coverFallback" style="display:none;font-size:80px">🇹🇭<br><span style="font-size:18px;color:#FF8A00;font-weight:700">Learn Thai</span></div>
+  </div>
+  <div class="coverTitle">Learn Thai<br>Baca Tulisan Thailand</div>
+  <p class="coverSub">Level 1: 44 Huruf<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btnStart" onclick="goToName()">▶ START GAME</button>
+  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to learn Thai with Ainun!</p>
+</div>
+
+<!-- ========== SCREEN 2: WRITE YOUR NAME ========== -->
+<div class="card hide" id="nameScreen">
+  <div style="font-size:55px">👧🇹🇭</div>
+  <h1>Write Your Name</h1>
+  <p class="sub">Ainun wants to know your name!</p>
+  <input class="input" id="playerName" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') goLevels()">
+  <button class="btn" onclick="goLevels()">LET'S GO! →</button>
+  <button class="backBtn" onclick="showScreen('coverScreen')">← Back</button>
+  <p class="nameError" id="nameError">Please write your name first!</p>
+</div>
+
+<!-- ========== SCREEN 3: INTRO / LEVEL SELECT (GAME) ========== -->
+<div class="card hide" id="intro">
+  <div style="font-size:55px">🇹🇭</div>
+  <h1>Learn Thai<br>Baca Tulisan Thailand</h1>
+  <p class="sub">Level 1: 44 Huruf<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btn" onclick="goLevelsFromIntro()">CHOOSE LEVEL ▶</button>
+  <button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
 </div>
 
 <div class="card hide" id="levelScreen">
 <h2 id="helloName">Hi!</h2>
 <p class="sub">⭐ Score: <b id="totalScore">0</b> | 🔓 Semua Level Terbuka!</p>
 <div class="levelGrid" id="levelGrid"></div>
-<button class="btn btn2" onclick="location.reload()">Ganti Nama</button>
+<button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
 </div>
 
 <div class="card hide" id="quizScreen">
@@ -69,10 +104,43 @@ h2{color:#333;font-size:18px}
 </div>
 
 <script>
+// ===== SCREEN FLOW =====
+function showScreen(id){
+  ['coverScreen','nameScreen','intro','levelScreen','quizScreen','resultScreen'].forEach(s=>{
+    document.getElementById(s).classList.add('hide');
+  });
+  document.getElementById(id).classList.remove('hide');
+  window.scrollTo(0,0);
+}
+function goToName(){
+  showScreen('nameScreen');
+  setTimeout(()=>document.getElementById('playerName').focus(), 200);
+  speakEN("Hi! What is your name? Write your name, please!");
+}
+function goLevels(){
+  let v = document.getElementById('playerName').value.trim();
+  if(!v){
+    document.getElementById('nameError').style.display='block';
+    speakEN("Please write your name first!");
+    return;
+  }
+  document.getElementById('nameError').style.display='none';
+  name = v;
+  // Langsung ke pilih level, skip intro biar cepat
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇹🇭`;
+  renderLevels();
+  speakEN(`Hi ${name}, welcome! All levels are open!`);
+}
+function goLevelsFromIntro(){
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇹🇭`;
+  renderLevels();
+}
+
 let name="You", currentLevel=1, idx=0, score=0, totalScore=0, currentQ=null, currentPool=[];
 function speakThai(text){ const t=text||document.getElementById('qThai').innerText; if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='th-TH'; u.rate=0.65; speechSynthesis.speak(u);} }
 function speakEN(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);} }
-function goLevels(){ name=document.getElementById('playerName').value||"You"; document.getElementById('intro').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); document.getElementById('helloName').innerText=`Hi ${name}! 🇹🇭`; renderLevels(); speakEN(`Hi ${name}, welcome! All levels are open!`); }
 
 const L1 = [
 ["ก","Gor / g"],["ข","Khor / kh"],["ฃ","Khor / kh"],["ค","Khor / kh"],["ฅ","Khor / kh"],["ฆ","Khor / kh"],["ง","Ngor / ng"],
@@ -172,486 +240,57 @@ const L9 = [
 ["ไกลๆ","Far away"],["ที่นี่","Here"],["ที่นั่น","There"],["ที่ไหน","Where"],["ทุกที่","Everywhere"],["ที่ทำงาน","Workplace"],["ที่บ้าน","At home"],["ที่โรงเรียน","At school"],["ที่วัด","At the temple"],["ที่ตลาด","At the market"]
 ];
 
-
 const L10_MANUAL = [
-  // --- 1. SAPA & KENALAN (1-80) ---
-  ["คุณชื่ออะไร","What is your name?"],
-  ["คุณมาจากไหน","Where are you from?"],
-  ["คุณมาทำอะไรที่นี่","What are you doing here?"],
-  ["ทำไมเมื่อวานคุณไปโรงพยาบาล เกิดอะไรขึ้น","Why did you go to the hospital yesterday? What happened?"],
-  ["เมื่อวานคุณไปไหนมา","Where did you go yesterday?"],
-  ["พรุ่งนี้คุณจะไปไหน","Where will you go tomorrow?"],
-  ["ตอนนี้คุณทำอะไรอยู่","What are you doing now?"],
-  ["คุณอยู่ไหน","Where are you?"],
-  ["คุณสบายดีไหม","Are you okay?"],
-  ["คุณอายุเท่าไหร่","How old are you?"],
-  ["คุณทำงานอะไร","What is your job?"],
-  ["คุณเรียนที่ไหน","Where do you study?"],
-  ["คุณพักอยู่ที่ไหน","Where do you live?"],
-  ["คุณมีแฟนหรือยัง","Do you have a boyfriend / girlfriend yet?"],
-  ["คุณแต่งงานแล้วหรือยัง","Are you married yet?"],
-  ["คุณมีลูกกี่คน","How many children do you have?"],
-  ["คุณชอบสีอะไร","What color do you like?"],
-  ["คุณชอบเพลงอะไร","What song do you like?"],
-  ["คุณชอบกินอะไร","What do you like to eat?"],
-  ["คุณชอบดูหนังไหม","Do you like watching movies?"],
-  ["คุณพูดภาษาไทยได้ไหม","Can you speak Thai?"],
-  ["คุณพูดไทยเก่งมาก","You speak Thai very well"],
-  ["คุณเข้าใจไหม","Do you understand?"],
-  ["คุณจำฉันได้ไหม","Do you remember me?"],
-  ["คุณคิดถึงฉันไหม","Do you miss me?"],
-  ["คุณรักฉันไหม","Do you love me?"],
-  ["คุณโกรธฉันไหม","Are you angry with me?"],
-  ["คุณเหนื่อยไหม","Are you tired?"],
-  ["คุณหิวไหม","Are you hungry?"],
-  ["คุณง่วงไหม","Are you sleepy?"],
-  ["คุณว่างไหม","Are you free?"],
-  ["คุณพร้อมหรือยัง","Are you ready?"],
-  ["คุณไปกับใคร","Who are you going with?"],
-  ["คุณมากับใคร","Who did you come with?"],
-  ["คุณกลับบ้านกี่โมง","What time do you go home?"],
-  ["คุณตื่นกี่โมง","What time do you wake up?"],
-  ["คุณนอนกี่โมง","What time do you sleep?"],
-  ["คุณกินข้าวหรือยัง","Have you eaten yet?"],
-  ["คุณกินข้าวที่ไหน","Where did you eat?"],
-  ["คุณจะไปเที่ยวไหน","Where will you travel to?"],
-  ["คุณอยากไปไหน","Where do you want to go?"],
-  ["คุณอยากกินอะไร","What do you want to eat?"],
-  ["คุณอยากดื่มอะไร","What do you want to drink?"],
-  ["คุณอยากทำอะไรวันนี้","What do you want to do today?"],
-  ["คุณอยากอยู่กับใคร","Who do you want to be with?"],
-  ["ทำไมคุณไม่ตอบฉัน","Why didn't you reply to me?"],
-  ["ทำไมคุณไม่มา","Why didn't you come?"],
-  ["ทำไมคุณร้องไห้","Why are you crying?"],
-  ["ทำไมคุณหัวเราะ","Why are you laughing?"],
-  ["ทำไมคุณมาสาย","Why are you late?"],
-  ["ทำไมคุณไม่กินข้าว","Why didn't you eat?"],
-  ["ทำไมคุณไม่นอน","Why aren't you sleeping?"],
-  ["เมื่อไหร่คุณจะมา","When will you come?"],
-  ["เมื่อไหร่คุณจะกลับ","When will you go back?"],
-  ["เมื่อไหร่เราจะเจอกัน","When will we meet?"],
-  ["วันนี้คุณสวยมาก","Today you are very beautiful"],
-  ["วันนี้คุณหล่อมาก","Today you are very handsome"],
-  ["วันนี้คุณดูเหนื่อย","Today you look tired"],
-  ["วันนี้คุณดูเศร้า","Today you look sad"],
-  ["วันนี้คุณดูมีความสุข","Today you look happy"],
-  ["เสื้อของคุณสวยมาก","Your shirt is very beautiful"],
-  ["ผมของคุณสวยมาก","Your hair is very beautiful"],
-  ["ยิ้มของคุณสวยมาก","Your smile is very beautiful"],
-  ["เสียงของคุณเพราะมาก","Your voice is very beautiful"],
-  ["บ้านของคุณใหญ่มาก","Your house is very big"],
-  ["รถของคุณใหม่มาก","Your car is very new"],
-  ["แมวของคุณน่ารักมาก","Your cat is very cute"],
-  ["หมาของคุณน่ารักมาก","Your dog is very cute"],
-  ["ลูกของคุณน่ารักมาก","Your child is very cute"],
-  ["เพื่อนของคุณใจดีมาก","Your friend is very kind"],
-  ["แม่ของคุณใจดีมาก","Your mother is very kind"],
-  ["พ่อของคุณเก่งมาก","Your father is very great"],
-  ["ครูของคุณสอนดีมาก","Your teacher teaches very well"],
-  ["งานของคุณยากไหม","Is your work difficult?"],
-  ["งานของคุณสนุกไหม","Is your work fun?"],
-  ["โรงเรียนของคุณอยู่ที่ไหน","Where is your school?"],
-  ["บ้านของคุณอยู่ที่ไหน","Where is your house?"],
-  ["ร้านของคุณเปิดกี่โมง","What time does your shop open?"],
-  ["ร้านของคุณปิดกี่โมง","What time does your shop close?"],
-
-  // --- 2. CINTA & PERASAAN (81-180) ---
-  ["ฉันรักเธอ","I love you"],
-  ["ฉันรักเธอมาก","I love you so much"],
-  ["ฉันรักเธอคนเดียว","I love only you"],
-  ["ฉันรักเธอที่สุด","I love you the most"],
-  ["ฉันคิดถึงเธอ","I miss you"],
-  ["ฉันคิดถึงเธอมาก","I miss you so much"],
-  ["ฉันคิดถึงเธอทุกวัน","I miss you every day"],
-  ["ฉันคิดถึงเธอทุกคืน","I miss you every night"],
-  ["ฉันฝันถึงเธอทุกคืน","I dream of you every night"],
-  ["ฉันอยากอยู่กับเธอ","I want to be with you"],
-  ["ฉันอยากอยู่กับเธอตลอดไป","I want to be with you forever"],
-  ["ฉันอยากดูแลเธอตลอดไป","I want to take care of you forever"],
-  ["เธอคือโลกของฉัน","You are my world"],
-  ["เธอคือทุกอย่างของฉัน","You are my everything"],
-  ["เธอคือความสุขของฉัน","You are my happiness"],
-  ["เธอคือแสงสว่างของฉัน","You are my light"],
-  ["เธอคือบ้านของฉัน","You are my home"],
-  ["ไม่มีเธอฉันอยู่ไม่ได้","Without you I can't live"],
-  ["ไม่มีเธอฉันเหงา","Without you I am lonely"],
-  ["เธอสำคัญที่สุดสำหรับฉัน","You are the most important for me"],
-  ["เธอสวยที่สุดในโลก","You are the most beautiful in the world"],
-  ["เธอคือฝันที่เป็นจริง","You are a dream come true"],
-  ["ขอบคุณที่เข้ามาในชีวิตฉัน","Thank you for coming into my life"],
-  ["ขอบคุณที่รักฉัน","Thank you for loving me"],
-  ["ขอบคุณที่อยู่กับฉัน","Thank you for being with me"],
-  ["อยู่กับฉันนะ","Stay with me"],
-  ["อย่าทิ้งฉันนะ","Don't leave me"],
-  ["อย่าไปไหนนะ","Don't go anywhere"],
-  ["กอดฉันหน่อย","Hug me"],
-  ["กอดฉันแน่นๆ","Hug me tightly"],
-  ["จับมือฉันหน่อย","Hold my hand"],
-  ["เธอทำให้ฉันมีความสุข","You make me happy"],
-  ["เธอทำให้ฉันยิ้ม","You make me smile"],
-  ["เธอทำให้ฉันหัวเราะ","You make me laugh"],
-  ["ฉันมีความสุขเมื่ออยู่กับเธอ","I am happy when I am with you"],
-  ["ฉันเหงาเมื่อไม่มีเธอ","I am lonely when you are not here"],
-  ["ฉันเศร้าเมื่อเธอไม่ตอบ","I am sad when you don't reply"],
-  ["ฉันโกรธเมื่อเธอโกหก","I am angry when you lie"],
-  ["ฉันกลัวว่าเธอจะทิ้งฉัน","I am afraid you will leave me"],
-  ["ฉันกลัวว่าเธอจะไม่รักฉัน","I am afraid you won't love me"],
-  ["เธอจะรักฉันตลอดไปไหม","Will you love me forever?"],
-  ["เธอจะอยู่กับฉันตลอดไปไหม","Will you stay with me forever?"],
-  ["แต่งงานกับฉันไหม","Will you marry me?"],
-  ["เธอเป็นแฟนฉันไหม","Will you be my girlfriend?"],
-  ["เธอเป็นแฟนฉันได้ไหม","Can you be my girlfriend?"],
-  ["ฉันอยากแต่งงานกับเธอ","I want to marry you"],
-  ["ฉันอยากมีลูกกับเธอ","I want to have a child with you"],
-  ["ฉันอยากแก่ไปกับเธอ","I want to grow old with you"],
-  ["เธอคือคนเดียวที่ฉันรัก","You are the only one I love"],
-  ["ฉันไม่เคยรักใครแบบนี้","I have never loved anyone like this"],
-  ["ตั้งแต่เจอเธอชีวิตฉันเปลี่ยนไป","Since I met you my life changed"],
-  ["ตั้งแต่เจอเธอฉันมีความสุข","Since I met you I am happy"],
-  ["ทุกครั้งที่เห็นเธอหัวใจฉันเต้นแรง","Every time I see you my heart beats fast"],
-  ["ฉันชอบเสียงของเธอ","I like your voice"],
-  ["ฉันชอบรอยยิ้มของเธอ","I like your smile"],
-  ["ฉันชอบเวลาที่เธอหัวเราะ","I like it when you laugh"],
-  ["ฉันชอบเวลาที่เธออยู่กับฉัน","I like it when you are with me"],
-  ["อย่าร้องไห้","Don't cry"],
-  ["อย่าเศร้า","Don't be sad"],
-  ["อย่าโกรธนะ","Don't be angry"],
-  ["อย่ากังวล","Don't worry"],
-  ["ไม่ต้องกลัว","Don't be afraid"],
-  ["ไม่ต้องห่วง","Don't worry"],
-  ["ใจเย็นๆ","Calm down"],
-  ["ฉันอยู่ตรงนี้กับเธอ","I am here with you"],
-  ["ฉันจะไม่ทิ้งเธอ","I will not leave you"],
-  ["ฉันจะอยู่ข้างๆ เธอเสมอ","I will always be beside you"],
-  ["ฉันจะดูแลเธอ","I will take care of you"],
-  ["ฉันจะปกป้องเธอ","I will protect you"],
-  ["ฉันสัญญาว่าจะรักเธอตลอดไป","I promise I will love you forever"],
-  ["ฉันสัญญาว่าจะไม่ทิ้งเธอ","I promise I will not leave you"],
-  ["ฝันดีนะที่รัก","Good night my love"],
-  ["ตื่นแล้วหรอที่รัก","Are you awake my love?"],
-  ["กินข้าวหรือยังที่รัก","Have you eaten my love?"],
-  ["ดูแลตัวเองดีๆ นะที่รัก","Take care of yourself my love"],
-  ["คิดถึงนะที่รัก","Miss you my love"],
-  ["รักนะที่รัก","Love you my love"],
-  ["จุ๊บๆ ที่รัก","Kiss kiss my love"],
-  ["เธอคือคนพิเศษของฉัน","You are my special person"],
-  ["เธอคือของขวัญที่ดีที่สุด","You are the best gift"],
-  ["เจอเธอคือโชคดีที่สุด","Meeting you is the luckiest"],
-  ["ฉันโชคดีที่มีเธอ","I am lucky to have you"],
-
-  // --- 3. KERJA, SEKOLAH & PROJEK (181-280) ---
-  ["ตอนนี้ฉันมีสัญญากับลูกค้าว่าเขาอยากให้สัญญาเรื่องโปรเจกต์ใหม่","Now I have a promise with the customer that he wants a promise about the new project"],
-  ["ตอนนี้ฉันทำงานเรื่องโปรเจกต์ใหม่","Now I am working on the new project"],
-  ["พรุ่งนี้ฉันต้องส่งงาน","Tomorrow I have to submit the work"],
-  ["วันนี้ฉันต้องประชุม","Today I have to have a meeting"],
-  ["พรุ่งนี้ฉันมีประชุมตอนเช้า","Tomorrow I have a meeting in the morning"],
-  ["วันนี้ฉันประชุมกับลูกค้า","Today I meet with the customer"],
-  ["ลูกค้าอยากให้เราทำโปรเจกต์ใหม่","The customer wants us to make a new project"],
-  ["ลูกค้าอยากให้เราแก้ไขงาน","The customer wants us to fix the work"],
-  ["ลูกค้าบอกว่างานของเราดีมาก","The customer said our work is very good"],
-  ["ลูกค้ายังไม่ตอบฉัน","The customer hasn't replied to me yet"],
-  ["ฉันต้องส่งงานวันนี้","I have to submit the work today"],
-  ["ฉันยังทำงานไม่เสร็จ","I haven't finished the work yet"],
-  ["งานนี้ยากมาก","This work is very difficult"],
-  ["งานนี้เยอะมาก","This work is a lot"],
-  ["งานนี้ต้องเสร็จพรุ่งนี้","This work must be finished tomorrow"],
-  ["ฉันเหนื่อยจากงาน","I am tired from work"],
-  ["วันนี้ฉันทำงานทั้งวัน","Today I worked all day"],
-  ["พรุ่งนี้ฉันหยุดงาน","Tomorrow I am off work"],
-  ["ฉันอยากลาออก","I want to quit my job"],
-  ["ฉันอยากหางานใหม่","I want to find a new job"],
-  ["ฉันอยากได้เงินเดือนเพิ่ม","I want a salary increase"],
-  ["เจ้านายของฉันใจดีมาก","My boss is very kind"],
-  ["เจ้านายของฉันดุมาก","My boss is very strict"],
-  ["เพื่อนร่วมงานของฉันดีมาก","My coworkers are very nice"],
-  ["วันนี้ฉันไปโรงเรียน","Today I go to school"],
-  ["วันนี้ฉันไปเรียน","Today I go to study"],
-  ["วันนี้ฉันมีสอบ","Today I have an exam"],
-  ["พรุ่งนี้ฉันมีสอบ","Tomorrow I have an exam"],
-  ["เมื่อวานฉันสอบไม่ผ่าน","Yesterday I failed the exam"],
-  ["วันนี้ฉันสอบผ่าน","Today I passed the exam"],
-  ["ฉันต้องทำการบ้าน","I have to do homework"],
-  ["ฉันยังทำการบ้านไม่เสร็จ","I haven't finished my homework yet"],
-  ["ครูของฉันสอนดีมาก","My teacher teaches very well"],
-  ["ครูให้การบ้านเยอะมาก","The teacher gave a lot of homework"],
-  ["ฉันชอบวิชาภาษาไทย","I like Thai subject"],
-  ["ฉันไม่ชอบวิชาคณิตศาสตร์","I don't like math"],
-  ["ฉันเรียนภาษาไทยทุกวัน","I learn Thai every day"],
-  ["ฉันอยากเรียนภาษาไทยให้เก่ง","I want to learn Thai to be good"],
-  ["ฉันอยากพูดไทยให้คล่อง","I want to speak Thai fluently"],
-  ["ภาษาไทยยากแต่สนุก","Thai is difficult but fun"],
-  ["ฉันอ่านหนังสือทุกคืน","I read a book every night"],
-  ["ฉันเขียนจดหมายถึงเธอ","I write a letter to you"],
-  ["ฉันส่งข้อความหาเธอ","I send a message to you"],
-  ["เธอตอบข้อความฉันหรือยัง","Have you replied to my message?"],
-  ["ทำไมเธอไม่ตอบข้อความฉัน","Why don't you reply to my message?"],
-  ["ฉันโทรหาเธอแต่เธอไม่รับ","I called you but you didn't answer"],
-  ["โทรกลับหาฉันหน่อย","Please call me back"],
-  ["ฉันจะโทรหาเธอคืนนี้","I will call you tonight"],
-  ["ฉันจะส่งรูปให้เธอ","I will send a photo to you"],
-  ["ส่งรูปให้ฉันหน่อย","Please send me a photo"],
-  ["ฉันกำลังทำงานอยู่","I am working"],
-  ["ฉันกำลังเรียนอยู่","I am studying"],
-  ["ฉันกำลังประชุมอยู่","I am in a meeting"],
-  ["ตอนนี้ฉันไม่ว่าง","Now I am not free"],
-  ["ตอนนี้ฉันว่าง","Now I am free"],
-  ["พรุ่งนี้ฉันว่าง","Tomorrow I am free"],
-  ["วันนี้ฉันว่างทั้งวัน","Today I am free all day"],
-  ["เจอกันพรุ่งนี้ที่โรงเรียน","See you tomorrow at school"],
-  ["เจอกันพรุ่งนี้ที่ทำงาน","See you tomorrow at work"],
-  ["เจอกันที่ร้านกาแฟ","See you at the coffee shop"],
-  ["เจอกันที่ตลาด","See you at the market"],
-  ["ฉันรอเธอที่บ้าน","I wait for you at home"],
-  ["ฉันรอเธอที่โรงเรียน","I wait for you at school"],
-  ["อย่ามาสาย","Don't be late"],
-  ["วันนี้ฉันมาสาย","Today I am late"],
-  ["เมื่อวานฉันมาสาย","Yesterday I was late"],
-  ["รถติดมากวันนี้","Traffic is very bad today"],
-  ["วันนี้ฝนตกเลยมาสาย","Today it rained so I was late"],
-  ["ฉันลืมกระเป๋า","I forgot my bag"],
-  ["ฉันลืมโทรศัพท์","I forgot my phone"],
-  ["ฉันลืมกุญแจบ้าน","I forgot my house key"],
-  ["ฉันจำไม่ได้","I don't remember"],
-  ["ฉันจำเธอได้","I remember you"],
-  ["ฉันจำวันเกิดเธอได้","I remember your birthday"],
-  ["ฉันลืมวันเกิดเธอ","I forgot your birthday"],
-  ["ขอโทษฉันลืม","Sorry I forgot"],
-  ["ไม่เป็นไรฉันเข้าใจ","It's okay I understand"],
-  ["ฉันเข้าใจแล้ว","I understand now"],
-  ["ฉันไม่เข้าใจ","I don't understand"],
-  ["ช่วยอธิบายอีกครั้งได้ไหม","Can you explain again?"],
-  ["พูดช้าๆ หน่อย","Please speak slowly"],
-  ["พูดดังๆ หน่อย","Please speak louder"],
-  ["เขียนให้ฉันหน่อย","Please write it for me"],
-  ["สอนฉันหน่อย","Please teach me"],
-  ["ช่วยฉันหน่อย","Please help me"],
-  ["ช่วยถือกระเป๋าหน่อย","Please help carry the bag"],
-  ["ช่วยเปิดประตูหน่อย","Please help open the door"],
-  ["ขอบคุณที่ช่วยฉัน","Thank you for helping me"],
-  ["ขอบคุณที่สอนฉัน","Thank you for teaching me"],
-  ["ขอบคุณที่รอฉัน","Thank you for waiting for me"],
-  ["ขอบคุณที่มาหาฉัน","Thank you for coming to see me"],
-  ["ยินดีที่ได้ช่วย","Happy to help"],
-  ["ไม่ต้องขอบคุณ","No need to thank"],
-  ["ไม่เป็นไร","It's okay"],
-  ["สู้ๆ นะ","Fighting!"],
-  ["เธอทำได้","You can do it"],
-  ["เธอเก่งมาก","You are very good"],
-  ["เธอทำได้ดีมาก","You did very well"],
-  ["ฉันภูมิใจในตัวเธอ","I am proud of you"],
-  ["ฉันเชื่อในตัวเธอ","I believe in you"],
-
-  // --- 4. MAKAN, MINUM & BELANJA (281-380) ---
-  ["ฉันหิวข้าว","I am hungry"],
-  ["ฉันอยากกินข้าว","I want to eat rice"],
-  ["ฉันอยากกินข้าวผัด","I want to eat fried rice"],
-  ["ฉันอยากกินผัดไทย","I want to eat Pad Thai"],
-  ["ฉันอยากกินต้มยำ","I want to eat Tom Yum"],
-  ["วันนี้ฉันกินข้าวที่บ้าน","Today I eat rice at home"],
-  ["วันนี้ฉันกินข้าวที่ร้าน","Today I eat at the restaurant"],
-  ["เมื่อวานฉันกินข้าวกับเพื่อน","Yesterday I ate with my friend"],
-  ["พรุ่งนี้ฉันจะกินข้าวกับเธอ","Tomorrow I will eat with you"],
-  ["ไปกินข้าวกัน","Let's eat together"],
-  ["ไปกินข้าวที่ตลาดกัน","Let's eat at the market"],
-  ["อาหารอร่อยมาก","The food is very delicious"],
-  ["อาหารร้านนี้อร่อยมาก","The food at this shop is very delicious"],
-  ["อาหารเผ็ดมาก","The food is very spicy"],
-  ["อาหารหวานมาก","The food is very sweet"],
-  ["อาหารเค็มมาก","The food is very salty"],
-  ["ฉันกินเผ็ดไม่ได้","I can't eat spicy"],
-  ["ฉันกินเผ็ดได้","I can eat spicy"],
-  ["ไม่ใส่พริก","No chili"],
-  ["ใส่พริกนิดหน่อย","Put a little chili"],
-  ["ฉันอยากดื่มน้ำ","I want to drink water"],
-  ["ฉันอยากดื่มกาแฟ","I want to drink coffee"],
-  ["ฉันอยากดื่มชาเย็น","I want to drink iced tea"],
-  ["ฉันกระหายน้ำ","I am thirsty"],
-  ["ดื่มน้ำเยอะๆ","Drink a lot of water"],
-  ["ฉันอยากกินไอศกรีม","I want to eat ice cream"],
-  ["ฉันอยากกินผลไม้","I want to eat fruit"],
-  ["ฉันอยากกินมะม่วง","I want to eat mango"],
-  ["ผลไม้สดมาก","The fruit is very fresh"],
-  ["ฉันซื้อผลไม้ที่ตลาด","I buy fruit at the market"],
-  ["ฉันซื้อเสื้อที่ห้าง","I buy a shirt at the mall"],
-  ["เสื้อตัวนี้เท่าไหร่","How much is this shirt?"],
-  ["อันนี้เท่าไหร่","How much is this?"],
-  ["แพงไป","Too expensive"],
-  ["ลดหน่อยได้ไหม","Can you give a discount?"],
-  ["ถูกมาก","Very cheap"],
-  ["ฉันจะซื้ออันนี้","I will buy this"],
-  ["ฉันไม่ซื้อ","I won't buy"],
-  ["มีสีอื่นไหม","Do you have another color?"],
-  ["มีไซส์ใหญ่กว่านี้ไหม","Do you have a bigger size?"],
-  ["มีไซส์เล็กกว่านี้ไหม","Do you have a smaller size?"],
-  ["ขอลองได้ไหม","Can I try it?"],
-  ["ห้องลองเสื้ออยู่ที่ไหน","Where is the fitting room?"],
-  ["ฉันจ่ายด้วยเงินสด","I pay with cash"],
-  ["ฉันจ่ายด้วยบัตร","I pay with card"],
-  ["ฉันไม่มีเงิน","I don't have money"],
-  ["ฉันลืมกระเป๋าตังค์","I forgot my wallet"],
-  ["เงินของฉันหาย","My money is gone"],
-  ["วันนี้ฉันใช้เงินเยอะ","Today I spent a lot of money"],
-  ["พรุ่งนี้ฉันจะไปตลาด","Tomorrow I will go to the market"],
-  ["ตลาดเปิดกี่โมง","What time does the market open?"],
-  ["ตลาดปิดกี่โมง","What time does the market close?"],
-  ["ตลาดอยู่ใกล้บ้านฉัน","The market is near my house"],
-  ["ร้านนี้ขายอะไร","What does this shop sell?"],
-  ["ร้านนี้ขายเสื้อผ้า","This shop sells clothes"],
-  ["ร้านนี้ขายอาหาร","This shop sells food"],
-  ["ฉันอยากซื้อของขวัญให้เธอ","I want to buy a gift for you"],
-  ["ของขวัญชิ้นนี้สำหรับเธอ","This gift is for you"],
-  ["เธอชอบของขวัญไหม","Do you like the gift?"],
-  ["ขอบคุณสำหรับของขวัญ","Thank you for the gift"],
-  ["ฉันอยากซื้อดอกไม้ให้เธอ","I want to buy flowers for you"],
-  ["ดอกไม้สวยมาก","The flowers are very beautiful"],
-  ["ดอกไม้หอมมาก","The flowers smell very good"],
-  ["ฉันชอบดอกกุหลาบ","I like roses"],
-  ["เธอชอบดอกไม้อะไร","What flower do you like?"],
-  ["ฉันชอบกินช็อกโกแลต","I like eating chocolate"],
-  ["ฉันไม่กินเนื้อ","I don't eat meat"],
-  ["ฉันไม่ดื่มเหล้า","I don't drink alcohol"],
-  ["ฉันไม่สูบบุหรี่","I don't smoke"],
-  ["ฉันอยากลดน้ำหนัก","I want to lose weight"],
-  ["ฉันอยากออกกำลังกาย","I want to exercise"],
-  ["พรุ่งนี้ฉันจะวิ่งที่สวน","Tomorrow I will run at the park"],
-  ["วันนี้ฉันวิ่งที่สวน","Today I run at the park"],
-  ["ฉันเหนื่อยจากการวิ่ง","I am tired from running"],
-  ["ฉันอยากว่ายน้ำ","I want to swim"],
-  ["พรุ่งนี้ฉันจะไปว่ายน้ำ","Tomorrow I will go swimming"],
-  ["สระว่ายน้ำอยู่ที่ไหน","Where is the swimming pool?"],
-  ["ฉันว่ายน้ำไม่เป็น","I can't swim"],
-  ["สอนฉันว่ายน้ำหน่อย","Please teach me to swim"],
-  ["ฉันชอบเล่นฟุตบอล","I like playing football"],
-  ["เธอชอบเล่นเกมไหม","Do you like playing games?"],
-  ["ฉันชอบเล่นเกมกับเธอ","I like playing games with you"],
-  ["คืนนี้เราเล่นเกมกัน","Tonight we play games together"],
-  ["เมื่อคืนฉันเล่นเกมทั้งคืน","Last night I played games all night"],
-  ["ฉันนอนดึกเพราะเล่นเกม","I slept late because I played games"],
-
-  // --- 5. SAKIT, CUACA & PERJALANAN (381-480) ---
-  ["ฉันป่วย","I am sick"],
-  ["ฉันปวดหัว","I have a headache"],
-  ["ฉันปวดท้อง","I have a stomachache"],
-  ["ฉันปวดฟัน","I have a toothache"],
-  ["ฉันเป็นไข้","I have a fever"],
-  ["ฉันไอ","I cough"],
-  ["ฉันเป็นหวัด","I have a cold"],
-  ["ฉันเจ็บขา","My leg hurts"],
-  ["ฉันเจ็บแขน","My arm hurts"],
-  ["ฉันล้ม","I fell down"],
-  ["ฉันบาดเจ็บ","I am injured"],
-  ["ไปหาหมอ","Go see a doctor"],
-  ["ไปโรงพยาบาลกัน","Let's go to the hospital"],
-  ["ทำไมเมื่อวานเธอไปโรงพยาบาล","Why did you go to the hospital yesterday?"],
-  ["เมื่อวานฉันไปโรงพยาบาลเพราะปวดท้อง","Yesterday I went to the hospital because of stomachache"],
-  ["หมอบอกว่าฉันต้องพักผ่อน","The doctor said I have to rest"],
-  ["หมอบอกว่าฉันต้องกินยา","The doctor said I have to take medicine"],
-  ["กินยาตรงเวลา","Take medicine on time"],
-  ["อย่าลืมกินยา","Don't forget to take medicine"],
-  ["พักผ่อนเยอะๆ","Rest a lot"],
-  ["นอนพักผ่อน","Sleep and rest"],
-  ["เธอหายดีหรือยัง","Are you better yet?"],
-  ["ฉันหายดีแล้ว","I am better now"],
-  ["ฉันยังไม่หายดี","I am not better yet"],
-  ["ดูแลตัวเองดีๆ","Take care of yourself"],
-  ["วันนี้อากาศดี","Today the weather is good"],
-  ["วันนี้อากาศร้อนมาก","Today the weather is very hot"],
-  ["วันนี้อากาศหนาว","Today the weather is cold"],
-  ["วันนี้ฝนตก","Today it rains"],
-  ["เมื่อวานฝนตกหนัก","Yesterday it rained heavily"],
-  ["พรุ่งนี้ฝนจะตกไหม","Will it rain tomorrow?"],
-  ["วันนี้เมฆเยอะ","Today there are many clouds"],
-  ["วันนี้ลมแรง","Today the wind is strong"],
-  ["วันนี้แดดแรง","Today the sun is strong"],
-  ["ใส่หมวก","Wear a hat"],
-  ["ใส่เสื้อกันหนาว","Wear a jacket"],
-  ["อย่าลืมเอาร่ม","Don't forget to bring an umbrella"],
-  ["ฉันเปียกฝน","I got wet from the rain"],
-  ["เสื้อของฉันเปียก","My shirt is wet"],
-  ["ฉันอยากไปทะเล","I want to go to the sea"],
-  ["พรุ่งนี้ฉันจะไปทะเล","Tomorrow I will go to the sea"],
-  ["เมื่อวานฉันไปทะเลกับเพื่อน","Yesterday I went to the sea with my friend"],
-  ["ทะเลสวยมาก","The sea is very beautiful"],
-  ["น้ำทะเลเย็นมาก","The sea water is very cold"],
-  ["ฉันอยากไปภูเขา","I want to go to the mountain"],
-  ["ฉันอยากไปวัด","I want to go to the temple"],
-  ["พรุ่งนี้ฉันจะไปวัด","Tomorrow I will go to the temple"],
-  ["เมื่อวานฉันไปวัดกับแม่","Yesterday I went to the temple with my mother"],
-  ["วัดสวยมาก","The temple is very beautiful"],
-  ["ฉันอยากถ่ายรูปที่วัด","I want to take photos at the temple"],
-  ["ถ่ายรูปกับฉันหน่อย","Please take a photo with me"],
-  ["รูปสวยมาก","The photo is very beautiful"],
-  ["รูปนี้ถ่ายที่ไหน","Where was this photo taken?"],
-  ["ฉันอยากไปกรุงเทพ","I want to go to Bangkok"],
-  ["เธอเคยไปกรุงเทพไหม","Have you ever been to Bangkok?"],
-  ["ฉันเคยไปกรุงเทพแล้ว","I have been to Bangkok"],
-  ["ฉันไม่เคยไปกรุงเทพ","I have never been to Bangkok"],
-  ["ฉันอยากไปอินโดนีเซีย","I want to go to Indonesia"],
-  ["เธอเคยไปอินโดนีเซียไหม","Have you ever been to Indonesia?"],
-  ["เที่ยวบินกี่โมง","What time is the flight?"],
-  ["สนามบินอยู่ที่ไหน","Where is the airport?"],
-  ["ฉันจะไปสนามบินพรุ่งนี้","I will go to the airport tomorrow"],
-  ["รถไฟออกกี่โมง","What time does the train leave?"],
-  ["สถานีรถไฟอยู่ที่ไหน","Where is the train station?"],
-  ["ฉันจะนั่งรถไฟไปกรุงเทพ","I will take the train to Bangkok"],
-  ["รถเมล์สายนี้ไปไหน","Where does this bus go?"],
-  ["ค่ารถเท่าไหร่","How much is the fare?"],
-  ["เลี้ยวซ้าย","Turn left"],
-  ["เลี้ยวขวา","Turn right"],
-  ["ตรงไป","Go straight"],
-  ["อยู่ใกล้ๆ","It's nearby"],
-  ["อยู่ไกลมาก","It's very far"],
-  ["ห้องน้ำอยู่ที่ไหน","Where is the bathroom?"],
-  ["โรงแรมอยู่ที่ไหน","Where is the hotel?"],
-  ["ฉันพักที่โรงแรม","I stay at the hotel"],
-  ["ฉันจองโรงแรมแล้ว","I have booked the hotel"],
-  ["ห้องของฉันอยู่ชั้นสอง","My room is on the second floor"],
-  ["กุญแจห้องของฉันหาย","My room key is gone"],
-  ["ฉันอยากเช่ารถ","I want to rent a car"],
-  ["ฉันขับรถไม่เป็น","I can't drive"],
-  ["เธอขับรถเป็นไหม","Can you drive?"],
-  ["ขับรถระวังๆ","Drive carefully"],
-  ["รถของฉันเสีย","My car is broken"],
-  ["รถของฉันน้ำมันหมด","My car ran out of gas"],
-  ["ฉันลืมทาง","I forgot the way"],
-  ["ฉันหลงทาง","I am lost"],
-  ["ช่วยบอกทางหน่อย","Please tell me the way"],
-  ["ไปทางไหน","Which way to go?"],
-  ["เธออยู่ใกล้ไหม","Are you near?"],
-  ["ฉันอยู่ใกล้บ้านเธอ","I am near your house"],
-  ["ฉันกำลังไปหาเธอ","I am going to see you"],
-  ["รอฉันแป๊บนึง","Wait for me a moment"],
-  ["รอฉันที่บ้าน","Wait for me at home"],
-  ["ฉันกำลังกลับบ้าน","I am going home"],
-  ["ฉันถึงบ้านแล้ว","I have arrived home"],
-  ["เธอถึงบ้านหรือยัง","Have you arrived home?"],
-  ["ถึงแล้วบอกฉันนะ","Tell me when you arrive"],
-  ["เดินทางปลอดภัยนะ","Have a safe trip"],
-  ["ขับรถดีๆ นะ","Drive well"],
-  ["เจอกันพรุ่งนี้","See you tomorrow"],
-  ["เจอกันคืนนี้","See you tonight"],
-  ["เจอกันอาทิตย์หน้า","See you next week"],
-  ["นานแล้วไม่ได้เจอกัน","Long time no see"],
-  ["ไม่ได้เจอกันนาน","Haven't seen you in a long time"],
-  ["ฉันคิดถึงเธอมากไม่ได้เจอกันนาน","I miss you so much, haven't seen you for a long time"],
-];
-
-// --- GENERATOR LOGIS: tambah variasi yang tetap logis sampai 1000 ---
-// Kita pakai template manual yang sudah dicek logikanya
-const LOGICAL_TEMPLATES = [
-  // [Thai template, English template, daftar subjek, daftar pelengkap]
-  ["ฉัน%s%s","I %s %s"],
-  ["เธอ%s%s","You %s %s"],
-  ["เขา%s%s","He/She %s %s"],
-  ["เรา%s%s","We %s %s"],
-  ["พรุ่งนี้ฉันจะ%s%s","Tomorrow I will %s %s"],
-  ["เมื่อวานฉัน%s%s","Yesterday I %s %s"],
-  ["วันนี้ฉัน%s%s","Today I %s %s"],
-  ["ตอนนี้ฉันกำลัง%s%s","Now I am %s %s"],
+  ["คุณชื่ออะไร","What is your name?"],["คุณมาจากไหน","Where are you from?"],["คุณมาทำอะไรที่นี่","What are you doing here?"],["ทำไมเมื่อวานคุณไปโรงพยาบาล เกิดอะไรขึ้น","Why did you go to the hospital yesterday? What happened?"],["เมื่อวานคุณไปไหนมา","Where did you go yesterday?"],["พรุ่งนี้คุณจะไปไหน","Where will you go tomorrow?"],["ตอนนี้คุณทำอะไรอยู่","What are you doing now?"],["คุณอยู่ไหน","Where are you?"],["คุณสบายดีไหม","Are you okay?"],["คุณอายุเท่าไหร่","How old are you?"],
+  ["คุณทำงานอะไร","What is your job?"],["คุณเรียนที่ไหน","Where do you study?"],["คุณพักอยู่ที่ไหน","Where do you live?"],["คุณมีแฟนหรือยัง","Do you have a boyfriend / girlfriend yet?"],["คุณแต่งงานแล้วหรือยัง","Are you married yet?"],["คุณมีลูกกี่คน","How many children do you have?"],["คุณชอบสีอะไร","What color do you like?"],["คุณชอบเพลงอะไร","What song do you like?"],["คุณชอบกินอะไร","What do you like to eat?"],["คุณชอบดูหนังไหม","Do you like watching movies?"],
+  ["คุณพูดภาษาไทยได้ไหม","Can you speak Thai?"],["คุณพูดไทยเก่งมาก","You speak Thai very well"],["คุณเข้าใจไหม","Do you understand?"],["คุณจำฉันได้ไหม","Do you remember me?"],["คุณคิดถึงฉันไหม","Do you miss me?"],["คุณรักฉันไหม","Do you love me?"],["คุณโกรธฉันไหม","Are you angry with me?"],["คุณเหนื่อยไหม","Are you tired?"],["คุณหิวไหม","Are you hungry?"],["คุณง่วงไหม","Are you sleepy?"],
+  ["คุณว่างไหม","Are you free?"],["คุณพร้อมหรือยัง","Are you ready?"],["คุณไปกับใคร","Who are you going with?"],["คุณมากับใคร","Who did you come with?"],["คุณกลับบ้านกี่โมง","What time do you go home?"],["คุณตื่นกี่โมง","What time do you wake up?"],["คุณนอนกี่โมง","What time do you sleep?"],["คุณกินข้าวหรือยัง","Have you eaten yet?"],["คุณกินข้าวที่ไหน","Where did you eat?"],["คุณจะไปเที่ยวไหน","Where will you travel to?"],
+  ["คุณอยากไปไหน","Where do you want to go?"],["คุณอยากกินอะไร","What do you want to eat?"],["คุณอยากดื่มอะไร","What do you want to drink?"],["คุณอยากทำอะไรวันนี้","What do you want to do today?"],["คุณอยากอยู่กับใคร","Who do you want to be with?"],["ทำไมคุณไม่ตอบฉัน","Why didn't you reply to me?"],["ทำไมคุณไม่มา","Why didn't you come?"],["ทำไมคุณร้องไห้","Why are you crying?"],["ทำไมคุณหัวเราะ","Why are you laughing?"],["ทำไมคุณมาสาย","Why are you late?"],
+  ["ทำไมคุณไม่กินข้าว","Why didn't you eat?"],["ทำไมคุณไม่นอน","Why aren't you sleeping?"],["เมื่อไหร่คุณจะมา","When will you come?"],["เมื่อไหร่คุณจะกลับ","When will you go back?"],["เมื่อไหร่เราจะเจอกัน","When will we meet?"],["วันนี้คุณสวยมาก","Today you are very beautiful"],["วันนี้คุณหล่อมาก","Today you are very handsome"],["วันนี้คุณดูเหนื่อย","Today you look tired"],["วันนี้คุณดูเศร้า","Today you look sad"],["วันนี้คุณดูมีความสุข","Today you look happy"],
+  ["เสื้อของคุณสวยมาก","Your shirt is very beautiful"],["ผมของคุณสวยมาก","Your hair is very beautiful"],["ยิ้มของคุณสวยมาก","Your smile is very beautiful"],["เสียงของคุณเพราะมาก","Your voice is very beautiful"],["บ้านของคุณใหญ่มาก","Your house is very big"],["รถของคุณใหม่มาก","Your car is very new"],["แมวของคุณน่ารักมาก","Your cat is very cute"],["หมาของคุณน่ารักมาก","Your dog is very cute"],["ลูกของคุณน่ารักมาก","Your child is very cute"],["เพื่อนของคุณใจดีมาก","Your friend is very kind"],
+  ["แม่ของคุณใจดีมาก","Your mother is very kind"],["พ่อของคุณเก่งมาก","Your father is very great"],["ครูของคุณสอนดีมาก","Your teacher teaches very well"],["งานของคุณยากไหม","Is your work difficult?"],["งานของคุณสนุกไหม","Is your work fun?"],["โรงเรียนของคุณอยู่ที่ไหน","Where is your school?"],["บ้านของคุณอยู่ที่ไหน","Where is your house?"],["ร้านของคุณเปิดกี่โมง","What time does your shop open?"],["ร้านของคุณปิดกี่โมง","What time does your shop close?"],
+  ["ฉันรักเธอ","I love you"],["ฉันรักเธอมาก","I love you so much"],["ฉันรักเธอคนเดียว","I love only you"],["ฉันรักเธอที่สุด","I love you the most"],["ฉันคิดถึงเธอ","I miss you"],["ฉันคิดถึงเธอมาก","I miss you so much"],["ฉันคิดถึงเธอทุกวัน","I miss you every day"],["ฉันคิดถึงเธอทุกคืน","I miss you every night"],["ฉันฝันถึงเธอทุกคืน","I dream of you every night"],["ฉันอยากอยู่กับเธอ","I want to be with you"],
+  ["ฉันอยากอยู่กับเธอตลอดไป","I want to be with you forever"],["ฉันอยากดูแลเธอตลอดไป","I want to take care of you forever"],["เธอคือโลกของฉัน","You are my world"],["เธอคือทุกอย่างของฉัน","You are my everything"],["เธอคือความสุขของฉัน","You are my happiness"],["เธอคือแสงสว่างของฉัน","You are my light"],["เธอคือบ้านของฉัน","You are my home"],["ไม่มีเธอฉันอยู่ไม่ได้","Without you I can't live"],["ไม่มีเธอฉันเหงา","Without you I am lonely"],["เธอสำคัญที่สุดสำหรับฉัน","You are the most important for me"],
+  ["เธอสวยที่สุดในโลก","You are the most beautiful in the world"],["เธอคือฝันที่เป็นจริง","You are a dream come true"],["ขอบคุณที่เข้ามาในชีวิตฉัน","Thank you for coming into my life"],["ขอบคุณที่รักฉัน","Thank you for loving me"],["ขอบคุณที่อยู่กับฉัน","Thank you for being with me"],["อยู่กับฉันนะ","Stay with me"],["อย่าทิ้งฉันนะ","Don't leave me"],["อย่าไปไหนนะ","Don't go anywhere"],["กอดฉันหน่อย","Hug me"],["กอดฉันแน่นๆ","Hug me tightly"],
+  ["จับมือฉันหน่อย","Hold my hand"],["เธอทำให้ฉันมีความสุข","You make me happy"],["เธอทำให้ฉันยิ้ม","You make me smile"],["เธอทำให้ฉันหัวเราะ","You make me laugh"],["ฉันมีความสุขเมื่ออยู่กับเธอ","I am happy when I am with you"],["ฉันเหงาเมื่อไม่มีเธอ","I am lonely when you are not here"],["ฉันเศร้าเมื่อเธอไม่ตอบ","I am sad when you don't reply"],["ฉันโกรธเมื่อเธอโกหก","I am angry when you lie"],["ฉันกลัวว่าเธอจะทิ้งฉัน","I am afraid you will leave me"],["ฉันกลัวว่าเธอจะไม่รักฉัน","I am afraid you won't love me"],
+  ["เธอจะรักฉันตลอดไปไหม","Will you love me forever?"],["เธอจะอยู่กับฉันตลอดไปไหม","Will you stay with me forever?"],["แต่งงานกับฉันไหม","Will you marry me?"],["เธอเป็นแฟนฉันไหม","Will you be my girlfriend?"],["เธอเป็นแฟนฉันได้ไหม","Can you be my girlfriend?"],["ฉันอยากแต่งงานกับเธอ","I want to marry you"],["ฉันอยากมีลูกกับเธอ","I want to have a child with you"],["ฉันอยากแก่ไปกับเธอ","I want to grow old with you"],["เธอคือคนเดียวที่ฉันรัก","You are the only one I love"],["ฉันไม่เคยรักใครแบบนี้","I have never loved anyone like this"],
+  ["ตั้งแต่เจอเธอชีวิตฉันเปลี่ยนไป","Since I met you my life changed"],["ตั้งแต่เจอเธอฉันมีความสุข","Since I met you I am happy"],["ทุกครั้งที่เห็นเธอหัวใจฉันเต้นแรง","Every time I see you my heart beats fast"],["ฉันชอบเสียงของเธอ","I like your voice"],["ฉันชอบรอยยิ้มของเธอ","I like your smile"],["ฉันชอบเวลาที่เธอหัวเราะ","I like it when you laugh"],["ฉันชอบเวลาที่เธออยู่กับฉัน","I like it when you are with me"],["อย่าร้องไห้","Don't cry"],["อย่าเศร้า","Don't be sad"],["อย่าโกรธนะ","Don't be angry"],
+  ["อย่ากังวล","Don't worry"],["ไม่ต้องกลัว","Don't be afraid"],["ไม่ต้องห่วง","Don't worry"],["ใจเย็นๆ","Calm down"],["ฉันอยู่ตรงนี้กับเธอ","I am here with you"],["ฉันจะไม่ทิ้งเธอ","I will not leave you"],["ฉันจะอยู่ข้างๆ เธอเสมอ","I will always be beside you"],["ฉันจะดูแลเธอ","I will take care of you"],["ฉันจะปกป้องเธอ","I will protect you"],["ฉันสัญญาว่าจะรักเธอตลอดไป","I promise I will love you forever"],
+  ["ฉันสัญญาว่าจะไม่ทิ้งเธอ","I promise I will not leave you"],["ฝันดีนะที่รัก","Good night my love"],["ตื่นแล้วหรอที่รัก","Are you awake my love?"],["กินข้าวหรือยังที่รัก","Have you eaten my love?"],["ดูแลตัวเองดีๆ นะที่รัก","Take care of yourself my love"],["คิดถึงนะที่รัก","Miss you my love"],["รักนะที่รัก","Love you my love"],["จุ๊บๆ ที่รัก","Kiss kiss my love"],["เธอคือคนพิเศษของฉัน","You are my special person"],["เธอคือของขวัญที่ดีที่สุด","You are the best gift"],
+  ["เจอเธอคือโชคดีที่สุด","Meeting you is the luckiest"],["ฉันโชคดีที่มีเธอ","I am lucky to have you"],
+  ["ตอนนี้ฉันมีสัญญากับลูกค้าว่าเขาอยากให้สัญญาเรื่องโปรเจกต์ใหม่","Now I have a promise with the customer that he wants a promise about the new project"],["ตอนนี้ฉันทำงานเรื่องโปรเจกต์ใหม่","Now I am working on the new project"],["พรุ่งนี้ฉันต้องส่งงาน","Tomorrow I have to submit the work"],["วันนี้ฉันต้องประชุม","Today I have to have a meeting"],["พรุ่งนี้ฉันมีประชุมตอนเช้า","Tomorrow I have a meeting in the morning"],["วันนี้ฉันประชุมกับลูกค้า","Today I meet with the customer"],["ลูกค้าอยากให้เราทำโปรเจกต์ใหม่","The customer wants us to make a new project"],["ลูกค้าอยากให้เราแก้ไขงาน","The customer wants us to fix the work"],["ลูกค้าบอกว่างานของเราดีมาก","The customer said our work is very good"],["ลูกค้ายังไม่ตอบฉัน","The customer hasn't replied to me yet"],
+  ["ฉันต้องส่งงานวันนี้","I have to submit the work today"],["ฉันยังทำงานไม่เสร็จ","I haven't finished the work yet"],["งานนี้ยากมาก","This work is very difficult"],["งานนี้เยอะมาก","This work is a lot"],["งานนี้ต้องเสร็จพรุ่งนี้","This work must be finished tomorrow"],["ฉันเหนื่อยจากงาน","I am tired from work"],["วันนี้ฉันทำงานทั้งวัน","Today I worked all day"],["พรุ่งนี้ฉันหยุดงาน","Tomorrow I am off work"],["ฉันอยากลาออก","I want to quit my job"],["ฉันอยากหางานใหม่","I want to find a new job"],
+  ["ฉันอยากได้เงินเดือนเพิ่ม","I want a salary increase"],["เจ้านายของฉันใจดีมาก","My boss is very kind"],["เจ้านายของฉันดุมาก","My boss is very strict"],["เพื่อนร่วมงานของฉันดีมาก","My coworkers are very nice"],["วันนี้ฉันไปโรงเรียน","Today I go to school"],["วันนี้ฉันไปเรียน","Today I go to study"],["วันนี้ฉันมีสอบ","Today I have an exam"],["พรุ่งนี้ฉันมีสอบ","Tomorrow I have an exam"],["เมื่อวานฉันสอบไม่ผ่าน","Yesterday I failed the exam"],["วันนี้ฉันสอบผ่าน","Today I passed the exam"],
+  ["ฉันต้องทำการบ้าน","I have to do homework"],["ฉันยังทำการบ้านไม่เสร็จ","I haven't finished my homework yet"],["ครูของฉันสอนดีมาก","My teacher teaches very well"],["ครูให้การบ้านเยอะมาก","The teacher gave a lot of homework"],["ฉันชอบวิชาภาษาไทย","I like Thai subject"],["ฉันไม่ชอบวิชาคณิตศาสตร์","I don't like math"],["ฉันเรียนภาษาไทยทุกวัน","I learn Thai every day"],["ฉันอยากเรียนภาษาไทยให้เก่ง","I want to learn Thai to be good"],["ฉันอยากพูดไทยให้คล่อง","I want to speak Thai fluently"],["ภาษาไทยยากแต่สนุก","Thai is difficult but fun"],
+  ["ฉันอ่านหนังสือทุกคืน","I read a book every night"],["ฉันเขียนจดหมายถึงเธอ","I write a letter to you"],["ฉันส่งข้อความหาเธอ","I send a message to you"],["เธอตอบข้อความฉันหรือยัง","Have you replied to my message?"],["ทำไมเธอไม่ตอบข้อความฉัน","Why don't you reply to my message?"],["ฉันโทรหาเธอแต่เธอไม่รับ","I called you but you didn't answer"],["โทรกลับหาฉันหน่อย","Please call me back"],["ฉันจะโทรหาเธอคืนนี้","I will call you tonight"],["ฉันจะส่งรูปให้เธอ","I will send a photo to you"],["ส่งรูปให้ฉันหน่อย","Please send me a photo"],
+  ["ฉันกำลังทำงานอยู่","I am working"],["ฉันกำลังเรียนอยู่","I am studying"],["ฉันกำลังประชุมอยู่","I am in a meeting"],["ตอนนี้ฉันไม่ว่าง","Now I am not free"],["ตอนนี้ฉันว่าง","Now I am free"],["พรุ่งนี้ฉันว่าง","Tomorrow I am free"],["วันนี้ฉันว่างทั้งวัน","Today I am free all day"],["เจอกันพรุ่งนี้ที่โรงเรียน","See you tomorrow at school"],["เจอกันพรุ่งนี้ที่ทำงาน","See you tomorrow at work"],["เจอกันที่ร้านกาแฟ","See you at the coffee shop"],
+  ["เจอกันที่ตลาด","See you at the market"],["ฉันรอเธอที่บ้าน","I wait for you at home"],["ฉันรอเธอที่โรงเรียน","I wait for you at school"],["อย่ามาสาย","Don't be late"],["วันนี้ฉันมาสาย","Today I am late"],["เมื่อวานฉันมาสาย","Yesterday I was late"],["รถติดมากวันนี้","Traffic is very bad today"],["วันนี้ฝนตกเลยมาสาย","Today it rained so I was late"],["ฉันลืมกระเป๋า","I forgot my bag"],["ฉันลืมโทรศัพท์","I forgot my phone"],
+  ["ฉันลืมกุญแจบ้าน","I forgot my house key"],["ฉันจำไม่ได้","I don't remember"],["ฉันจำเธอได้","I remember you"],["ฉันจำวันเกิดเธอได้","I remember your birthday"],["ฉันลืมวันเกิดเธอ","I forgot your birthday"],["ขอโทษฉันลืม","Sorry I forgot"],["ไม่เป็นไรฉันเข้าใจ","It's okay I understand"],["ฉันเข้าใจแล้ว","I understand now"],["ฉันไม่เข้าใจ","I don't understand"],["ช่วยอธิบายอีกครั้งได้ไหม","Can you explain again?"],
+  ["พูดช้าๆ หน่อย","Please speak slowly"],["พูดดังๆ หน่อย","Please speak louder"],["เขียนให้ฉันหน่อย","Please write it for me"],["สอนฉันหน่อย","Please teach me"],["ช่วยฉันหน่อย","Please help me"],["ช่วยถือกระเป๋าหน่อย","Please help carry the bag"],["ช่วยเปิดประตูหน่อย","Please help open the door"],["ขอบคุณที่ช่วยฉัน","Thank you for helping me"],["ขอบคุณที่สอนฉัน","Thank you for teaching me"],["ขอบคุณที่รอฉัน","Thank you for waiting for me"],
+  ["ขอบคุณที่มาหาฉัน","Thank you for coming to see me"],["ยินดีที่ได้ช่วย","Happy to help"],["ไม่ต้องขอบคุณ","No need to thank"],["ไม่เป็นไร","It's okay"],["สู้ๆ นะ","Fighting!"],["เธอทำได้","You can do it"],["เธอเก่งมาก","You are very good"],["เธอทำได้ดีมาก","You did very well"],["ฉันภูมิใจในตัวเธอ","I am proud of you"],["ฉันเชื่อในตัวเธอ","I believe in you"],
+  ["ฉันหิวข้าว","I am hungry"],["ฉันอยากกินข้าว","I want to eat rice"],["ฉันอยากกินข้าวผัด","I want to eat fried rice"],["ฉันอยากกินผัดไทย","I want to eat Pad Thai"],["ฉันอยากกินต้มยำ","I want to eat Tom Yum"],["วันนี้ฉันกินข้าวที่บ้าน","Today I eat rice at home"],["วันนี้ฉันกินข้าวที่ร้าน","Today I eat at the restaurant"],["เมื่อวานฉันกินข้าวกับเพื่อน","Yesterday I ate with my friend"],["พรุ่งนี้ฉันจะกินข้าวกับเธอ","Tomorrow I will eat with you"],["ไปกินข้าวกัน","Let's eat together"],
+  ["ไปกินข้าวที่ตลาดกัน","Let's eat at the market"],["อาหารอร่อยมาก","The food is very delicious"],["อาหารร้านนี้อร่อยมาก","The food at this shop is very delicious"],["อาหารเผ็ดมาก","The food is very spicy"],["อาหารหวานมาก","The food is very sweet"],["อาหารเค็มมาก","The food is very salty"],["ฉันกินเผ็ดไม่ได้","I can't eat spicy"],["ฉันกินเผ็ดได้","I can eat spicy"],["ไม่ใส่พริก","No chili"],["ใส่พริกนิดหน่อย","Put a little chili"],
+  ["ฉันอยากดื่มน้ำ","I want to drink water"],["ฉันอยากดื่มกาแฟ","I want to drink coffee"],["ฉันอยากดื่มชาเย็น","I want to drink iced tea"],["ฉันกระหายน้ำ","I am thirsty"],["ดื่มน้ำเยอะๆ","Drink a lot of water"],["ฉันอยากกินไอศกรีม","I want to eat ice cream"],["ฉันอยากกินผลไม้","I want to eat fruit"],["ฉันอยากกินมะม่วง","I want to eat mango"],["ผลไม้สดมาก","The fruit is very fresh"],["ฉันซื้อผลไม้ที่ตลาด","I buy fruit at the market"],
+  ["ฉันซื้อเสื้อที่ห้าง","I buy a shirt at the mall"],["เสื้อตัวนี้เท่าไหร่","How much is this shirt?"],["อันนี้เท่าไหร่","How much is this?"],["แพงไป","Too expensive"],["ลดหน่อยได้ไหม","Can you give a discount?"],["ถูกมาก","Very cheap"],["ฉันจะซื้ออันนี้","I will buy this"],["ฉันไม่ซื้อ","I won't buy"],["มีสีอื่นไหม","Do you have another color?"],["มีไซส์ใหญ่กว่านี้ไหม","Do you have a bigger size?"],
+  ["มีไซส์เล็กกว่านี้ไหม","Do you have a smaller size?"],["ขอลองได้ไหม","Can I try it?"],["ห้องลองเสื้ออยู่ที่ไหน","Where is the fitting room?"],["ฉันจ่ายด้วยเงินสด","I pay with cash"],["ฉันจ่ายด้วยบัตร","I pay with card"],["ฉันไม่มีเงิน","I don't have money"],["ฉันลืมกระเป๋าตังค์","I forgot my wallet"],["เงินของฉันหาย","My money is gone"],["วันนี้ฉันใช้เงินเยอะ","Today I spent a lot of money"],["พรุ่งนี้ฉันจะไปตลาด","Tomorrow I will go to the market"],
+  ["ตลาดเปิดกี่โมง","What time does the market open?"],["ตลาดปิดกี่โมง","What time does the market close?"],["ตลาดอยู่ใกล้บ้านฉัน","The market is near my house"],["ร้านนี้ขายอะไร","What does this shop sell?"],["ร้านนี้ขายเสื้อผ้า","This shop sells clothes"],["ร้านนี้ขายอาหาร","This shop sells food"],["ฉันอยากซื้อของขวัญให้เธอ","I want to buy a gift for you"],["ของขวัญชิ้นนี้สำหรับเธอ","This gift is for you"],["เธอชอบของขวัญไหม","Do you like the gift?"],["ขอบคุณสำหรับของขวัญ","Thank you for the gift"],
+  ["ฉันอยากซื้อดอกไม้ให้เธอ","I want to buy flowers for you"],["ดอกไม้สวยมาก","The flowers are very beautiful"],["ดอกไม้หอมมาก","The flowers smell very good"],["ฉันชอบดอกกุหลาบ","I like roses"],["เธอชอบดอกไม้อะไร","What flower do you like?"],["ฉันชอบกินช็อกโกแลต","I like eating chocolate"],["ฉันไม่กินเนื้อ","I don't eat meat"],["ฉันไม่ดื่มเหล้า","I don't drink alcohol"],["ฉันไม่สูบบุหรี่","I don't smoke"],["ฉันอยากลดน้ำหนัก","I want to lose weight"],
+  ["ฉันอยากออกกำลังกาย","I want to exercise"],["พรุ่งนี้ฉันจะวิ่งที่สวน","Tomorrow I will run at the park"],["วันนี้ฉันวิ่งที่สวน","Today I run at the park"],["ฉันเหนื่อยจากการวิ่ง","I am tired from running"],["ฉันอยากว่ายน้ำ","I want to swim"],["พรุ่งนี้ฉันจะไปว่ายน้ำ","Tomorrow I will go swimming"],["สระว่ายน้ำอยู่ที่ไหน","Where is the swimming pool?"],["ฉันว่ายน้ำไม่เป็น","I can't swim"],["สอนฉันว่ายน้ำหน่อย","Please teach me to swim"],["ฉันชอบเล่นฟุตบอล","I like playing football"],
+  ["เธอชอบเล่นเกมไหม","Do you like playing games?"],["ฉันชอบเล่นเกมกับเธอ","I like playing games with you"],["คืนนี้เราเล่นเกมกัน","Tonight we play games together"],["เมื่อคืนฉันเล่นเกมทั้งคืน","Last night I played games all night"],["ฉันนอนดึกเพราะเล่นเกม","I slept late because I played games"],
+  ["ฉันป่วย","I am sick"],["ฉันปวดหัว","I have a headache"],["ฉันปวดท้อง","I have a stomachache"],["ฉันปวดฟัน","I have a toothache"],["ฉันเป็นไข้","I have a fever"],["ฉันไอ","I cough"],["ฉันเป็นหวัด","I have a cold"],["ฉันเจ็บขา","My leg hurts"],["ฉันเจ็บแขน","My arm hurts"],["ฉันล้ม","I fell down"],
+  ["ฉันบาดเจ็บ","I am injured"],["ไปหาหมอ","Go see a doctor"],["ไปโรงพยาบาลกัน","Let's go to the hospital"],["ทำไมเมื่อวานเธอไปโรงพยาบาล","Why did you go to the hospital yesterday?"],["เมื่อวานฉันไปโรงพยาบาลเพราะปวดท้อง","Yesterday I went to the hospital because of stomachache"],["หมอบอกว่าฉันต้องพักผ่อน","The doctor said I have to rest"],["หมอบอกว่าฉันต้องกินยา","The doctor said I have to take medicine"],["กินยาตรงเวลา","Take medicine on time"],["อย่าลืมกินยา","Don't forget to take medicine"],["พักผ่อนเยอะๆ","Rest a lot"],
+  ["นอนพักผ่อน","Sleep and rest"],["เธอหายดีหรือยัง","Are you better yet?"],["ฉันหายดีแล้ว","I am better now"],["ฉันยังไม่หายดี","I am not better yet"],["ดูแลตัวเองดีๆ","Take care of yourself"],["วันนี้อากาศดี","Today the weather is good"],["วันนี้อากาศร้อนมาก","Today the weather is very hot"],["วันนี้อากาศหนาว","Today the weather is cold"],["วันนี้ฝนตก","Today it rains"],["เมื่อวานฝนตกหนัก","Yesterday it rained heavily"],
+  ["พรุ่งนี้ฝนจะตกไหม","Will it rain tomorrow?"],["วันนี้เมฆเยอะ","Today there are many clouds"],["วันนี้ลมแรง","Today the wind is strong"],["วันนี้แดดแรง","Today the sun is strong"],["ใส่หมวก","Wear a hat"],["ใส่เสื้อกันหนาว","Wear a jacket"],["อย่าลืมเอาร่ม","Don't forget to bring an umbrella"],["ฉันเปียกฝน","I got wet from the rain"],["เสื้อของฉันเปียก","My shirt is wet"],["ฉันอยากไปทะเล","I want to go to the sea"],
+  ["พรุ่งนี้ฉันจะไปทะเล","Tomorrow I will go to the sea"],["เมื่อวานฉันไปทะเลกับเพื่อน","Yesterday I went to the sea with my friend"],["ทะเลสวยมาก","The sea is very beautiful"],["น้ำทะเลเย็นมาก","The sea water is very cold"],["ฉันอยากไปภูเขา","I want to go to the mountain"],["ฉันอยากไปวัด","I want to go to the temple"],["พรุ่งนี้ฉันจะไปวัด","Tomorrow I will go to the temple"],["เมื่อวานฉันไปวัดกับแม่","Yesterday I went to the temple with my mother"],["วัดสวยมาก","The temple is very beautiful"],["ฉันอยากถ่ายรูปที่วัด","I want to take photos at the temple"],
+  ["ถ่ายรูปกับฉันหน่อย","Please take a photo with me"],["รูปสวยมาก","The photo is very beautiful"],["รูปนี้ถ่ายที่ไหน","Where was this photo taken?"],["ฉันอยากไปกรุงเทพ","I want to go to Bangkok"],["เธอเคยไปกรุงเทพไหม","Have you ever been to Bangkok?"],["ฉันเคยไปกรุงเทพแล้ว","I have been to Bangkok"],["ฉันไม่เคยไปกรุงเทพ","I have never been to Bangkok"],["ฉันอยากไปอินโดนีเซีย","I want to go to Indonesia"],["เธอเคยไปอินโดนีเซียไหม","Have you ever been to Indonesia?"],["เที่ยวบินกี่โมง","What time is the flight?"],
+  ["สนามบินอยู่ที่ไหน","Where is the airport?"],["ฉันจะไปสนามบินพรุ่งนี้","I will go to the airport tomorrow"],["รถไฟออกกี่โมง","What time does the train leave?"],["สถานีรถไฟอยู่ที่ไหน","Where is the train station?"],["ฉันจะนั่งรถไฟไปกรุงเทพ","I will take the train to Bangkok"],["รถเมล์สายนี้ไปไหน","Where does this bus go?"],["ค่ารถเท่าไหร่","How much is the fare?"],["เลี้ยวซ้าย","Turn left"],["เลี้ยวขวา","Turn right"],["ตรงไป","Go straight"],
+  ["อยู่ใกล้ๆ","It's nearby"],["อยู่ไกลมาก","It's very far"],["ห้องน้ำอยู่ที่ไหน","Where is the bathroom?"],["โรงแรมอยู่ที่ไหน","Where is the hotel?"],["ฉันพักที่โรงแรม","I stay at the hotel"],["ฉันจองโรงแรมแล้ว","I have booked the hotel"],["ห้องของฉันอยู่ชั้นสอง","My room is on the second floor"],["กุญแจห้องของฉันหาย","My room key is gone"],["ฉันอยากเช่ารถ","I want to rent a car"],["ฉันขับรถไม่เป็น","I can't drive"],
+  ["เธอขับรถเป็นไหม","Can you drive?"],["ขับรถระวังๆ","Drive carefully"],["รถของฉันเสีย","My car is broken"],["รถของฉันน้ำมันหมด","My car ran out of gas"],["ฉันลืมทาง","I forgot the way"],["ฉันหลงทาง","I am lost"],["ช่วยบอกทางหน่อย","Please tell me the way"],["ไปทางไหน","Which way to go?"],["เธออยู่ใกล้ไหม","Are you near?"],["ฉันอยู่ใกล้บ้านเธอ","I am near your house"],
+  ["ฉันกำลังไปหาเธอ","I am going to see you"],["รอฉันแป๊บนึง","Wait for me a moment"],["รอฉันที่บ้าน","Wait for me at home"],["ฉันกำลังกลับบ้าน","I am going home"],["ฉันถึงบ้านแล้ว","I have arrived home"],["เธอถึงบ้านหรือยัง","Have you arrived home?"],["ถึงแล้วบอกฉันนะ","Tell me when you arrive"],["เดินทางปลอดภัยนะ","Have a safe trip"],["ขับรถดีๆ นะ","Drive well"],["เจอกันพรุ่งนี้","See you tomorrow"],
+  ["เจอกันคืนนี้","See you tonight"],["เจอกันอาทิตย์หน้า","See you next week"],["นานแล้วไม่ได้เจอกัน","Long time no see"],["ไม่ได้เจอกันนาน","Haven't seen you in a long time"],["ฉันคิดถึงเธอมากไม่ได้เจอกันนาน","I miss you so much, haven't seen you for a long time"],
 ];
 
 const LOGICAL_PAIRS = [
-  // [verb Thai, verb Eng, objek Thai, objek Eng, tempat Thai, tempat Eng] - semua sudah dipasangkan logis
   ["กิน","eat","ข้าว","rice","ที่บ้าน","at home"],
   ["กิน","eat","ผลไม้","fruit","ที่บ้าน","at home"],
   ["กิน","eat","ข้าวผัด","fried rice","ที่ร้าน","at the shop"],
@@ -709,7 +348,6 @@ const LOGICAL_PAIRS = [
 function buildL10(){
   let out = [...L10_MANUAL];
   let seen = new Set(out.map(x=>x[0]));
-  // Buat variasi logis dari LOGICAL_PAIRS + waktu yang masuk akal
   const times = [
     ["วันนี้","today"],["พรุ่งนี้","tomorrow"],["เมื่อวาน","yesterday"],["ตอนเช้า","in the morning"],["ตอนเย็น","in the evening"],["ทุกวัน","every day"],["ตอนนี้","now"]
   ];
@@ -722,7 +360,6 @@ function buildL10(){
     const subjEng = ["I","You","He/She","We"][idx % 4];
     let thai = `${subj}${p[0]}${p[2]}${p[4]}${t[0]}`;
     let eng = `${subjEng} ${p[1]} ${p[3]} ${p[5]} ${t[1]}`.replace(/\s+/g,' ').trim();
-    // Bersihkan double space & pola yang aneh
     thai = thai.replace("ที่บ้านที่บ้าน","ที่บ้าน");
     if(!seen.has(thai) && thai.length > 4){
       seen.add(thai);
@@ -746,7 +383,6 @@ const LEVELS=[
 { id:10, emoji:"👑", title:"Level 10 - MASTER", desc:"815 Soal • MASTER TEST", q:"What does this mean?", pool:L10 },
 ];
 
-// ===== SEMUA LEVEL LANGSUNG KEBUKA - GAK ADA LOCK =====
 function renderLevels(){
   const grid=document.getElementById('levelGrid'); grid.innerHTML='';
   document.getElementById('totalScore').innerText=totalScore;
@@ -761,8 +397,7 @@ function startLevel(id){
   currentLevel=id; idx=0; score=0;
   const lvl=LEVELS.find(l=>l.id===id);
   currentPool=[...lvl.pool].sort(()=>Math.random()-0.5);
-  document.getElementById('levelScreen').classList.add('hide');
-  document.getElementById('quizScreen').classList.remove('hide');
+  showScreen('quizScreen');
   showQ();
 }
 function getOptions(correct, allAnswers){
@@ -804,18 +439,16 @@ function showQ(){
 }
 function nextQ(){ idx++; if(idx<currentPool.length) showQ(); else showResult(); }
 function showResult(){
-  document.getElementById('quizScreen').classList.add('hide');
-  document.getElementById('resultScreen').classList.remove('hide');
+  showScreen('resultScreen');
   const lvl=LEVELS.find(l=>l.id===currentLevel);
   const max=currentPool.length*10;
   const pass = score >= max*0.6;
-  // GAK ADA LAGI BUKA LEVEL, SEMUA UDAH KEBUKA
   document.getElementById('resTitle').innerText= pass ? `Level ${currentLevel} LULUS! 🎉` : `Level ${currentLevel} Belum Lulus 😅`;
   document.getElementById('resText').innerText=`Hi ${name}!\n\nLevel: ${lvl.title}\nScore: ${score} / ${max}\nTotal Soal: ${currentPool.length}\n\n${pass ? 'Kamu hebat!' : 'Butuh 60% buat lulus. Coba lagi ya!'}\n\nTotal Score: ${totalScore}`;
   speakEN(pass ? `Congratulations ${name}, you passed level ${currentLevel}` : `Keep trying ${name}`);
 }
-function backToLevels(){ document.getElementById('resultScreen').classList.add('hide'); document.getElementById('levelScreen').classList.remove('hide'); renderLevels(); }
-function retryLevel(){ document.getElementById('resultScreen').classList.add('hide'); startLevel(currentLevel); }
+function backToLevels(){ showScreen('levelScreen'); renderLevels(); }
+function retryLevel(){ startLevel(currentLevel); }
 </script>
 </body>
 </html>

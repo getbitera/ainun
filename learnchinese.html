@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Chinese - All Levels Open</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+SC:wght@400;700&display=swap');
+body{margin:0;font-family:'Fredoka',sans-serif;background:#FFF3E0;display:flex;justify-content:center;padding:15px 0;min-height:100vh}
+.card{background:white;width:92%;max-width:460px;border-radius:28px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
+h1{color:#E63946;font-size:26px;margin:8px 0}
+h2{color:#333;font-size:18px}
+.sub{color:#888;font-size:12px;line-height:1.5}
+.btn{background:#E63946;color:white;border:none;padding:14px;border-radius:30px;font-size:16px;font-weight:600;width:100%;cursor:pointer;margin-top:10px}
+.btn2{background:#eee;color:#666}
+.input{width:100%;padding:14px;border-radius:20px;border:2px solid #FFD6D6;outline:none;font-size:16px;text-align:center;box-sizing:border-box}
+.chinese{font-family:'Noto Sans SC',sans-serif;font-size:38px;line-height:1.4;color:#E63946;font-weight:700;margin:12px 0;word-break:break-word}
+.option{display:block;background:#FFF3E0;border:2px solid #FFD6D6;padding:13px 15px;border-radius:16px;margin:7px 0;text-align:left;cursor:pointer;font-size:14px}
+.option.correct{background:#22C55E;color:white;border-color:#22C55E}
+.option.wrong{background:#EF4444;color:white;border-color:#EF4444}
+.progress{height:8px;background:#FFD6D6;border-radius:10px;overflow:hidden;margin:10px 0}
+.bar{height:100%;background:#E63946;transition:.3s}
+.hide{display:none}
+.levelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.levelCard{background:#FFF3E0;border:2px solid #FFD6D6;border-radius:18px;padding:14px;cursor:pointer;text-align:left}
+.levelCard b{font-size:15px}
+.levelCard p{margin:4px 0 0;font-size:11px;color:#888}
+.levelCard .emoji{font-size:24px}
+.badge{display:inline-block;background:#FFD6D6;color:#E63946;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.speakBtn{background:#222;color:white;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;margin:8px 0}
+.result-box{text-align:left;background:#FFF3E0;padding:16px;border-radius:18px;font-size:14px;line-height:1.7}
+/* ===== COVER & NAME ===== */
+.coverImg{width:100%;border-radius:22px;overflow:hidden;background:#FFD6D6;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.coverImg img{width:100%;height:100%;object-fit:cover;display:block}
+.coverTitle{font-size:28px;font-weight:700;color:#E63946;margin:14px 0 4px}
+.coverSub{color:#888;font-size:12px;line-height:1.5;margin:0 0 10px}
+.btnStart{width:100%;padding:16px;border:none;border-radius:30px;background:linear-gradient(135deg,#E63946,#FF8A00);color:white;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(230,57,70,.4)}
+.btnStart:active{transform:scale(.98)}
+.backBtn{background:none;border:none;color:#aaa;cursor:pointer;margin-top:10px;font-size:13px}
+.nameError{color:#EF4444;font-size:12px;display:none;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- ========== SCREEN 1: COVER ========== -->
+<div class="card" id="coverScreen">
+  <div class="coverImg">
+    <!-- GAMBAR DARI FILE myainunlearnchines.jpg -->
+    <img src="myainunlearnchines.jpg" alt="Learn Chinese - My Ainun" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
+    <div id="coverFallback" style="display:none;font-size:80px">🇨🇳<br><span style="font-size:18px;color:#E63946;font-weight:700">Learn Chinese</span></div>
+  </div>
+  <div class="coverTitle">Learn Chinese<br>Baca Tulisan Cina</div>
+  <p class="coverSub">Level 1: 40 Karakter Dasar<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btnStart" onclick="goToName()">▶ START GAME</button>
+  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to learn Chinese with Ainun!</p>
+</div>
+
+<!-- ========== SCREEN 2: WRITE YOUR NAME ========== -->
+<div class="card hide" id="nameScreen">
+  <div style="font-size:55px">👧🇨🇳</div>
+  <h1>Write Your Name</h1>
+  <p class="sub">Ainun wants to know your name!</p>
+  <input class="input" id="playerName" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') goLevels()">
+  <button class="btn" onclick="goLevels()">LET'S GO! →</button>
+  <button class="backBtn" onclick="showScreen('coverScreen')">← Back</button>
+  <p class="nameError" id="nameError">Please write your name first!</p>
+</div>
+
+<!-- ========== SCREEN 3: INTRO / GAME ========== -->
+<div class="card hide" id="intro">
+  <div style="font-size:55px">🇨🇳</div>
+  <h1>Learn Chinese<br>Baca Tulisan Cina</h1>
+  <p class="sub">Level 1: 40 Karakter Dasar<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btn" onclick="goLevelsFromIntro()">CHOOSE LEVEL ▶</button>
+  <button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
+</div>
+
+<div class="card hide" id="levelScreen">
+<h2 id="helloName">Hi!</h2>
+<p class="sub">⭐ Score: <b id="totalScore">0</b> | 🔓 Semua Level Terbuka!</p>
+<div class="levelGrid" id="levelGrid"></div>
+<button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
+</div>
+
+<div class="card hide" id="quizScreen">
+<div class="progress"><div class="bar" id="bar"></div></div>
+<p class="sub" id="qCount"></p>
+<span class="badge" id="qLevel"></span>
+<div class="chinese" id="qChinese"></div>
+<button class="speakBtn" onclick="speakChinese()">🔊 Dengerin Bunyinya</button>
+<h2 id="qTitle"></h2>
+<div id="qOptions"></div>
+<button class="btn hide" id="nextBtn" onclick="nextQ()">Next ➜</button>
+<p class="sub" id="reviewTxt"></p>
+</div>
+
+<div class="card hide" id="resultScreen">
+<div style="font-size:48px">🎉</div>
+<h1 id="resTitle"></h1>
+<div class="result-box" id="resText"></div>
+<button class="btn" onclick="backToLevels()">Pilih Level Lagi</button>
+<button class="btn btn2" onclick="retryLevel()">Ulangi Level Ini</button>
+</div>
+
+<script>
+// ===== SCREEN FLOW =====
+function showScreen(id){
+  ['coverScreen','nameScreen','intro','levelScreen','quizScreen','resultScreen'].forEach(s=>{
+    document.getElementById(s).classList.add('hide');
+  });
+  document.getElementById(id).classList.remove('hide');
+  window.scrollTo(0,0);
+}
+function goToName(){
+  showScreen('nameScreen');
+  setTimeout(()=>document.getElementById('playerName').focus(), 200);
+  speakEN("Hi! What is your name? Write your name, please!");
+}
+function goLevels(){
+  let v = document.getElementById('playerName').value.trim();
+  if(!v){
+    document.getElementById('nameError').style.display='block';
+    speakEN("Please write your name first!");
+    return;
+  }
+  document.getElementById('nameError').style.display='none';
+  name = v;
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇨🇳`;
+  renderLevels();
+  speakEN(`Hi ${name}, welcome to Learn Chinese! All levels are open!`);
+}
+function goLevelsFromIntro(){
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇨🇳`;
+  renderLevels();
+}
+
+let name="You", currentLevel=1, idx=0, score=0, totalScore=0, currentQ=null, currentPool=[];
+function speakChinese(text){ const t=text||document.getElementById('qChinese').innerText; if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='zh-CN'; u.rate=0.6; speechSynthesis.speak(u);} }
+function speakEN(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);} }
+
+// ===== LEVEL 1: 40 KARAKTER DASAR =====
+const L1 = [
+["人","Person / ren"],["口","Mouth / kou"],["手","Hand / shou"],["目","Eye / mu"],["耳","Ear / er"],["心","Heart / xin"],["日","Sun / Day / ri"],["月","Moon / Month / yue"],["山","Mountain / shan"],["水","Water / shui"],
+["火","Fire / huo"],["木","Wood / mu"],["金","Gold / jin"],["土","Earth / tu"],["天","Sky / tian"],["地","Ground / di"],["大","Big / da"],["小","Small / xiao"],["多","Many / duo"],["少","Few / shao"],
+["上","Up / shang"],["下","Down / xia"],["左","Left / zuo"],["右","Right / you"],["前","Front / qian"],["后","Back / hou"],["中","Middle / zhong"],["外","Outside / wai"],["高","Tall / gao"],["低","Low / di"],
+["好","Good / hao"],["坏","Bad / huai"],["爱","Love / ai"],["学","Study / xue"],["我","I / wo"],["你","You / ni"],["他","He / ta"],["她","She / ta"],["们","Plural / men"],["是","Is / shi"]
+];
+
+// ===== LEVEL 2: 200 KATA =====
+const L2 = [
+["狗","Dog"],["猫","Cat"],["鸟","Bird"],["鱼","Fish"],["鸡","Chicken"],["猪","Pig"],["牛","Cow"],["大象","Elephant"],["马","Horse"],["猴子","Monkey"],
+["老虎","Tiger"],["狮子","Lion"],["蛇","Snake"],["青蛙","Frog"],["鸭子","Duck"],["兔子","Rabbit"],["老鼠","Mouse"],["熊","Bear"],["狐狸","Fox"],["狼","Wolf"],
+["水","Water"],["米饭","Rice"],["面包","Bread"],["牛奶","Milk"],["咖啡","Coffee"],["茶","Tea"],["橙汁","Orange juice"],["啤酒","Beer"],["葡萄酒","Wine"],["水果","Fruit"],
+["家","House"],["学校","School"],["医院","Hospital"],["市场","Market"],["寺庙","Temple"],["商店","Shop"],["酒店","Hotel"],["机场","Airport"],["车站","Station"],["公园","Park"],
+["妈妈","Mother"],["爸爸","Father"],["哥哥","Older brother"],["姐姐","Older sister"],["弟弟","Younger brother"],["妹妹","Younger sister"],["弟弟妹妹","Younger sibling"],["儿子","Son"],["女儿","Daughter"],["朋友","Friend"],
+["男朋友","Boyfriend"],["女朋友","Girlfriend"],["老师","Teacher"],["医生","Doctor"],["警察","Police"],["爱","Love"],["喜欢","Like"],["想念","Miss"],["害怕","Afraid"],["生气","Angry"],
+["难过","Sad"],["开心","Happy"],["累","Tired"],["饿","Hungry"],["吃","Eat"],["喝","Drink"],["睡觉","Sleep"],["起床","Wake up"],["跑步","Run"],["走路","Walk"],
+["坐","Sit"],["站","Stand"],["说话","Speak"],["听","Listen"],["看","Watch / See"],["读","Read"],["写","Write"],["学习","Study"],["工作","Work"],["玩","Play"],
+["唱歌","Sing"],["跳舞","Dance"],["游泳","Swim"],["开车","Drive"],["漂亮","Beautiful"],["帅","Handsome"],["大","Big"],["小","Small"],["高","Tall"],["热","Hot"],
+["冷","Cold"],["快","Fast"],["慢","Slow"],["新","New"],["旧","Old"],["好","Good"],["贵","Expensive"],["便宜","Cheap"],["容易","Easy"],["难","Difficult"],
+["红色","Red"],["蓝色","Blue"],["绿色","Green"],["黄色","Yellow"],["黑色","Black"],["白色","White"],["粉色","Pink"],["紫色","Purple"],["橙色","Orange"],["棕色","Brown"],
+["一","One"],["二","Two"],["三","Three"],["四","Four"],["五","Five"],["六","Six"],["七","Seven"],["八","Eight"],["九","Nine"],["十","Ten"],
+["今天","Today"],["明天","Tomorrow"],["昨天","Yesterday"],["早上","Morning"],["晚上","Evening"],["现在","Now"],["每天","Every day"],["星期","Week"],["月","Month"],["年","Year"],
+["时间","Time"],["大海","Sea"],["山","Mountain"],["河","River"],["森林","Forest"],["花","Flower"],["树","Tree"],["太阳","Sun"],["月亮","Moon"],["星星","Star"],
+["雨","Rain"],["云","Cloud"],["风","Wind"],["天空","Sky"],["火","Fire"],["衬衫","Shirt"],["裤子","Pants"],["裙子","Skirt"],["连衣裙","Dress"],["鞋子","Shoes"],
+["帽子","Hat"],["眼镜","Glasses"],["包","Bag"],["手表","Watch"],["戒指","Ring"],["头","Head"],["眼睛","Eye"],["鼻子","Nose"],["嘴","Mouth"],["耳朵","Ear"],
+["手","Hand"],["脚","Foot"],["手臂","Arm"],["腿","Leg"],["头发","Hair"],["心脏","Heart"],["身体","Body"],["皮肤","Skin"],["牙齿","Teeth"],["歌","Song"],
+["电影","Movie"],["书","Book"],["游戏","Game"],["电话","Phone"],["电脑","Computer"],["汽车","Car"],["火车","Train"],["船","Boat"],["飞机","Airplane"],["食物","Food"],
+["蔬菜","Vegetable"],["肉","Meat"],["鸡蛋","Egg"],["盐","Salt"],["糖","Sugar"],["辣椒","Chili"],["好吃","Delicious"],["辣","Spicy"],["甜","Sweet"],["酸","Sour"],
+["咸","Salty"],["干净","Clean"],["脏","Dirty"],["安静","Quiet"],["吵","Loud"],["亮","Bright"],["暗","Dark"],["宽","Wide"],["窄","Narrow"],["长","Long"],
+["短","Short"],["重","Heavy"],["轻","Light"],["硬","Hard"],["软","Soft"],["干","Dry"],["湿","Wet"],["满","Full"],["空","Empty"],["近","Near"],
+["远","Far"],["里面","Inside"],["外面","Outside"],["左边","Left"],["右边","Right"],["中间","Middle"],["前面","Front"],["后面","Back"],["上面","Above"],["下面","Below"],
+["钱","Money"],["金子","Gold"],["钻石","Diamond"],["石头","Stone"],["电话号码","Phone number"],["地址","Address"],["名字","Name"],["年龄","Age"],["家人","Family"],["父母","Parents"]
+];
+
+// ===== LEVEL 3: 200 KALIMAT =====
+const L3 = [
+["你好","Hello"],["你好吗","How are you?"],["我很好","I am doing well"],["谢谢你","Thank you"],["谢谢","Thank you"],["对不起","Sorry"],["没关系","It's okay"],["你叫什么名字","What is your name?"],["我的名字叫安南","My name is Annan"],["你从哪里来","Where are you from?"],
+["我从印度尼西亚来","I am from Indonesia"],["我从中国来","I am from China"],["你多大了","How old are you?"],["我二十岁","I am twenty years old"],["很高兴认识你","Nice to meet you"],["我爱你","I love you"],["我很爱你","I love you so much"],["我想你","I miss you"],["你很漂亮","You are very beautiful"],["你很帅","You are very handsome"],
+["你很可爱","You are very cute"],["我喜欢你","I like you"],["你愿意做我的女朋友吗","Will you be my girlfriend?"],["你愿意嫁给我吗","Will you marry me?"],["你吃饭了吗","Have you eaten?"],["我吃饭了","I have eaten"],["我还没吃","I haven't eaten yet"],["我饿了","I am hungry"],["我想吃饭","I want to eat rice"],["你想吃什么","What do you want to eat?"],
+["我想吃炒饭","I want to eat fried rice"],["这个菜很好吃","The food is very delicious"],["不辣","Not spicy"],["太辣了","Very spicy"],["你要去哪里","Where are you going?"],["我要去学校","I am going to school"],["我要去工作","I am going to work"],["我要去市场","I am going to the market"],["我要去旅行","I am going traveling"],["我们一起去旅行吧","Let's travel together"],
+["我们一起去吃饭吧","Let's go eat together"],["我们一起去看电影吧","Let's go watch a movie together"],["你想一起去吗","Do you want to go together?"],["我们一起去吧","Let's go together"],["今天天气很好","Today the weather is good"],["今天很热","Today is very hot"],["今天很冷","Today is cold"],["下雨了","It's raining"],["你明天要去哪里","Where will you go tomorrow?"],["你昨天去哪里了","Where did you go yesterday?"],
+["你现在在做什么","What are you doing now?"],["我现在在家","I am at home now"],["我现在在学校","I am at school now"],["你在做什么","What are you doing?"],["我在学习","I am studying"],["我在工作","I am working"],["我在吃饭","I am eating"],["我在睡觉","I am sleeping"],["我在玩游戏","I am playing a game"],["我在听歌","I am listening to music"],
+["我在看电影","I am watching a movie"],["我在看书","I am reading a book"],["我在开车","I am driving"],["我在走路","I am walking"],["救命","Help!"],["你可以帮我吗","Can you help me?"],["请慢一点说","Please speak slowly"],["你可以再说一遍吗","Can you say it again?"],["我不明白","I don't understand"],["我明白了","I understand now"],
+["你明白吗","Do you understand?"],["我知道","I know"],["我不知道","I don't know"],["多少钱","How much?"],["这个多少钱","How much is this?"],["太贵了","Too expensive"],["可以便宜一点吗","Can you give a discount?"],["很便宜","Very cheap"],["我要买这个","I will buy this"],["我不买","I won't buy"],
+["有别的颜色吗","Do you have another color?"],["有大一点的尺码吗","Do you have a bigger size?"],["厕所在哪里","Where is the bathroom?"],["医院在哪里","Where is the hospital?"],["火车站在哪里","Where is the train station?"],["机场在哪里","Where is the airport?"],["市场在哪里","Where is the market?"],["往哪边走","Which way should I go?"],["向左转","Turn left"],["向右转","Turn right"],
+["直走","Go straight"],["很近","It's nearby"],["我累了","I am tired"],["我困了","I am sleepy"],["我生病了","I am sick"],["我头疼","I have a headache"],["我肚子疼","I have a stomachache"],["我要去看医生","I have to go see a doctor"],["我要吃药","I have to take medicine"],["我要休息","I have to rest"],
+["晚安","Good night"],["做个好梦","Sweet dreams"],["祝你好运","Good luck"],["加油","Fighting! You can do it"],["你做得很好","You did very well"],["别担心","Don't worry"],["别害怕","Don't be afraid"],["冷静一点","Calm down"],["别哭","Don't cry"],["笑一笑","Smile"],
+["你是最棒的","You are the best"],["我想去中国","I want to go to China"],["我想学中文","I want to learn Chinese"],["中文很难","Chinese is difficult"],["中文很有趣","Chinese is fun"],["我会说一点中文","I can speak a little Chinese"],["我不会说中文","I can't speak Chinese"],["请教我","Please teach me"],["你教得很好","You teach very well"],["谢谢你教我","Thank you for teaching me"],
+["今天很有趣","Today was so fun"],["明天见","See you tomorrow"],["以后见","See you later"],["再见","Goodbye"],["照顾好自己","Take care of yourself"],["想你","Miss you"],["爱你","Love you"],["亲亲","Kiss"],["抱抱我","Give me a hug"],["陪着我","Stay with me"],
+["我想和你在一起","I want to be with you"],["你在哪里","Where are you?"],["你在做什么","What are you doing?"],["你想我吗","Do you miss me?"],["你爱我吗","Do you love me?"],["我只爱你一个人","I love only you"],["你是我的一切","You are my everything"],["你是我的世界","You are my world"],["没有你我活不下去","Without you I can't live"],["你最重要","You are the most precious"],
+["今天是星期几","What day is today?"],["今天是星期一","Today is Monday"],["今天是星期五","Today is Friday"],["生日快乐","Happy birthday"],["新年快乐","Happy New Year"],["祝你好运","I wish you good luck"],["祝你幸福","I wish you happiness"],["祝你身体健康","I wish you good health"],["我想喝水","I want to drink water"],["我想喝咖啡","I want to drink coffee"],
+["我想吃冰淇淋","I want to eat ice cream"],["我想吃水果","I want to eat fruit"],["我想去海边","I want to go to the sea"],["我想去爬山","I want to go to the mountain"],["我想去寺庙","I want to go to the temple"],["我想拍照","I want to take a photo"],["请和我一起拍照","Please take a photo with me"],["照片很漂亮","The photo is very beautiful"],["你喜欢什么歌","What song do you like?"],["我喜欢中文歌","I like Chinese songs"],
+["你喜欢什么电影","What movie do you like?"],["我喜欢看电影","I like watching movies"],["你喜欢玩游戏吗","Do you like playing games?"],["我喜欢玩游戏","I like playing games"],["你喜欢什么颜色","What color do you like?"],["我喜欢粉色","I like pink"],["我喜欢黑色","I like black"],["我喜欢白色","I like white"],["你家在哪里","Where is your house?"],["我家很近","My house is nearby"],
+["我家很大","My house is very big"],["我的房间","My room"],["我的房间很小","My room is small"],["我的猫","My cat"],["我的狗","My dog"],["我的朋友","My friend"],["我的家人","My family"],["我的父母","My parents"],["我今天很开心","Today I am happy"],["我今天很难过","Today I am sad"],
+["我今天很生气","Today I am angry"],["我今天很无聊","Today I am bored"],["我今天很兴奋","Today I am excited"],["我今天很担心","Today I am worried"],["别难过","Don't be sad"],["别生气","Don't be angry"],["你还好吗","Are you okay?"],["我很好","I am okay"],["现在几点了","What time is it?"],["现在是中午","It's noon now"],
+["现在是晚上","It's evening now"],["明天早上见","See you tomorrow morning"],["今天晚上见","See you tonight"],["下个星期见","See you next week"],["明年见","See you next year"],["好久不见","Long time no see"],["很久没见你了","Haven't seen you in a long time"]
+];
+
+const L4 = [["一","1"],["二","2"],["三","3"],["四","4"],["五","5"],["六","6"],["七","7"],["八","8"],["九","9"],["十","10"],["二十","20"],["一百","100"],["一千","1000"]];
+const L5 = [["a","A"],["o","O"],["e","E"],["i","I"],["u","U"],["ü","Yu"],["ai","Ai"],["ei","Ei"],["ao","Ao"],["ou","Ou"]];
+const L6 = [
+["麻婆豆腐","Mapo tofu"],["宫保鸡丁","Kung Pao chicken"],["糖醋排骨","Sweet and sour ribs"],["饺子","Dumpling"],["包子","Steamed bun"],["面条","Noodles"],["炒饭","Fried rice"],["炒面","Fried noodles"],["火锅","Hot pot"],["烤鸭","Peking duck"],
+["小笼包","Xiaolongbao"],["馄饨","Wonton"],["粥","Porridge"],["米饭","Rice"],["汤","Soup"],["凉菜","Cold dish"],["红烧肉","Braised pork"],["鱼香肉丝","Fish-flavored pork"],["麻辣烫","Malatang"],["兰州拉面","Lanzhou noodles"],
+["炸鸡","Fried chicken"],["烤串","Grilled skewers"],["煎饼","Jianbing"],["豆浆","Soy milk"],["油条","Youtiao"],["春卷","Spring roll"],["月饼","Mooncake"],["粽子","Zongzi"],["豆腐","Tofu"],["鸡蛋","Egg"],
+["水果","Fruit"],["芒果","Mango"],["香蕉","Banana"],["橙子","Orange"],["苹果","Apple"],["葡萄","Grape"],["西瓜","Watermelon"],["橙汁","Orange juice"],["椰子水","Coconut water"],["咖啡","Coffee"],
+["冰咖啡","Iced coffee"],["茶","Tea"],["冰茶","Iced tea"],["奶茶","Milk tea"],["水","Water"],["汽水","Soda"],["牛奶","Milk"],["冰淇淋","Ice cream"],["蛋糕","Cake"],["零食","Snack"],["巧克力","Chocolate"]
+];
+const L7 = [["红色","Red"],["蓝色","Blue"],["绿色","Green"],["黄色","Yellow"],["黑色","Black"],["白色","White"],["粉色","Pink"],["好","Good"],["聪明","Smart"],["有趣","Fun"]];
+const L8 = [
+["爸爸","Father"],["妈妈","Mother"],["哥哥","Older brother"],["姐姐","Older sister"],["弟弟","Younger brother"],["妹妹","Younger sister"],["弟弟妹妹","Younger sibling"],["儿子","Son"],["女儿","Daughter"],["孩子","Child"],
+["孙子","Grandchild"],["爷爷","Grandfather (dad side)"],["奶奶","Grandmother (dad side)"],["外公","Grandfather (mom side)"],["外婆","Grandmother (mom side)"],["叔叔","Uncle"],["阿姨","Aunt"],["舅舅","Uncle (mom side)"],["侄子","Nephew / Niece"],["丈夫","Husband"],
+["妻子","Wife"],["朋友","Friend"],["好朋友","Best friend"],["同事","Coworker"],["老板","Boss"],["员工","Employee"],["老师","Teacher"],["学生","Student"],["医生","Doctor"],["护士","Nurse"],
+["警察","Police"],["军人","Soldier"],["农民","Farmer"],["厨师","Chef"],["司机","Driver"],["技术员","Technician"],["歌手","Singer"],["演员","Actor"],["运动员","Athlete"],["中国人","Chinese person"],
+["印度尼西亚人","Indonesian person"],["泰国人","Thai person"],["日本人","Japanese person"],["韩国人","Korean person"],["英国人","English person"],["美国人","American person"],["孩子","Child / Kid"],["大人","Adult"],["家人","Family"],["父母","Parents"]
+];
+const L9 = [
+["今天","Today"],["明天","Tomorrow"],["昨天","Yesterday"],["后天","Day after tomorrow"],["前天","Day before yesterday"],["现在","Now"],["早上","Morning"],["上午","Late morning"],["中午","Noon"],["下午","Afternoon"],
+["晚上","Evening"],["夜里","Night"],["凌晨","Dawn"],["每天","Every day"],["每天早上","Every morning"],["每天晚上","Every night"],["这个星期","This week"],["下个星期","Next week"],["上个星期","Last week"],["这个月","This month"],
+["下个月","Next month"],["上个月","Last month"],["今年","This year"],["明年","Next year"],["去年","Last year"],["新年","New Year"],["星期一","Monday"],["星期二","Tuesday"],["星期三","Wednesday"],["星期四","Thursday"],
+["星期五","Friday"],["星期六","Saturday"],["星期天","Sunday"],["节日","Holiday"],["生日","Birthday"],["婚礼","Wedding day"],["时间","Time"],["小时","Hour"],["分钟","Minute"],["秒","Second"],
+["早上","Morning"],["晚上","Evening"],["午夜","Midnight"],["凌晨一点","1 AM"],["早上六点","6 AM"],["下午六点","6 PM"],["清晨","Early morning"],["下午一点","1 PM"],["下午两点","2 PM"],["晚上九点","9 PM"],
+["晚上十点","10 PM"],["晚上十一点","11 PM"],["今天早上","This morning"],["昨天晚上","Last night"],["今天晚上","Tonight"],["明天晚上","Tomorrow night"],["一月","January"],["二月","February"],["三月","March"],["四月","April"],
+["五月","May"],["六月","June"],["七月","July"],["八月","August"],["九月","September"],["十月","October"],["十一月","November"],["十二月","December"],["夏天","Summer"],["雨季","Rainy season"],
+["冬天","Winter"],["春天","Spring"],["秋天","Autumn"],["月初","Beginning of month"],["月末","End of month"],["月中","Middle of month"],["过去","Past"],["现在","Present"],["未来","Future"],["很久以前","Long time ago"],
+["很快","Soon"],["马上","Right now"],["一会儿","A moment"],["一会儿","A while"],["一直","Always"],["有时候","Sometimes"],["经常","Often"],["从来不","Never"],["总是","Always"],["家","House"],
+["房间","Room"],["卧室","Bedroom"],["厕所","Bathroom"],["厨房","Kitchen"],["客厅","Living room"],["教室","Classroom"],["学校","School"],["大学","University"],["医院","Hospital"],["药店","Pharmacy"],
+["市场","Market"],["超市","Supermarket"],["商店","Shop"],["商场","Mall"],["餐厅","Restaurant"],["咖啡店","Coffee shop"],["酒店","Hotel"],["寺庙","Temple"],["教堂","Church"],["清真寺","Mosque"],
+["公园","Park"],["动物园","Zoo"],["博物馆","Museum"],["电影院","Cinema"],["剧院","Theater"],["机场","Airport"],["火车站","Train station"],["公交车站","Bus station"],["港口","Port"],["公交站","Bus stop"],
+["路","Road"],["桥","Bridge"],["十字路口","Intersection"],["红绿灯","Traffic light"],["停车场","Parking lot"],["大海","Sea"],["海滩","Beach"],["岛","Island"],["河","River"],["运河","Canal"],
+["湖","Lake"],["瀑布","Waterfall"],["山","Mountain"],["森林","Forest"],["稻田","Rice field"],["村子","Village"],["城市","City"],["省","Province"],["国家","Country"],["区","District"],
+["街道","Subdistrict"],["胡同","Alley"],["大楼","Building"],["高楼","Building / Tower"],["公寓","Condo"],["宿舍","Dormitory"],["宾馆","Guest house"],["办公室","Office"],["公司","Company"],["银行","Bank"],
+["邮局","Post office"],["警察局","Police station"],["消防局","Fire station"],["图书馆","Library"],["体育场","Stadium"],["足球场","Football field"],["游泳池","Swimming pool"],["游乐园","Amusement park"],["书店","Bookstore"],["服装店","Clothing store"],
+["理发店","Barbershop"],["美容院","Beauty salon"],["跳蚤市场","Flea market"],["水上市场","Floating market"],["早市","Morning market"],["夜市","Evening market"],["便利店","Convenience store"],["面包店","Bakery"],["花店","Flower shop"],["农场","Farm"],
+["果园","Orchard"],["边境","Border"],["国际机场","International airport"],["大使馆","Embassy"],["幼儿园","Kindergarten"],["小学","Primary school"],["高中","High school"],["学院","College"],["会议室","Meeting room"],["办公室","Office room"],
+["仓库","Storage room"],["地下室","Basement"],["一楼","First floor"],["二楼","Second floor"],["三楼","Third floor"],["电梯","Elevator"],["楼梯","Stairs"],["门","Door"],["窗户","Window"],["屋顶","Roof"],
+["墙","Wall"],["栅栏","Fence"],["大门","Main gate"],["停车场","Parking area"],["里面","Inside"],["外面","Outside"],["上面","Above"],["下面","Below"],["前面","In front"],["后面","Behind"],
+["左边","On the left"],["右边","On the right"],["中间","In the middle"],["附近","Nearby"],["远处","Far away"],["这里","Here"],["那里","There"],["哪里","Where"],["到处","Everywhere"],["工作地点","Workplace"],
+["在家里","At home"],["在学校","At school"],["在寺庙","At the temple"],["在市场","At the market"],["在咖啡店","At the cafe"],["在公司","At the company"],["在图书馆","At the library"],["在医院","At the hospital"],["在公园","At the park"],["在海边","At the sea"]
+];
+
+const L10_MANUAL = [
+["你叫什么名字","What is your name?"],["你在这里做什么","What are you doing here?"],["你昨天为什么去医院,发生了什么事","Why did you go to the hospital yesterday? What happened?"],
+["你昨天去哪里了","Where did you go yesterday?"],["你明天要去哪里","Where will you go tomorrow?"],["你现在在做什么","What are you doing now?"],["你在哪里","Where are you?"],["你还好吗","Are you okay?"],
+["你爱我吗","Do you love me?"],["你想我吗","Do you miss me?"],["你记得我吗","Do you remember me?"],
+["我爱你","I love you"],["我很爱你","I love you so much"],["我想你","I miss you"],["我每天都想你","I miss you every day"],["我每天晚上都梦见你","I dream of you every night"],
+["我想和你在一起","I want to be with you"],["我想和你永远在一起","I want to be with you forever"],["我想照顾你一辈子","I want to take care of you forever"],["你就是我的世界","You are my world"],["你就是我的一切","You are my everything"],
+["你就是我的幸福","You are my happiness"],["没有你我活不下去","Without you I can't live"],["你对我最重要","You are the most important for me"],["你是世界上最漂亮的","You are the most beautiful in the world"],["你就是梦想成真","You are a dream come true"],
+["谢谢你来到我的生命里","Thank you for coming into my life"],["陪着我","Stay with me"],["不要离开我","Don't leave me"],["抱抱我","Hug me"],["紧紧抱住我","Hug me tightly"],
+["你今天吃饭了吗","Have you eaten today?"],["我想吃饭","I want to eat rice"],["我想吃炒饭","I want to eat fried rice"],["我今天在家里吃饭","Today I eat rice at home"],["我明天要和你一起吃饭","Tomorrow I will eat with you"],
+["我们一起去吃饭吧","Let's eat together"],["这个菜很好吃","The food is very delicious"],["这个菜太辣了","The food is very spicy"],["我想喝水","I want to drink water"],["我想喝咖啡","I want to drink coffee"],
+["这个多少钱","How much is this?"],["太贵了","Too expensive"],["可以便宜一点吗","Can you give a discount?"],["我要买这个","I will buy this"],["有别的颜色吗","Do you have another color?"],
+["我生病了","I am sick"],["我头疼","I have a headache"],["我肚子疼","I have a stomachache"],["我要去医院","I have to go to the hospital"],["我要吃药","I have to take medicine"],
+["多休息","Rest a lot"],["你现在好点了吗","Are you better now?"],["我现在好多了","I am better now"],["照顾好自己","Take care of yourself"],["今天天气很好","Today the weather is good"],
+["今天很热","Today is very hot"],["今天下雨","Today it rains"],["昨天下了很大的雨","Yesterday it rained a lot"],["我想去海边","I want to go to the sea"],["我明天要去海边","Tomorrow I will go to the sea"],
+["大海很漂亮","The sea is very beautiful"],["我想去爬山","I want to go to the mountain"],["我想去寺庙","I want to go to the temple"],["我想拍照","I want to take a photo"],["请和我一起拍照","Please take a photo with me"],
+["我想去中国","I want to go to China"],["我想学中文","I want to learn Chinese"],["中文很难","Chinese is difficult"],["中文很有趣","Chinese is fun"],["我会说一点中文","I can speak a little Chinese"],
+["请教我","Please teach me"],["谢谢你教我","Thank you for teaching me"],["明天见","See you tomorrow"],["今天晚上见","See you tonight"],["下个星期见","See you next week"],
+["好久不见","Long time no see"],["很久没见你了","Haven't seen you in a long time"],["我很想你","I really miss you"],["现在几点了","What time is it?"],["明天早上见","See you tomorrow morning"],
+["我今天很开心","Today I am happy"],["我今天很难过","Today I am sad"],["我今天很生气","Today I am angry"],["别难过","Don't be sad"],["别生气","Don't be angry"],
+["加油","Fighting!"],["你做得很好","You did very well"],["你真的很棒","You did very well"],["我相信你","I believe in you"],["我为你感到骄傲","I am proud of you"],
+["我明天要工作","Tomorrow I have to work"],["我今天要开会","Today I have a meeting"],["我明天早上要开会","Tomorrow I have a meeting in the morning"],["客户想要一个新项目","The customer wants a new project"],["客户还没回复我","The customer hasn't replied yet"],
+["我今天有作业","Today I have homework"],["我明天有考试","Tomorrow I have an exam"],["我昨天考试不及格","Yesterday I failed the exam"],["我今天考试通过了","Today I passed the exam"],["我的老师教得很好","My teacher teaches very well"],
+["我每天都学中文","I study Chinese every day"],["我想流利地说中文","I want to speak Chinese fluently"],["我每天晚上都看书","I read a book every night"],["我要给你写一封信","I will write a letter to you"],["我要给你发消息","I will send a message to you"],
+["你可以给我打电话吗","Can you call me?"],["我今天晚上给你打电话","I will call you tonight"],["我要给你发照片","I will send you a photo"],["我现在在工作","I am working now"],["我现在在学习","I am studying now"],
+["我现在很忙","I am busy now"],["我现在有空","I am free now"],["我明天有空","Tomorrow I am free"],["明天在学校见","See you tomorrow at school"],["明天在公司见","See you tomorrow at work"],
+["我在家里等你","I will wait for you at home"],["不要迟到","Don't be late"],["我今天迟到了","Today I was late"],["今天堵车很严重","Today traffic is very bad"],["我忘记带钱包了","I forgot my wallet"],
+["我忘记带手机了","I forgot my phone"],["我不记得了","I don't remember"],["我记得你","I remember you"],["我记得你的生日","I remember your birthday"],["对不起,我忘记了","Sorry, I forgot"],
+["我明白了","I understand now"],["我不明白","I don't understand"],["你可以再解释一遍吗","Can you explain again?"],["请慢一点说","Please speak slowly"],["请帮帮我","Please help me"],
+["谢谢你帮我","Thank you for helping me"],["谢谢你等我","Thank you for waiting for me"],["谢谢你来看我","Thank you for coming to see me"],["别担心","Don't worry"],["冷静一点","Calm down"],
+["别哭","Don't cry"],["我在这里陪着你","I am here with you"],["我不会离开你","I will not leave you"],["我会一直在你身边","I will always be beside you"],["我会照顾你","I will take care of you"],
+["我会保护你","I will protect you"],["我答应永远爱你","I promise I will love you forever"],["晚安,宝贝","Good night, my love"],["你起床了吗,宝贝","Are you awake, my love?"],["你吃饭了吗,宝贝","Have you eaten, my love?"],
+["照顾好自己,宝贝","Take care of yourself, my love"],["想你,宝贝","Miss you, my love"],["爱你,宝贝","Love you, my love"],["你是我特别的人","You are my special person"],["你是最好的礼物","You are the best gift"],
+["遇到你是最幸运的事","Meeting you is the luckiest"],["有你真幸运","I am lucky to have you"],["我喜欢你的笑容","I like your smile"],["我喜欢你的声音","I like your voice"],["和你在一起我很开心","I am happy when I am with you"],
+["没有你我很孤单","I am lonely without you"],["你不回复我我很难过","I am sad when you don't reply"],["你说谎我很生气","I am angry when you lie"],["我害怕你会离开我","I am afraid you will leave me"],["你会永远爱我吗","Will you love me forever?"],
+["你愿意嫁给我吗","Will you marry me?"],["我想和你结婚","I want to marry you"],["我想和你有一个孩子","I want to have a child with you"],["我想和你一起变老","I want to grow old with you"],["你是我唯一爱的人","You are the only one I love"],
+["自从遇见你我的生活变了","Since I met you my life changed"],["自从遇见你我很幸福","Since I met you I am happy"],["每次看到你我的心跳都很快","Every time I see you my heart beats fast"],["生日快乐","Happy birthday"],["新年快乐","Happy New Year"],
+["祝你好运","I wish you good luck"],["祝你幸福","I wish you happiness"],["祝你身体健康","I wish you good health"],["我想吃冰淇淋","I want to eat ice cream"],["我想吃水果","I want to eat fruit"],
+["我想给你买花","I want to buy flowers for you"],["花很漂亮","The flowers are very beautiful"],["我喜欢玫瑰","I like roses"],["我喜欢吃巧克力","I like eating chocolate"],["我不吃肉","I don't eat meat"],
+["我不喝酒","I don't drink alcohol"],["我不抽烟","I don't smoke"],["我想减肥","I want to lose weight"],["我想运动","I want to exercise"],["我明天要在公园跑步","Tomorrow I will run at the park"],
+["我今天在公园跑步","Today I ran at the park"],["我想游泳","I want to swim"],["我明天要去游泳","Tomorrow I will go swimming"],["游泳池在哪里","Where is the swimming pool?"],["我不会游泳","I can't swim"],
+["请教我游泳","Please teach me to swim"],["我喜欢踢足球","I like playing football"],["你喜欢玩游戏吗","Do you like playing games?"],["我喜欢和你一起玩游戏","I like playing games with you"],["今天晚上我们一起玩游戏吧","Tonight let's play games together"],
+["我昨天晚上玩了一夜游戏","Last night I played games all night"],["我因为玩游戏睡得很晚","I slept late because I played games"],["我咳嗽","I cough"],["我感冒了","I have a cold"],["我的腿疼","My leg hurts"],
+["我的手臂疼","My arm hurts"],["我摔倒了","I fell down"],["我受伤了","I am injured"],["医生说我要休息","The doctor said I have to rest"],["医生说我要吃药","The doctor said I have to take medicine"],
+["按时吃药","Take medicine on time"],["别忘了吃药","Don't forget to take medicine"],["多休息","Rest a lot"],["你现在好点了吗","Are you better now?"],["我现在好多了","I am better now"],
+["我还没好","I am not better yet"],["今天天气很好","Today the weather is good"],["今天天气很热","Today the weather is very hot"],["今天天气很冷","Today the weather is cold"],["今天下雨","Today it rains"],
+["昨天下了很大的雨","Yesterday it rained heavily"],["明天会下雨吗","Will it rain tomorrow?"],["今天云很多","Today there are many clouds"],["今天风很大","Today the wind is strong"],["今天太阳很晒","Today the sun is strong"],
+["戴上帽子","Wear a hat"],["穿上外套","Wear a jacket"],["别忘了带伞","Don't forget to bring an umbrella"],["我被雨淋湿了","I got wet from the rain"],["我的衬衫湿了","My shirt is wet"],
+["我明天要去寺庙","Tomorrow I will go to the temple"],["我昨天和妈妈去寺庙了","Yesterday I went to the temple with my mother"],["寺庙很漂亮","The temple is very beautiful"],["我想在寺庙拍照","I want to take photos at the temple"],["照片很漂亮","The photo is very beautiful"],
+["这张照片是在哪里拍的","Where was this photo taken?"],["我想去北京","I want to go to Beijing"],["你去过北京吗","Have you ever been to Beijing?"],["我去过北京","I have been to Beijing"],["我没去过北京","I have never been to Beijing"],
+["我想去印度尼西亚","I want to go to Indonesia"],["你去过印度尼西亚吗","Have you ever been to Indonesia?"],["飞机几点起飞","What time is the flight?"],["机场在哪里","Where is the airport?"],["我明天要去机场","I will go to the airport tomorrow"],
+["火车几点出发","What time does the train leave?"],["火车站在哪里","Where is the train station?"],["我要坐火车去北京","I will take the train to Beijing"],["这辆公交车去哪里","Where does this bus go?"],["车费多少钱","How much is the fare?"],
+["向左转","Turn left"],["向右转","Turn right"],["直走","Go straight"],["很近","It's nearby"],["很远","It's very far"],
+["酒店在哪里","Where is the hotel?"],["我住在酒店","I stay at the hotel"],["我已经预订了酒店","I have booked the hotel"],["我的房间在二楼","My room is on the second floor"],["我的房卡丢了","My room key is gone"],
+["我想租车","I want to rent a car"],["我不会开车","I can't drive"],["你会开车吗","Can you drive?"],["开车小心一点","Drive carefully"],["我的车坏了","My car is broken"],
+["我的车没油了","My car ran out of gas"],["我忘记路了","I forgot the way"],["我迷路了","I am lost"],["请告诉我怎么走","Please tell me the way"],["往哪边走","Which way should I go?"],
+["你在附近吗","Are you near?"],["我在你家附近","I am near your house"],["我正在去找你","I am going to see you"],["请等我一下","Wait for me a moment"],["请在家里等我","Wait for me at home"],
+["我现在正在回家","I am going home now"],["我到家了","I have arrived home"],["你到家了吗","Have you arrived home?"],["到了告诉我","Tell me when you arrive"],["旅途平安","Have a safe trip"],
+["开车小心","Drive carefully"],["明天见","See you tomorrow"],["今天晚上见","See you tonight"],["下个星期见","See you next week"],["好久不见","Long time no see"],
+];
+
+const LOGICAL_PAIRS_ZH = [
+  ["吃","eat","米饭","rice","在家里","at home"],["吃","eat","水果","fruit","在家里","at home"],["吃","eat","炒饭","fried rice","在饭店","at the restaurant"],
+  ["喝","drink","水","water","在家里","at home"],["喝","drink","咖啡","coffee","在咖啡店","at the cafe"],["喝","drink","茶","tea","在家里","at home"],
+  ["读","read","书","book","在房间里","in the room"],["读","read","信","letter","在家里","at home"],
+  ["写","write","信","letter","在家里","at home"],["写","write","书","book","在房间里","in the room"],
+  ["看","watch","电影","movie","在家里","at home"],["听","listen to","歌","song","在家里","at home"],
+  ["玩","play","游戏","game","在家里","at home"],["踢","play","足球","football","在操场上","at the field"],
+  ["学","study","中文","Chinese","在学校","at school"],["学","study","英语","English","在学校","at school"],
+  ["工作","work","","","在公司","at work"],["打扫","clean","房间","room","在家里","at home"],
+  ["做","cook","米饭","rice","在家里","at home"],["做","cook","菜","food","在家里","at home"],
+  ["买","buy","衬衫","shirt","在商场","at the mall"],["买","buy","水果","fruit","在市场","at the market"],["买","buy","花","flower","在市场","at the market"],
+  ["卖","sell","衬衫","shirt","在市场","at the market"],["拍","take","照片","photo","在寺庙","at the temple"],["拍","take","照片","photo","在海边","at the sea"],
+  ["游泳","swim","","","在游泳池","at the swimming pool"],["跑步","run","","","在公园","at the park"],["走路","walk","","","在公园","at the park"],
+  ["开","drive","车","car","去公司","to work"],["去","go","学校","school","",""],["去","go","市场","market","",""],["去","go","寺庙","temple","",""],["去","go","海边","sea","",""],["去","go","医院","hospital","",""],
+  ["来","come","家","home","",""],["来","come","学校","school","",""],["睡觉","sleep","","","在家里","at home"],["起床","wake up","","","在早上","in the morning"],
+  ["唱","sing","歌","song","在家里","at home"],["跳舞","dance","","","在家里","at home"],
+  ["帮助","help","朋友","friend","在学校","at school"],["教","teach","中文","Chinese","在学校","at school"],
+  ["打电话给","call","你","you","",""],["发消息给","send message to","你","you","",""],["等","wait for","你","you","在家里","at home"],
+  ["想念","miss","你","you","",""],["爱","love","你","you","",""],["抱","hug","你","you","",""],["照顾","take care of","你","you","",""],
+  ["去看","visit","妈妈","mother","在家里","at home"],["去看","visit","朋友","friend","在医院","at the hospital"],
+];
+
+function buildL10(){
+  let out=[...L10_MANUAL];
+  let seen=new Set(out.map(x=>x[0]));
+  const times=[["今天","today"],["明天","tomorrow"],["昨天","yesterday"],["早上","in the morning"],["晚上","in the evening"],["每天","every day"],["现在","now"]];
+  let idx=0;
+  while(out.length<1000 && idx<6000){
+    idx++;
+    const p=LOGICAL_PAIRS_ZH[idx%LOGICAL_PAIRS_ZH.length];
+    const t=times[idx%times.length];
+    const subjZh=["我","你","他","我们"][idx%4];
+    const subjEn=["I","You","He","We"][idx%4];
+    const verbZh=p[0], verbEn=p[1], objZh=p[2], objEn=p[3], placeZh=p[4], placeEn=p[5];
+    const timeZh=t[0], timeEn=t[1];
+    let zh, eng;
+    if(objZh==="" && placeZh===""){
+      zh=`${subjZh}${timeZh}${verbZh}`;
+      eng=`${subjEn} ${verbEn} ${timeEn}`;
+    } else if(objZh===""){
+      zh=`${subjZh}${timeZh}${placeZh}${verbZh}`;
+      eng=`${subjEn} ${verbEn} ${placeEn} ${timeEn}`;
+    } else if(placeZh===""){
+      zh=`${subjZh}${timeZh}${verbZh}${objZh}`;
+      eng=`${subjEn} ${verbEn} ${objEn} ${timeEn}`;
+    } else {
+      zh=`${subjZh}${timeZh}${placeZh}${verbZh}${objZh}`;
+      eng=`${subjEn} ${verbEn} ${objEn} ${placeEn} ${timeEn}`;
+    }
+    zh=zh.replace(/\s+/g,'').trim();
+    eng=eng.replace(/\s+/g,' ').trim();
+    if(!seen.has(zh) && zh.length>3){ seen.add(zh); out.push([zh, eng]); }
+  }
+  return out.slice(0,1000);
+}
+const L10 = buildL10();
+
+const LEVELS=[
+{ id:1, emoji:"🔤", title:"Level 1 - 40 Karakter", desc:"40 Soal • Hanzi Dasar", q:"What does this mean?", pool:L1 },
+{ id:2, emoji:"📚", title:"Level 2 - 200 Kata", desc:"200 Soal", q:"What does this mean?", pool:L2 },
+{ id:3, emoji:"💬", title:"Level 3 - 200 Kalimat", desc:"200 Soal • Kalimat penuh", q:"What does this sentence mean?", pool:L3 },
+{ id:4, emoji:"🔢", title:"Level 4 - Angka", desc:"13 Soal", q:"What number is this?", pool:L4 },
+{ id:5, emoji:"🅰️", title:"Level 5 - Pinyin", desc:"10 Soal", q:"How to read this?", pool:L5 },
+{ id:6, emoji:"🍜", title:"Level 6 - Makanan", desc:"50 Soal", q:"What does this mean?", pool:L6 },
+{ id:7, emoji:"🎨", title:"Level 7 - Warna", desc:"10 Soal", q:"What does this mean?", pool:L7 },
+{ id:8, emoji:"👨‍👩‍👧", title:"Level 8 - Keluarga", desc:"50 Soal", q:"What does this mean?", pool:L8 },
+{ id:9, emoji:"📅", title:"Level 9 - Waktu & Tempat", desc:"200 Soal", q:"What does this mean?", pool:L9 },
+{ id:10, emoji:"👑", title:"Level 10 - MASTER", desc:"645 Soal • MASTER TEST", q:"What does this mean?", pool:L10 },
+];
+
+function renderLevels(){
+  const grid=document.getElementById('levelGrid'); grid.innerHTML='';
+  document.getElementById('totalScore').innerText=totalScore;
+  LEVELS.forEach(l=>{
+    const div=document.createElement('div'); div.className='levelCard';
+    div.innerHTML=`<div class="emoji">${l.emoji}</div><b>${l.title}</b><p>${l.desc}</p><p>▶ Mainkan</p>`;
+    div.onclick=()=>{ startLevel(l.id); };
+    grid.appendChild(div);
+  });
+}
+function startLevel(id){
+  currentLevel=id; idx=0; score=0;
+  const lvl=LEVELS.find(l=>l.id===id);
+  currentPool=[...lvl.pool].sort(()=>Math.random()-0.5);
+  showScreen('quizScreen');
+  showQ();
+}
+function getOptions(correct, allAnswers){
+  let others=[...new Set(allAnswers.filter(a=>a!==correct))].sort(()=>Math.random()-0.5).slice(0,3);
+  return [correct, ...others].sort(()=>Math.random()-0.5);
+}
+function showQ(){
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const curPair=currentPool[idx];
+  const chi=curPair[0], ans=curPair[1];
+  currentQ={thai:chi, ans};
+  const allAns = currentPool.map(p=>p[1]);
+  const opts=getOptions(ans, allAns);
+  document.getElementById('qCount').innerText=`Question ${idx+1} of ${currentPool.length} • Score: ${score}`;
+  document.getElementById('qLevel').innerText=lvl.title;
+  document.getElementById('bar').style.width=((idx/currentPool.length)*100)+'%';
+  document.getElementById('qChinese').innerText=chi;
+  document.getElementById('qTitle').innerText=lvl.q;
+  document.getElementById('reviewTxt').innerText='';
+  const box=document.getElementById('qOptions'); box.innerHTML='';
+  opts.forEach(o=>{
+    let d=document.createElement('div'); d.className='option'; d.innerText=o;
+    d.onclick=()=>{
+      if(d.classList.contains('correct')||d.classList.contains('wrong')) return;
+      document.querySelectorAll('.option').forEach(x=>{
+        if(x.innerText===ans) x.classList.add('correct');
+        else if(x===d) x.classList.add('wrong');
+        x.style.pointerEvents='none';
+      });
+      if(o===ans){ score+=10; totalScore+=10; speakEN('Correct!'); } else { speakEN('Wrong.'); }
+      document.getElementById('reviewTxt').innerText=`${chi} = ${ans}`;
+      document.getElementById('nextBtn').classList.remove('hide');
+      setTimeout(()=>speakChinese(chi), 500);
+    };
+    box.appendChild(d);
+  });
+  document.getElementById('nextBtn').classList.add('hide');
+  speakChinese(chi);
+}
+function nextQ(){ idx++; if(idx<currentPool.length) showQ(); else showResult(); }
+function showResult(){
+  showScreen('resultScreen');
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const max=currentPool.length*10;
+  const pass = score >= max*0.6;
+  document.getElementById('resTitle').innerText= pass ? `Level ${currentLevel} LULUS! 🎉` : `Level ${currentLevel} Belum Lulus 😅`;
+  document.getElementById('resText').innerText=`Hi ${name}!\n\nLevel: ${lvl.title}\nScore: ${score} / ${max}\nTotal Soal: ${currentPool.length}\n\n${pass ? 'Kamu hebat!' : 'Butuh 60% buat lulus. Coba lagi ya!'}\n\nTotal Score: ${totalScore}`;
+  speakEN(pass ? `Congratulations ${name}, you passed level ${currentLevel}` : `Keep trying ${name}`);
+}
+function backToLevels(){ showScreen('levelScreen'); renderLevels(); }
+function retryLevel(){ startLevel(currentLevel); }
+</script>
+</body>
+</html>

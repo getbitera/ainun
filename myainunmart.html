@@ -1,0 +1,547 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Ainun Mart</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{margin:0;background:#fff0f5;padding:12px;color:#333;padding-bottom:170px}
+h1{text-align:center;color:#ff4d8d;margin:6px 0 2px;font-size:22px}
+.sub{text-align:center;margin:0 0 10px;color:#888;font-size:12px}
+/* ===== COVER & NAME SCREEN ===== */
+.screen{display:none}
+.screen.active{display:block}
+#screen-cover{padding:0;text-align:center;min-height:92vh;display:none;flex-direction:column;justify-content:center}
+#screen-cover.active{display:flex}
+.coverImg{width:100%;max-width:480px;margin:0 auto;border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(255,77,141,.35);background:#ffd6e7;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.coverImg img{width:100%;height:100%;object-fit:cover;display:block}
+.coverImg .fallback{font-size:90px}
+.coverTitle{font-size:28px;font-weight:900;color:#ff4d8d;margin:16px 0 4px}
+.coverSub{color:#888;font-size:13px;margin:0 0 16px}
+.btnStart{width:100%;max-width:480px;margin:0 auto;padding:16px;border:none;border-radius:16px;background:linear-gradient(135deg,#ff4d8d,#a855f7);color:white;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px rgba(255,77,141,.4)}
+.btnStart:active{transform:scale(.98)}
+.btnSmall{padding:10px 16px;border:none;border-radius:20px;background:white;border:1px solid #ffb3cd;color:#ff4d8d;font-weight:800;cursor:pointer}
+#screen-name{min-height:92vh;display:none;flex-direction:column;justify-content:center;max-width:480px;margin:0 auto;text-align:center}
+#screen-name.active{display:flex}
+.nameCard{background:white;border-radius:22px;padding:22px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.nameCard h2{color:#ff4d8d;margin:0 0 6px}
+.nameCard p{color:#888;font-size:13px;margin:0 0 14px}
+.nameCard input{width:100%;padding:14px;border-radius:14px;border:2px solid #ffd0de;outline:none;font-size:16px;text-align:center}
+.nameCard .btnGo{width:100%;padding:14px;border:none;border-radius:14px;background:#ff4d8d;color:white;font-weight:900;font-size:16px;margin-top:12px;cursor:pointer}
+.nameCard .back{margin-top:10px;background:none;border:none;color:#999;cursor:pointer}
+.playerBadge{background:#fff;border:1px solid #ffd0de;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;color:#ff4d8d;display:inline-block;margin-bottom:8px}
+/* ===== GAME ===== */
+.lang-switch{display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.lang-switch button{padding:8px 12px;border-radius:20px;border:1px solid #ffb3cd;background:white;font-weight:700;cursor:pointer;font-size:12px}
+.lang-switch button.active{background:#ff4d8d;color:white}
+.ainunBar{background:linear-gradient(135deg,#ff4d8d,#a855f7);color:white;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:10px;box-shadow:0 4px 14px rgba(255,77,141,.3)}
+.ainunBar .avatar{font-size:36px;background:white;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ainunBar .txt{flex:1}
+.ainunBar .txt b{font-size:14px}
+.ainunBar .txt p{margin:2px 0 0;font-size:12px;line-height:1.4;opacity:.95}
+.voiceBtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.voiceBtns button{border:none;padding:7px 10px;border-radius:20px;font-weight:800;font-size:11px;cursor:pointer;background:white;color:#ff4d8d}
+.voiceBtns button.on{background:#2d0a1f;color:white}
+.voiceBtns button.speak{background:#ffd166;color:#5c3d00}
+.top{position:sticky;top:0;z-index:10;background:#fff0f5;padding:8px 0;display:flex;gap:8px}
+.card{flex:1;background:white;border-radius:12px;padding:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card b{font-size:14px;color:#ff4d8d}
+.card span{font-size:11px;color:#888}
+.search{position:sticky;top:60px;z-index:10;background:#fff0f5;padding-bottom:8px}
+.search input{width:100%;padding:12px;border-radius:12px;border:2px solid #ffd0de;outline:none;font-size:14px;background:white}
+.filter{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.filter button{white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid #ffb3cd;background:white;font-weight:700;cursor:pointer;font-size:12px}
+.filter button.active{background:#ff4d8d;color:white}
+.missionBox{background:#fff;border:2px solid #ff4d8d;border-radius:16px;padding:12px;margin:8px 0}
+.missionBox .head{display:flex;justify-content:space-between;align-items:center}
+.missionBox .head b{color:#ff4d8d;font-size:15px}
+.missionBox .dish{font-size:18px;font-weight:900;margin:6px 0 4px}
+.clue{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px;margin:5px 0;font-size:13px;line-height:1.5;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.clue.done{background:#d1fae5;border-color:#34d399}
+.clue b{color:#9a3412}
+.clue.done b{color:#065f46}
+.clue button{border:none;background:#ff4d8d;color:white;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;flex-shrink:0}
+.progress{height:10px;background:#ffeef3;border-radius:10px;overflow:hidden;margin-top:8px}
+.progress div{height:100%;background:#ff4d8d;transition:.3s}
+.missionList{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.missionList span{white-space:nowrap;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;background:white;border:1px solid #ddd}
+.missionList span.cur{background:#ff4d8d;color:white;border-color:#ff4d8d}
+.missionList span.done{background:#d1fae5;color:#065f46}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:white;border-radius:16px;padding:12px 10px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:2px solid transparent;position:relative}
+.item:active{transform:scale(.97)}
+.item .thai{font-size:20px;font-weight:900;color:#7c3aed;line-height:1.2}
+.item .baca{font-size:11px;font-weight:700;color:#999}
+.item .row{margin-top:6px;border-top:1px dashed #eee;padding-top:6px;text-align:left;font-size:12px;line-height:1.7}
+.item .row div{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.item .row b{font-size:10px;color:#aaa;min-width:28px}
+.item .price{margin-top:8px;font-weight:900;color:#ff4d8d;font-size:13px;background:#fff0f5;padding:5px;border-radius:8px}
+.item.selected{border-color:#ff4d8d;background:#fff5f8}
+.item.selected .price{background:#ff4d8d;color:white}
+.badge{font-size:10px;background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:700}
+.speakBtn{position:absolute;top:6px;right:6px;border:none;background:#f3e8ff;color:#7c3aed;width:28px;height:28px;border-radius:50%;font-size:13px;cursor:pointer}
+.speakBtn:hover{background:#7c3aed;color:white}
+.cart{position:fixed;bottom:0;left:0;right:0;background:#2d0a1f;color:white;padding:12px;border-radius:16px 16px 0 0;max-height:42vh;overflow:auto}
+.cart h3{margin:0 0 6px;font-size:15px}
+#list{font-size:12px;line-height:1.6;max-height:90px;overflow:auto}
+.cart button{width:100%;padding:12px;border:none;border-radius:10px;background:#ff4d8d;color:white;font-weight:800;font-size:14px;margin-top:8px}
+.cart button.reset{background:transparent;color:#ff9ec0;border:1px solid #ff4d8d;margin-top:6px}
+#result{text-align:center;font-weight:800;margin-top:6px;font-size:13px}
+.count{text-align:center;font-size:12px;color:#888;margin:6px 0}
+.hintBtn{background:#fef3c7;border:1px solid #fbbf24;color:#92400e;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer;margin-top:6px}
+.speaking{animation:pulse 1s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<!-- ========== SCREEN 1: COVER ========== -->
+<div id="screen-cover" class="screen active">
+  <div class="coverImg">
+    <!-- GAMBAR DARI FILE myainunmart.jpg -->
+    <img src="myainunmart.jpg" alt="My Ainun Mart" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
+    <div id="coverFallback" class="fallback" style="display:none">🛒👧💖<br><span style="font-size:16px;color:#ff4d8d;font-weight:900">My Ainun Mart</span></div>
+  </div>
+  <div class="coverTitle">My Ainun Mart</div>
+  <p class="coverSub">1000 Ingredients • 30 Mystery Missions • Ainun Voice • Main: English</p>
+  <button class="btnStart" onclick="goToName()">▶ START GAME</button>
+  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to play with Ainun!</p>
+</div>
+
+<!-- ========== SCREEN 2: WRITE YOUR NAME ========== -->
+<div id="screen-name" class="screen">
+  <div style="font-size:60px">👧💖</div>
+  <div class="nameCard">
+    <h2 id="nameTitle">Write Your Name</h2>
+    <p id="nameSub">Ainun wants to know your name!</p>
+    <input id="playerNameInput" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') startGame()">
+    <button class="btnGo" onclick="startGame()" id="btnGo">LET'S GO! →</button>
+    <button class="back" onclick="showScreen('screen-cover')">← Back</button>
+    <p id="nameError" style="color:#ff4d8d;font-size:12px;display:none;margin-top:8px">Please write your name first!</p>
+  </div>
+</div>
+
+<!-- ========== SCREEN 3: GAME ========== -->
+<div id="screen-game" class="screen">
+  <div style="text-align:center">
+    <span class="playerBadge" id="playerBadge">👤 Player: Guest</span>
+    <button class="btnSmall" onclick="showScreen('screen-cover')" style="margin-left:6px">🏠 Home</button>
+  </div>
+  <h1 id="title">My Ainun Mart</h1>
+  <p class="sub">1000 Ingredients • 30 Mystery Missions • Ainun Voice • Main: English</p>
+
+  <div class="ainunBar" id="ainunBar">
+    <div class="avatar" id="ainunAvatar">👧</div>
+    <div class="txt">
+      <b>✨ Ainun AI - Your Shopping Buddy</b>
+      <p id="ainunText">Hi! I'm Ainun! Let's go shopping! Tap the speaker to hear me!</p>
+      <div class="voiceBtns">
+        <button onclick="ainunGreet()" class="speak">🔊 Say Hi, Ainun!</button>
+        <button onclick="toggleAutoVoice()" id="autoVoiceBtn">🔔 Auto Voice: ON</button>
+        <button onclick="speakMission()">🗣️ Read Mission</button>
+        <button onclick="stopVoice()">⏹️ Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lang-switch">
+    <button onclick="setLang('en')" id="btn-en" class="active">🇺🇸 English</button>
+    <button onclick="setLang('id')" id="btn-id">🇮🇩 Indonesia</button>
+    <button onclick="setLang('th')" id="btn-th">🇹🇭 ไทย</button>
+    <button onclick="setLang('ko')" id="btn-ko">🇰🇷 한국어</button>
+  </div>
+
+  <div class="top">
+    <div class="card"><span id="lbl-budget">Budget</span><br><b id="budgetLabel">Rp 100,000</b></div>
+    <div class="card"><span id="lbl-total">Total</span><br><b id="total">Rp 0</b></div>
+    <div class="card"><span id="lbl-left">Left</span><br><b id="sisa">Rp 100,000</b></div>
+    <div class="card"><span id="lbl-cart">Cart</span><br><b id="countCart">0</b></div>
+  </div>
+
+  <div class="missionBox">
+    <div class="head"><b id="missionTitle">MISSION 1 / 30</b><span id="missionReward">⭐ +100</span></div>
+    <div class="dish" id="missionDish">Tom Yum Goong <button onclick="speakMission()" style="border:none;background:#ff4d8d;color:white;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer">🔊 Listen</button></div>
+    <div id="missionDesc" style="font-size:12px;color:#666">Guess the 3 ingredients from the clues!</div>
+    <div id="missionNeed"></div>
+    <button class="hintBtn" onclick="showHint()" id="hintBtn">💡 Need One More Hint? ( -10 points )</button>
+    <div id="extraHint" style="font-size:12px;color:#92400e;margin-top:6px;display:none"></div>
+    <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+    <div id="missionStatus" style="font-size:11px;color:#888;margin-top:4px">0 / 3 collected</div>
+  </div>
+
+  <div class="missionList" id="missionList"></div>
+  <div class="search"><input id="searchInput" placeholder="Search ingredient... Guess it!" oninput="render()"></div>
+  <div class="filter" id="filter"></div>
+  <div class="count" id="showing"></div>
+  <div class="grid" id="shop"></div>
+
+  <div class="cart">
+    <h3 id="cartTitle">Cart</h3>
+    <div id="list">No items yet...</div>
+    <button onclick="checkout()" id="btnCheckout">CHECKOUT & GIVE TO AINUN</button>
+    <button class="reset" onclick="resetGame()" id="btnReset">Reset Cart</button>
+    <div id="result"></div>
+  </div>
+</div>
+
+<script>
+// ============ SCREEN FLOW ============
+let playerName = "";
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  // Cart hanya muncul di game, sembunyikan di cover/name
+  document.querySelector('.cart').style.display = (id==='screen-game') ? 'block' : 'none';
+  // Body padding beda untuk cover
+  document.body.style.paddingBottom = (id==='screen-game') ? '170px' : '12px';
+}
+function goToName(){
+  showScreen('screen-name');
+  setTimeout(()=>document.getElementById('playerNameInput').focus(), 200);
+  if(autoVoice) speak("Hi! What is your name? Write your name, please!");
+}
+function startGame(){
+  let v = document.getElementById('playerNameInput').value.trim();
+  if(!v){
+    document.getElementById('nameError').style.display='block';
+    if(autoVoice) speak("Please write your name first!");
+    return;
+  }
+  playerName = v;
+  document.getElementById('nameError').style.display='none';
+  document.getElementById('playerBadge').innerText = "👤 Player: " + playerName;
+  showScreen('screen-game');
+  buildFilter(); renderMission(); update(); render();
+  // Ainun nyapa pakai nama
+  setTimeout(()=>{
+    let msg = currentLang==='id' ? `Hai ${playerName}! Aku Ainun! Yuk belanja bareng! Kamu cantik banget!`
+      : currentLang==='th' ? `สวัสดี ${playerName}! ฉันไอนุน! ไปช้อปปิ้งด้วยกันเถอะ! คุณสวยมาก!`
+      : currentLang==='ko' ? `안녕 ${playerName}! 나는 아이눈이야! 같이 쇼핑 가자! 너 정말 예뻐!`
+      : `Hi ${playerName}! I'm Ainun! Let's go shopping together! You are so beautiful!`;
+    document.getElementById('ainunText').innerText = msg;
+    if(autoVoice) speak(msg);
+  }, 400);
+}
+// Awal: tampilkan cover, sembunyikan cart
+showScreen('screen-cover');
+
+// ============ AINUN VOICE ENGINE ============
+let autoVoice = true;
+const VOICE_MAP = {en:'en-US', id:'id-ID', th:'th-TH', ko:'ko-KR'};
+function getVoice(lang){
+  let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  let v = voices.find(x=> x.lang===lang && /female|zira|samantha|google|natural|neural/i.test(x.name));
+  if(!v) v = voices.find(x=> x.lang===lang);
+  if(!v) v = voices.find(x=> x.lang && x.lang.startsWith(lang.split('-')[0]));
+  return v || null;
+}
+function speak(text, lang){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  let u = new SpeechSynthesisUtterance(text);
+  u.lang = lang || VOICE_MAP[currentLang] || 'en-US';
+  u.rate = 0.95; u.pitch = 1.25; u.volume = 1;
+  let v = getVoice(u.lang); if(v) u.voice = v;
+  let av = document.getElementById('ainunAvatar');
+  if(av){ av.classList.add('speaking'); av.innerText='🗣️'; }
+  u.onend = ()=>{ if(av){ av.classList.remove('speaking'); av.innerText='👧'; } };
+  u.onerror = ()=>{ if(av){ av.classList.remove('speaking'); av.innerText='👧'; } };
+  window.speechSynthesis.speak(u);
+  let at = document.getElementById('ainunText'); if(at) at.innerText = text;
+}
+function stopVoice(){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  let av=document.getElementById('ainunAvatar'); if(av){ av.classList.remove('speaking'); av.innerText='👧'; }
+}
+function toggleAutoVoice(){
+  autoVoice=!autoVoice;
+  let btn=document.getElementById('autoVoiceBtn');
+  btn.innerText = autoVoice ? '🔔 Auto Voice: ON' : '🔕 Auto Voice: OFF';
+  btn.classList.toggle('on', !autoVoice);
+  if(autoVoice) speak(currentLang==='id'?'Oke, suara otomatis nyala lagi!':currentLang==='th'?'โอเค เปิดเสียงอัตโนมัติแล้ว!':currentLang==='ko'?'좋아, 자동 음성 켰어!':'Okay, auto voice is on again!');
+}
+function ainunGreet(){
+  let name = playerName ? " " + playerName : "";
+  let texts = {
+    en: `Hi${name}! I'm Ainun! Let's go shopping together! Can you guess what I want to cook today? I love you, you are so beautiful!`,
+    id: `Hai${name}! Aku Ainun! Yuk belanja bareng! Kamu bisa tebak gak aku mau masak apa hari ini? Kamu cantik banget!`,
+    th: `สวัสดี${name}! ฉันไอนุน! ไปช้อปปิ้งด้วยกันเถอะ! ทายสิว่าวันนี้ฉันอยากทำอาหารอะไร? คุณสวยมาก!`,
+    ko: `안녕${name}! 나는 아이눈이야! 같이 쇼핑 가자! 오늘 내가 뭘 요리하고 싶은지 맞춰볼래? 너 정말 예뻐!`
+  };
+  speak(texts[currentLang] || texts.en);
+}
+function speakMission(){
+  let m=MISSIONS[currentMission]; if(!m) return;
+  let clues=getClues(m);
+  let texts = {
+    en: `Mission! I want to cook ${m.dish}. Clue one: ${clues[0]}. Clue two: ${clues[1]}. Clue three: ${clues[2]}. Can you guess?`,
+    id: `Misi! Aku mau masak ${m.dish}. Petunjuk satu: ${clues[0]}. Petunjuk dua: ${clues[1]}. Petunjuk tiga: ${clues[2]}. Bisa tebak gak?`,
+    th: `ภารกิจ! ฉันอยากทำ ${m.dish}. คำใบ้ที่หนึ่ง: ${clues[0]}. คำใบ้ที่สอง: ${clues[1]}. คำใบ้ที่สาม: ${clues[2]}. ทายได้ไหม?`,
+    ko: `미션! 나는 ${m.dish} 요리하고 싶어. 힌트 하나: ${clues[0]}. 힌트 둘: ${clues[1]}. 힌트 셋: ${clues[2]}. 맞춰볼래?`
+  };
+  speak(texts[currentLang] || texts.en);
+}
+function speakIngredient(item){
+  let text = "";
+  if(currentLang==='en') text = `${item.eng}. In Indonesian, ${item.indo}. In Thai, ${item.thai}. In Korean, ${item.kor}.`;
+  else if(currentLang==='id') text = `${item.indo}. Bahasa Inggrisnya ${item.eng}. Bahasa Thainya ${item.thai}. Bahasa Koreanya ${item.kor}.`;
+  else if(currentLang==='th') text = `${item.thai}. ภาษาอังกฤษคือ ${item.eng}. ภาษาอินโดนีเซียคือ ${item.indo}. ภาษาเกาหลีคือ ${item.kor}.`;
+  else if(currentLang==='ko') text = `${item.kor}. 영어로 ${item.eng}. 인도네시아어로 ${item.indo}. 태국어로 ${item.thai}.`;
+  speak(text);
+}
+function speakCheckoutSuccess(m){
+  let name = playerName ? " " + playerName : "";
+  let texts = {
+    en: `Yay! Mission complete! Thank you so much${name}! You are so beautiful! Next mission, I want to cook ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'something special'}!`,
+    id: `Yeay! Misi selesai! Makasih banyak ya${name}! Kamu cantik banget! Misi selanjutnya, aku mau masak ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'sesuatu yang spesial'}!`,
+    th: `เย้! ภารกิจสำเร็จ! ขอบคุณมาก${name}! คุณสวยมาก! ภารกิจต่อไป ฉันอยากทำ ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'อะไรพิเศษ'}!`,
+    ko: `야호! 미션 완료! 정말 고마워${name}! 너 정말 예뻐! 다음 미션은 ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : '특별한 거'} 요리하고 싶어!`
+  };
+  speak(texts[currentLang] || texts.en);
+}
+function speakWrong(){
+  let texts = {
+    en: "Hmm, not yet! Try again! Check the clues! You can do it!",
+    id: "Hmm, belum bener! Coba lagi! Cek lagi petunjuknya! Kamu pasti bisa!",
+    th: "อืม ยังไม่ถูก! ลองอีกครั้ง! ดูคำใบ้อีกครั้ง! คุณทำได้!",
+    ko: "음, 아직 아니야! 다시 해봐! 힌트를 다시 봐! 넌 할 수 있어!"
+  };
+  speak(texts[currentLang] || texts.en);
+}
+if('speechSynthesis' in window){
+  window.speechSynthesis.onvoiceschanged = ()=>{ window.speechSynthesis.getVoices(); };
+  setTimeout(()=>{ window.speechSynthesis.getVoices(); }, 500);
+}
+
+// ============ GAME LOGIC ============
+const UI = {
+  en: {title:"My Ainun Mart", budget:"Budget", total:"Total", left:"Left", cart:"Cart", cartTitle:"Cart", empty:"No items yet...", checkout:"CHECKOUT & GIVE TO AINUN", reset:"Reset Cart", showing:"Showing", from:"of 1000 ingredients", success:"MISSION COMPLETE!", over:"OVER BUDGET! Need", incomplete:"Not yet! Still wrong / missing. Check your clues again!", emptyCart:"Cart is empty!", all:"All", mission:"MISSION", collected:"collected", next:"Next Mission:", finish:"ALL 30 MISSIONS DONE! You are Ainun's Best Chef!", hint:"💡 Need One More Hint? ( -10 points )", clueLabel:"Clue", found:"FOUND!", guess:"Guess the 3 ingredients from the clues!"},
+  id: {title:"My Ainun Mart", budget:"Budget", total:"Total", left:"Sisa", cart:"Keranjang", cartTitle:"Keranjang", empty:"Belum ada barang...", checkout:"CHECKOUT & KASIH KE AINUN", reset:"Reset Keranjang", showing:"Menampilkan", from:"dari 1000 bahan", success:"MISI SELESAI!", over:"OVER BUDGET! Kurang", incomplete:"Belum bener! Masih ada yang salah / kurang. Cek lagi petunjuknya!", emptyCart:"Keranjang kosong!", all:"Semua", mission:"MISI", collected:"terkumpul", next:"Misi Selanjutnya:", finish:"SEMUA 30 MISI SELESAI! Kamu Chef Terbaik Ainun!", hint:"💡 Butuh Petunjuk Tambahan? ( -10 poin )", clueLabel:"Petunjuk", found:"KETEMU!", guess:"Tebak 3 bahan dari petunjuknya!"},
+  th: {title:"My Ainun Mart", budget:"งบ", total:"ทั้งหมด", left:"เหลือ", cart:"ตะกร้า", cartTitle:"ตะกร้า", empty:"ยังไม่มีสินค้า...", checkout:"เช็คเอาท์ & ให้ไอนุน", reset:"รีเซ็ต", showing:"แสดง", from:"จาก 1000 วัตถุดิบ", success:"ภารกิจสำเร็จ!", over:"เกินงบ! ขาด", incomplete:"ยังไม่ถูก! ยังมีผิด / ขาดอยู่ ดูคำใบ้อีกครั้ง!", emptyCart:"ตะกร้าว่างเปล่า!", all:"ทั้งหมด", mission:"ภารกิจ", collected:"เก็บแล้ว", next:"ภารกิจต่อไป:", finish:"ครบ 30 ภารกิจ! คุณคือเชฟที่ดีที่สุดของไอนุน!", hint:"💡 ต้องการคำใบ้เพิ่ม? ( -10 คะแนน )", clueLabel:"คำใบ้", found:"เจอแล้ว!", guess:"ทายวัตถุดิบ 3 อย่างจากคำใบ้!"},
+  ko: {title:"My Ainun Mart", budget:"예산", total:"합계", left:"남은 돈", cart:"장바구니", cartTitle:"장바구니", empty:"아직 물건이 없어요...", checkout:"결제 & 아이눈에게 주기", reset:"초기화", showing:"표시 중", from:"/ 1000개 재료 중", success:"미션 완료!", over:"예산 초과! 부족", incomplete:"아직 아니야! 틀리거나 부족한 재료가 있어. 힌트를 다시 봐!", emptyCart:"장바구니가 비었어요!", all:"전체", mission:"미션", collected:"수집됨", next:"다음 미션:", finish:"30개 미션 모두 완료! 넌 아이눈의 최고의 셰프야!", hint:"💡 힌트 하나 더 필요해? ( -10점 )", clueLabel:"힌트", found:"찾았어!", guess:"힌트로 3가지 재료를 맞춰봐!"},
+};
+let currentLang='en';
+let hintUsed=false;
+const MISSIONS = [
+  {dish:"Tom Yum Goong", need:["Lime","Chili","Mushroom"], budget:100000, reward:100, clues_en:["Sour green fruit, makes soup fresh & sour","Small red thing, makes your mouth burn","Grows in damp place, soft & umbrella-like"], clues_id:["Buah ijo asem, bikin kuah jadi seger","Benda merah kecil, bikin mulut kebakar","Tumbuh di tempat lembab, lembut kayak payung"], clues_th:["ผลสีเขียวรสเปรี้ยว ทำให้น้ำซุปสดชื่น","สิ่งเล็กๆ สีแดง ทำให้ปากแสบ","ขึ้นในที่ชื้น นุ่มๆ เหมือนร่ม"], clues_ko:["신맛 나는 초록 과일, 국물을 상큼하게","작고 빨간 것, 입을 얼얼하게","습한 곳에서 자라, 부드럽고 우산 같아"], extra_en:"First one starts with L, second with C, third with M", extra_id:"Yang pertama huruf L, kedua C, ketiga M", extra_th:"อันแรกขึ้นต้นด้วย L อันที่สอง C อันที่สาม M", extra_ko:"첫 번째는 L, 두 번째는 C, 세 번째는 M으로 시작"},
+  {dish:"Pad Thai", need:["Rice","Egg","Shrimp"], budget:120000, reward:120, clues_en:["White grains, main food in Asia","Comes from chicken, oval & can be fried","Pink sea animal with tail, loves to curl"], clues_id:["Butiran putih, makanan utama di Asia","Dari ayam, bentuk oval bisa digoreng","Hewan laut pink berekor, suka melengkung"], clues_th:["เมล็ดสีขาว อาหารหลักในเอเชีย","มาจากไก่ รูปไข่ ทอดได้","สัตว์ทะเลสีชมพูมีหาง ชอบม้วนตัว"], clues_ko:["하얀 알갱이, 아시아 주식","닭이 낳아, 타원형이고 튀길 수 있어","꼬리 있는 분홍 바다 동물, 둥글게 말려"], extra_en:"Think: noodle's best friends", extra_id:"Pikirkan: teman terbaiknya mie", extra_th:"คิดถึง: เพื่อนที่ดีที่สุดของก๋วยเตี๋ยว", extra_ko:"면의 절친을 생각해봐"},
+  {dish:"Green Curry", need:["Coconut Milk","Basil","Chicken"], budget:130000, reward:130, clues_en:["White creamy liquid from brown hard fruit","Green leaf with strong smell, for curry","Bird that says cluck, its meat is popular"], clues_id:["Cairan putih creamy dari buah coklat keras","Daun hijau bau menyengat, buat kari","Hewan yang bunyi petok, dagingnya populer"], clues_th:["น้ำสีขาวครีมมี่จากผลสีน้ำตาลแข็ง","ใบสีเขียวกลิ่นแรง สำหรับแกง","สัตว์ที่ร้องกุ๊กๆ เนื้อเป็นที่นิยม"], clues_ko:["갈색 단단한 과일에서 나온 하얀 크림 액체","향 강한 초록 잎, 커리용","꼬꼬댁 하는 새, 고기가 인기 많아"], extra_en:"Green + creamy + meat", extra_id:"Hijau + creamy + daging", extra_th:"เขียว + ครีมมี่ + เนื้อ", extra_ko:"초록 + 크리미 + 고기"},
+  {dish:"Mango Sticky Rice", need:["Mango","Rice","Coconut Milk"], budget:110000, reward:110, clues_en:["Yellow sweet fruit, soft & fragrant","White grains, sticky version for dessert","White creamy liquid from brown fruit"], clues_id:["Buah kuning manis, lembut & wangi","Butiran putih, yang lengket buat dessert","Cairan putih creamy dari buah coklat"], clues_th:["ผลสีเหลืองหวาน นุ่ม & หอม","เมล็ดสีขาว แบบเหนียวสำหรับของหวาน","น้ำสีขาวครีมมี่จากผลสีน้ำตาล"], clues_ko:["노랗고 달콤한 과일, 부드럽고 향기","하얀 알갱이, 디저트용 찰진 버전","갈색 과일에서 나온 하얀 크림"], extra_en:"Sweet dessert, yellow + white + white", extra_id:"Dessert manis, kuning + putih + putih", extra_th:"ของหวาน สีเหลือง + ขาว + ขาว", extra_ko:"달콤한 디저트, 노랑 + 하양 + 하양"},
+  {dish:"Fried Rice", need:["Rice","Egg","Garlic"], budget:90000, reward:90, clues_en:["White grains, fried in pan","Oval from chicken","White small bulb, smells strong, makes food tasty"], clues_id:["Butiran putih, digoreng di wajan","Bentuk oval dari ayam","Umbi putih kecil, bau menyengat, bikin masakan enak"], clues_th:["เมล็ดสีขาว ผัดในกระทะ","รูปไข่จากไก่","หัวเล็กสีขาว กลิ่นแรง ทำให้อาหารอร่อย"], clues_ko:["하얀 알갱이, 팬에 볶아","닭에서 나온 타원형","작고 하얀 알, 냄새 강하고 요리를 맛있게"], extra_en:"Basic ingredients in every kitchen", extra_id:"Bahan dasar di semua dapur", extra_th:"วัตถุดิบพื้นฐานในทุกครัว", extra_ko:"모든 부엌에 있는 기본 재료"},
+  {dish:"Som Tam", need:["Papaya","Chili","Lime"], budget:90000, reward:90, clues_en:["Long green fruit, not ripe yet, for salad","Small red, burns mouth","Sour green fruit"], clues_id:["Buah panjang hijau, belum mateng, buat salad","Merah kecil, bikin mulut kebakar","Buah ijo asem"], clues_th:["ผลยาวสีเขียว ยังไม่สุก สำหรับสลัด","แดงเล็กๆ ทำให้ปากแสบ","ผลเขียวรสเปรี้ยว"], clues_ko:["아직 안 익은 길고 초록 과일, 샐러드용","작고 빨개, 입을 얼얼하게","신맛 나는 초록 과일"], extra_en:"Spicy salad!", extra_id:"Salad pedas!", extra_th:"สลัดเผ็ด!", extra_ko:"매운 샐러드!"},
+  {dish:"Tom Kha Soup", need:["Chicken","Coconut Milk","Galangal"], budget:140000, reward:140, clues_en:["Cluck animal meat","White creamy liquid","Root like ginger but for Tom Kha, smells like forest"], clues_id:["Daging hewan petok","Cairan putih creamy","Akar mirip jahe tapi buat Tom Kha, bau hutan"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","น้ำสีขาวครีมมี่","รากคล้ายขิง แต่สำหรับต้มข่า กลิ่นเหมือนป่า"], clues_ko:["꼬꼬댁 동물 고기","하얀 크림 액체","생강 같은 뿌리, 똠카용, 숲 냄새"], extra_en:"Creamy soup", extra_id:"Sup creamy", extra_th:"ซุปครีมมี่", extra_ko:"크리미 수프"},
+  {dish:"Thai Tea", need:["Tea","Milk","Sugar"], budget:70000, reward:70, clues_en:["Brown drink leaves, brewed hot","White liquid from cow","Sweet white crystals"], clues_id:["Daun minuman coklat, diseduh panas","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ใบเครื่องดื่มสีน้ำตาล ชงร้อน","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 음료 잎, 뜨겁게 우려","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Orange sweet drink", extra_id:"Minuman oranye manis", extra_th:"เครื่องดื่มสีส้มหวาน", extra_ko:"주황 달콤 음료"},
+  {dish:"Grilled Shrimp", need:["Shrimp","Garlic","Lime"], budget:150000, reward:150, clues_en:["Pink sea animal with tail","White bulb, strong smell","Sour green fruit"], clues_id:["Hewan laut pink berekor","Umbi putih bau menyengat","Buah ijo asem"], clues_th:["สัตว์ทะเลสีชมพูมีหาง","หัวสีขาวกลิ่นแรง","ผลเขียวรสเปรี้ยว"], clues_ko:["꼬리 있는 분홍 바다 동물","냄새 강한 하얀 알","신맛 나는 초록 과일"], extra_en:"BBQ seafood", extra_id:"BBQ seafood", extra_th:"บาร์บีคิวซีฟู้ด", extra_ko:"BBQ 해산물"},
+  {dish:"Banana Pancake", need:["Banana","Milk","Sugar"], budget:80000, reward:80, clues_en:["Yellow curved fruit, monkeys love it","White liquid from cow","Sweet white crystals"], clues_id:["Buah kuning melengkung, monyet suka","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีเหลืองโค้ง ลิงชอบ","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["노랗고 굽은 과일, 원숭이가 좋아해","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Breakfast sweet", extra_id:"Sarapan manis", extra_th:"อาหารเช้าหวานๆ", extra_ko:"달콤한 아침"},
+  {dish:"Chicken Satay", need:["Chicken","Peanut","Soy Sauce"], budget:150000, reward:150, clues_en:["Cluck animal meat","Small brown nut in shell, for sauce","Dark salty liquid in bottle"], clues_id:["Daging hewan petok","Kacang coklat kecil berkulit, buat saus","Cairan asin gelap di botol"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","ถั่วเล็กสีน้ำตาลมีเปลือก สำหรับซอส","น้ำสีเข้มรสเค็มในขวด"], clues_ko:["꼬꼬댁 동물 고기","껍질 있는 작은 갈색 견과, 소스용","병에 든 짭짤한 검은 액체"], extra_en:"Skewer + sauce", extra_id:"Tusuk + saus", extra_th:"ไม้เสียบ + ซอส", extra_ko:"꼬치 + 소스"},
+  {dish:"Spicy Basil Chicken", need:["Chicken","Basil","Chili"], budget:130000, reward:130, clues_en:["Cluck animal meat","Green fragrant leaf","Small red, burns mouth"], clues_id:["Daging hewan petok","Daun hijau wangi","Merah kecil, bikin mulut kebakar"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","ใบเขียวหอม","แดงเล็กๆ ทำให้ปากแสบ"], clues_ko:["꼬꼬댁 동물 고기","향기로운 초록 잎","작고 빨개, 입을 얼얼하게"], extra_en:"Pad Krapao!", extra_id:"Pad Krapao!", extra_th:"ผัดกะเพรา!", extra_ko:"팟 끄라파오!"},
+  {dish:"Fruit Smoothie", need:["Banana","Mango","Milk"], budget:100000, reward:100, clues_en:["Yellow curved fruit","Yellow sweet fragrant fruit","White liquid from cow"], clues_id:["Buah kuning melengkung","Buah kuning manis wangi","Cairan putih dari sapi"], clues_th:["ผลสีเหลืองโค้ง","ผลสีเหลืองหวานหอม","น้ำสีขาวจากวัว"], clues_ko:["노랗고 굽은 과일","노랗고 달콤 향기로운 과일","소에서 나온 하얀 액체"], extra_en:"Blend it!", extra_id:"Di-blender!", extra_th:"ปั่นเลย!", extra_ko:"갈아봐!"},
+  {dish:"Chocolate Cake", need:["Chocolate","Milk","Sugar"], budget:120000, reward:120, clues_en:["Brown sweet, melts in mouth","White liquid from cow","Sweet white crystals"], clues_id:["Coklat manis, lumer di mulut","Cairan putih dari sapi","Kristal putih manis"], clues_th:["สีน้ำตาลหวาน ละลายในปาก","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 달콤, 입에서 녹아","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Birthday sweet", extra_id:"Manis buat ultah", extra_th:"หวานๆ วันเกิด", extra_ko:"생일 달콤"},
+  {dish:"Seafood Curry", need:["Shrimp","Fish","Coconut Milk"], budget:180000, reward:180, clues_en:["Pink tail sea animal","Swims, has fins","White creamy liquid"], clues_id:["Hewan laut pink berekor","Berenang, punya sirip","Cairan putih creamy"], clues_th:["สัตว์ทะเลสีชมพูมีหาง","ว่ายน้ำ มีครีบ","น้ำสีขาวครีมมี่"], clues_ko:["꼬리 있는 분홍 바다 동물","헤엄쳐, 지느러미 있어","하얀 크림 액체"], extra_en:"Sea + Sea + Cream", extra_id:"Laut + Laut + Cream", extra_th:"ทะเล + ทะเล + ครีม", extra_ko:"바다 + 바다 + 크림"},
+  {dish:"Lemon Fish", need:["Fish","Lime","Garlic"], budget:140000, reward:140, clues_en:["Swims, has fins","Sour green fruit","White bulb, strong smell"], clues_id:["Berenang, punya sirip","Buah ijo asem","Umbi putih bau menyengat"], clues_th:["ว่ายน้ำ มีครีบ","ผลเขียวรสเปรี้ยว","หัวสีขาวกลิ่นแรง"], clues_ko:["헤엄쳐, 지느러미 있어","신맛 나는 초록 과일","냄새 강한 하얀 알"], extra_en:"Steamed & sour", extra_id:"Kukus & asem", extra_th:"นึ่ง & เปรี้ยว", extra_ko:"찜 & 신맛"},
+  {dish:"Kimchi Fried Rice", need:["Rice","Kimchi","Egg"], budget:130000, reward:130, clues_en:["White grains","Spicy fermented Korean cabbage, red","Oval from chicken"], clues_id:["Butiran putih","Sayur fermentasi pedas Korea, merah","Bentuk oval dari ayam"], clues_th:["เมล็ดสีขาว","ผักดองเผ็ดเกาหลี สีแดง","รูปไข่จากไก่"], clues_ko:["하얀 알갱이","매운 발효 한국 배추, 빨개","닭에서 나온 타원형"], extra_en:"Korean spicy!", extra_id:"Pedas Korea!", extra_th:"เผ็ดแบบเกาหลี!", extra_ko:"한국 매운맛!"},
+  {dish:"Bibimbap Thai", need:["Rice","Egg","Carrot"], budget:120000, reward:120, clues_en:["White grains","Oval from chicken","Orange long root, rabbits love it"], clues_id:["Butiran putih","Bentuk oval dari ayam","Akar oranye panjang, kelinci suka"], clues_th:["เมล็ดสีขาว","รูปไข่จากไก่","รากยาวสีส้ม กระต่ายชอบ"], clues_ko:["하얀 알갱이","닭에서 나온 타원형","주황 긴 뿌리, 토끼가 좋아해"], extra_en:"Colorful bowl", extra_id:"Mangkuk warna-warni", extra_th:"ชามสีสัน", extra_ko:"알록달록 그릇"},
+  {dish:"Tteokbokki", need:["Rice Cake","Chili","Sugar"], budget:110000, reward:110, clues_en:["Chewy white Korean rice cake","Small red, burns mouth","Sweet white crystals"], clues_id:["Kue beras Korea putih kenyal","Merah kecil, bikin mulut kebakar","Kristal putih manis"], clues_th:["เค้กข้าวเกาหลีสีขาวหนึบ","แดงเล็กๆ ทำให้ปากแสบ","ผลึกสีขาวรสหวาน"], clues_ko:["쫄깃한 하얀 한국 떡","작고 빨개, 입을 얼얼하게","달콤한 하얀 결정"], extra_en:"Spicy chewy!", extra_id:"Pedas kenyal!", extra_th:"เผ็ดหนึบ!", extra_ko:"매콤 쫄깃!"},
+  {dish:"Kimbap", need:["Rice","Egg","Cucumber"], budget:110000, reward:110, clues_en:["White grains","Oval from chicken","Green long watery veggie, cool"], clues_id:["Butiran putih","Bentuk oval dari ayam","Sayur hijau panjang berair, seger"], clues_th:["เมล็ดสีขาว","รูปไข่จากไก่","ผักเขียวยาวฉ่ำน้ำ เย็นๆ"], clues_ko:["하얀 알갱이","닭에서 나온 타원형","초록 길고 수분 많은 채소, 시원"], extra_en:"Roll it!", extra_id:"Digulung!", extra_th:"ม้วนเลย!", extra_ko:"말아봐!"},
+  {dish:"Korean BBQ", need:["Meat","Garlic","Soy Sauce"], budget:200000, reward:200, clues_en:["Red meat, grill it","White bulb, strong smell","Dark salty liquid"], clues_id:["Daging merah, dibakar","Umbi putih bau menyengat","Cairan asin gelap"], clues_th:["เนื้อแดง ย่างเลย","หัวสีขาวกลิ่นแรง","น้ำสีเข้มรสเค็ม"], clues_ko:["빨간 고기, 구워","냄새 강한 하얀 알","짭짤한 검은 액체"], extra_en:"Grill night!", extra_id:"Malam bakar-bakar!", extra_th:"คืนย่าง!", extra_ko:"구이 밤!"},
+  {dish:"Ramen", need:["Noodle","Egg","Chicken"], budget:130000, reward:130, clues_en:["Long yellow strings in soup","Oval from chicken","Cluck animal meat"], clues_id:["Untaian kuning panjang di kuah","Bentuk oval dari ayam","Daging hewan petok"], clues_th:["เส้นยาวสีเหลืองในน้ำซุป","รูปไข่จากไก่","เนื้อสัตว์ที่ร้องกุ๊กๆ"], clues_ko:["국물 속 긴 노란 면","닭에서 나온 타원형","꼬꼬댁 동물 고기"], extra_en:"Slurp!", extra_id:"Seruput!", extra_th:"ซู้ด!", extra_ko:"후루룩!"},
+  {dish:"Salad Bowl", need:["Tomato","Cucumber","Cabbage"], budget:80000, reward:80, clues_en:["Red round fruit, for salad","Green long watery veggie","Green round leafy veggie, layers"], clues_id:["Buah bulat merah, buat salad","Sayur hijau panjang berair","Sayur hijau bulat berlapis"], clues_th:["ผลกลมสีแดง สำหรับสลัด","ผักเขียวยาวฉ่ำน้ำ","ผักเขียวกลมเป็นชั้นๆ"], clues_ko:["빨간 둥근 과일, 샐러드용","초록 길고 수분 많은 채소","초록 둥근 겹겹 채소"], extra_en:"All green & red, healthy!", extra_id:"Semua ijo & merah, sehat!", extra_th:"เขียว & แดง สุขภาพดี!", extra_ko:"초록 & 빨강, 건강!"},
+  {dish:"Coffee Latte", need:["Coffee","Milk","Sugar"], budget:70000, reward:70, clues_en:["Brown bitter beans, morning drink","White liquid from cow","Sweet white crystals"], clues_id:["Biji coklat pahit, minuman pagi","Cairan putih dari sapi","Kristal putih manis"], clues_th:["เมล็ดสีน้ำตาลขม เครื่องดื่มยามเช้า","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 쓴 콩, 아침 음료","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Morning!", extra_id:"Pagi!", extra_th:"ยามเช้า!", extra_ko:"아침!"},
+  {dish:"Garlic Bread", need:["Bread","Garlic","Butter"], budget:90000, reward:90, clues_en:["Baked soft loaf","White bulb, strong smell","Yellow creamy, melts, for bread"], clues_id:["Roti panggang lembut","Umbi putih bau menyengat","Kuning creamy, lumer, buat roti"], clues_th:["ขนมปังอบนุ่ม","หัวสีขาวกลิ่นแรง","สีเหลืองครีมมี่ ละลาย สำหรับขนมปัง"], clues_ko:["부드럽게 구운 빵","냄새 강한 하얀 알","노란 크림, 녹아, 빵용"], extra_en:"Crispy!", extra_id:"Renyah!", extra_th:"กรอบ!", extra_ko:"바삭!"},
+  {dish:"Pancake Honey", need:["Flour","Egg","Honey"], budget:90000, reward:90, clues_en:["White powder for baking","Oval from chicken","Golden sweet liquid from bees"], clues_id:["Bubuk putih buat baking","Bentuk oval dari ayam","Cairan emas manis dari lebah"], clues_th:["ผงสีขาวสำหรับอบ","รูปไข่จากไก่","น้ำสีทองหวานจากผึ้ง"], clues_ko:["베이킹용 하얀 가루","닭에서 나온 타원형","꿀벌의 황금 달콤 액체"], extra_en:"Sweet & fluffy", extra_id:"Manis & fluffy", extra_th:"หวาน & นุ่มฟู", extra_ko:"달콤 & 푹신"},
+  {dish:"Spicy Noodle", need:["Noodle","Chili","Chicken"], budget:130000, reward:130, clues_en:["Long yellow strings","Small red, burns mouth","Cluck animal meat"], clues_id:["Untaian kuning panjang","Merah kecil, bikin mulut kebakar","Daging hewan petok"], clues_th:["เส้นยาวสีเหลือง","แดงเล็กๆ ทำให้ปากแสบ","เนื้อสัตว์ที่ร้องกุ๊กๆ"], clues_ko:["긴 노란 면","작고 빨개, 입을 얼얼하게","꼬꼬댁 동물 고기"], extra_en:"Hot challenge!", extra_id:"Tantangan pedas!", extra_th:"ท้าทายความเผ็ด!", extra_ko:"매운 챌린지!"},
+  {dish:"Coconut Ice Cream", need:["Coconut","Milk","Sugar"], budget:100000, reward:100, clues_en:["Brown hard fruit with white inside","White liquid from cow","Sweet white crystals"], clues_id:["Buah coklat keras isi putih","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีน้ำตาลแข็งข้างในสีขาว","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["속 하얀 갈색 단단한 과일","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Cold & sweet", extra_id:"Dingin & manis", extra_th:"เย็น & หวาน", extra_ko:"시원 & 달콤"},
+  {dish:"Strawberry Milk", need:["Strawberry","Milk","Sugar"], budget:80000, reward:80, clues_en:["Red heart fruit with seeds outside","White liquid from cow","Sweet white crystals"], clues_id:["Buah merah bentuk hati biji di luar","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีแดงรูปหัวใจ เมล็ดอยู่ข้างนอก","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["씨앗이 밖에 있는 빨간 하트 과일","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Pink drink!", extra_id:"Minuman pink!", extra_th:"เครื่องดื่มสีชมพู!", extra_ko:"핑크 음료!"},
+  {dish:"Grand Feast", need:["Meat","Rice","Chili"], budget:250000, reward:500, clues_en:["Red meat, main protein","White grains, main food","Small red, burns mouth"], clues_id:["Daging merah, protein utama","Butiran putih, makanan utama","Merah kecil, bikin mulut kebakar"], clues_th:["เนื้อแดง โปรตีนหลัก","เมล็ดสีขาว อาหารหลัก","แดงเล็กๆ ทำให้ปากแสบ"], clues_ko:["빨간 고기, 주 단백질","하얀 알갱이, 주식","작고 빨개, 입을 얼얼하게"], extra_en:"FINAL! Biggest feast!", extra_id:"FINAL! Pesta terbesar!", extra_th:"สุดท้าย! งานเลี้ยงใหญ่ที่สุด!", extra_ko:"최종! 가장 큰 잔치!"},
+];
+const extraWords = [
+  {thai:"ไก่", baca:"Kai", indo:"Ayam", eng:"Chicken", kor:"닭고기", cat:"Meat"},
+  {thai:"กิมจิ", baca:"Kimchi", indo:"Kimchi", eng:"Kimchi", kor:"김치", cat:"Spice"},
+  {thai:"เส้นก๋วยเตี๋ยว", baca:"Sen", indo:"Mie", eng:"Noodle", kor:"국수", cat:"Bread & Rice"},
+  {thai:"มะละกอ", baca:"Malako", indo:"Pepaya", eng:"Papaya", kor:"파파야", cat:"Fruit"},
+  {thai:"ถั่วลิสง", baca:"Thua", indo:"Kacang", eng:"Peanut", kor:"땅콩", cat:"Spice"},
+  {thai:"ขนมปัง", baca:"Khanom Pang", indo:"Roti", eng:"Bread", kor:"빵", cat:"Bread & Rice"},
+  {thai:"เนย", baca:"Noei", indo:"Mentega", eng:"Butter", kor:"버터", cat:"Milk & Egg"},
+  {thai:"แป้ง", baca:"Paeng", indo:"Tepung", eng:"Flour", kor:"밀가루", cat:"Bread & Rice"},
+  {thai:"น้ำผึ้ง", baca:"Nam Phueng", indo:"Madu", eng:"Honey", kor:"꿀", cat:"Drink"},
+  {thai:"ข้าวเหนียว", baca:"Khao Niao", indo:"Ketan", eng:"Rice Cake", kor:"떡", cat:"Bread & Rice"},
+];
+let currentMission=0, totalScore=0, cart=[], activeCat="All";
+function setLang(l){
+  currentLang=l;
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+l).classList.add('active');
+  let t=UI[l];
+  document.getElementById('title').innerText=t.title;
+  document.getElementById('lbl-budget').innerText=t.budget;
+  document.getElementById('lbl-total').innerText=t.total;
+  document.getElementById('lbl-left').innerText=t.left;
+  document.getElementById('lbl-cart').innerText=t.cart;
+  document.getElementById('cartTitle').innerText=t.cartTitle;
+  document.getElementById('btnCheckout').innerText=t.checkout;
+  document.getElementById('btnReset').innerText=t.reset;
+  document.getElementById('hintBtn').innerText=t.hint;
+  document.documentElement.lang=l;
+  buildFilter(); renderMission(); render(); update();
+  if(autoVoice){
+    let msg = l==='id'?'Bahasa diganti ke Indonesia!':l==='th'?'เปลี่ยนเป็นภาษาไทยแล้ว!':l==='ko'?'한국어로 바꿨어!':'Language changed to English!';
+    speak(msg);
+  }
+}
+const categories = ["Vegetable","Fruit","Meat","Spice","Drink","Snack","Bread & Rice","Milk & Egg","Frozen","Others"];
+const catMap = {"Vegetable":{id:"Sayur",th:"ผัก",ko:"채소"}, "Fruit":{id:"Buah",th:"ผลไม้",ko:"과일"}, "Meat":{id:"Daging",th:"เนื้อ",ko:"고기"}, "Spice":{id:"Bumbu",th:"เครื่องเทศ",ko:"양념"}, "Drink":{id:"Minuman",th:"เครื่องดื่ม",ko:"음료"}, "Snack":{id:"Snack",th:"ขนม",ko:"간식"}, "Bread & Rice":{id:"Roti & Nasi",th:"ขนมปัง & ข้าว",ko:"빵 & 밥"}, "Milk & Egg":{id:"Susu & Telur",th:"นม & ไข่",ko:"우유 & 계란"}, "Frozen":{id:"Frozen",th:"แช่แข็ง",ko:"냉동"}, "Others":{id:"Lainnya",th:"อื่นๆ",ko:"기타"}};
+const thaiWords = ["มะนาว","พริก","เห็ด","มะม่วง","มะพร้าว","ข้าว","นม","ไข่","เนื้อ","ปลา","กุ้ง","ผัก","ผลไม้","กระเทียม","ขิง","น้ำตาล","เกลือ","ชา","กาแฟ","ช็อกโกแลต","กล้วย","ส้ม","แอปเปิ้ล","องุ่น","สตรอเบอร์รี่","มะเขือเทศ","แตงกวา","แครอท","กะหล่ำ","มันฝรั่ง","หอม","พริกไทย","ใบกะเพรา","ตะไคร้","ข่า","มะกรูด","กะทิ","ซอส","น้ำปลา","ซีอิ๊ว","น้ำมัน"];
+const indoWords = ["Jeruk Nipis","Cabai","Jamur","Mangga","Kelapa","Nasi","Susu","Telur","Daging","Ikan","Udang","Sayur","Buah","Bawang Putih","Jahe","Gula","Garam","Teh","Kopi","Coklat","Pisang","Jeruk","Apel","Anggur","Stroberi","Tomat","Timun","Wortel","Kol","Kentang","Bawang","Lada","Kemangi","Sereh","Lengkuas","Jeruk Purut","Santan","Saus","Kecap Ikan","Kecap","Minyak"];
+const bacaWords = ["Manao","Phrik","Het","Mamuang","Maphrao","Khao","Nom","Khai","Nuea","Pla","Kung","Phak","Phonlamai","Krathiam","Khing","Namtan","Kluea","Cha","Kafae","Chokko","Kluai","Som","Aeppoen","Angun","Satoro","Makhuea","Taengkwa","Khaerot","Kalam","Manfarang","Hom","Phrik Thai","Bai Kaphrao","Takhrai","Kha","Makrut","Kathi","Sot","Nampla","Siiw","Namman"];
+const engWords = ["Lime","Chili","Mushroom","Mango","Coconut","Rice","Milk","Egg","Meat","Fish","Shrimp","Vegetable","Fruit","Garlic","Ginger","Sugar","Salt","Tea","Coffee","Chocolate","Banana","Orange","Apple","Grape","Strawberry","Tomato","Cucumber","Carrot","Cabbage","Potato","Onion","Pepper","Basil","Lemongrass","Galangal","Kaffir Lime","Coconut Milk","Sauce","Fish Sauce","Soy Sauce","Oil"];
+const korWords = ["라임","고추","버섯","망고","코코넛","밥","우유","계란","고기","생선","새우","채소","과일","마늘","생강","설탕","소금","차","커피","초콜릿","바나나","오렌지","사과","포도","딸기","토마토","오이","당근","양배추","감자","양파","후추","바질","레몬그라스","갈랑갈","카피르 라임","코코넛 밀크","소스","피시 소스","간장","기름"];
+const adjEN = ["Fresh","Sweet","Big","Small","Premium","Organic","Local","Golden","Juicy","Crispy","Soft","Spicy","Sour","Ripe","Tender","Classic","Royal","Garden","Sunny","Daily"];
+const adjID = ["Segar","Manis","Besar","Kecil","Premium","Organik","Lokal","Emas","Juicy","Renyah","Lembut","Pedas","Asam","Matang","Empuk","Klasik","Royal","Kebun","Cerah","Harian"];
+const adjTH = ["สด","หวาน","ใหญ่","เล็ก","พรีเมียม","ออร์แกนิก","ท้องถิ่น","ทอง","ฉ่ำ","กรอบ","นุ่ม","เผ็ด","เปรี้ยว","สุก","นุ่มละมุน","คลาสสิก","ราชวงศ์","สวน","แดด","ประจำวัน"];
+const adjKR = ["신선한","달콤한","큰","작은","프리미엄","유기농","로컬","골든","육즙","바삭한","부드러운","매운","신","익은","연한","클래식","로얄","가든","써니","데일리"];
+const adjBaca = ["Sot","Wan","Yai","Lek","Phremium","Okanik","Thongthin","Thong","Cham","Krop","Num","Phet","Priao","Suk","Numlamun","Khlassik","Ratchawong","Suan","Daet","Prachamwan"];
+let items=[];
+extraWords.forEach(e=>{ items.push({...e, price:15000}); });
+let baseItems=[];
+for(let i=0;i<thaiWords.length;i++){ baseItems.push({thai:thaiWords[i], baca:bacaWords[i], indo:indoWords[i], eng:engWords[i], kor:korWords[i], cat:categories[i%categories.length]}); }
+baseItems.forEach((b,i)=>{ let price=3000+((i*733)%20000); price=Math.round(price/500)*500; items.push({...b, price:price}); });
+let aIdx=0;
+while(items.length<1000){
+  let b = baseItems[aIdx % baseItems.length];
+  let adjPos = Math.floor(aIdx / baseItems.length);
+  let adj = adjPos % adjEN.length;
+  let e = adjEN[adj], idn = adjID[adj], th = adjTH[adj], kr = adjKR[adj], bc = adjBaca[adj];
+  let second = Math.floor(adjPos / adjEN.length);
+  let prefixEN = second>0 ? adjEN[second-1]+" "+e : e;
+  let prefixID = second>0 ? adjID[second-1]+" "+idn : idn;
+  let prefixTH = second>0 ? adjTH[second-1]+" "+th : th;
+  let prefixKR = second>0 ? adjKR[second-1]+" "+kr : kr;
+  let prefixBaca = second>0 ? adjBaca[second-1]+" "+bc : bc;
+  let price=3000+((aIdx*137)%48000); price=Math.round(price/500)*500;
+  items.push({thai: prefixTH+" "+b.thai, baca: prefixBaca+" "+b.baca, indo: prefixID+" "+b.indo, eng: prefixEN+" "+b.eng, kor: prefixKR+" "+b.kor, price: price, cat: b.cat});
+  aIdx++;
+}
+const filterEl=document.getElementById('filter');
+function getCatName(cat){ if(currentLang==='id') return catMap[cat].id; if(currentLang==='th') return catMap[cat].th; if(currentLang==='ko') return catMap[cat].ko; return cat; }
+function buildFilter(){
+  filterEl.innerHTML="";
+  let allLabel=UI[currentLang].all;
+  let allCats=[allLabel, ...categories.map(c=>getCatName(c))];
+  allCats.forEach((label,i)=>{
+    let b=document.createElement('button'); let value=i===0?"All":categories[i-1];
+    b.innerText=label; if(activeCat===value) b.classList.add('active');
+    b.onclick=()=>{activeCat=value; document.querySelectorAll('.filter button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();};
+    filterEl.appendChild(b);
+  });
+}
+function getBudget(){ return MISSIONS[currentMission]?MISSIONS[currentMission].budget:250000; }
+function isCollected(needName){ return cart.some(i=> items[i].eng===needName); }
+function getClues(m){ if(currentLang==='id') return m.clues_id; if(currentLang==='th') return m.clues_th; if(currentLang==='ko') return m.clues_ko; return m.clues_en; }
+function getExtra(m){ if(currentLang==='id') return m.extra_id; if(currentLang==='th') return m.extra_th; if(currentLang==='ko') return m.extra_ko; return m.extra_en; }
+function showHint(){
+  let m=MISSIONS[currentMission]; if(!m) return;
+  if(!hintUsed){ totalScore=Math.max(0,totalScore-10); hintUsed=true; }
+  document.getElementById('extraHint').style.display='block';
+  document.getElementById('extraHint').innerText='💡 Extra Hint: '+getExtra(m)+' (Score: '+totalScore+')';
+  if(autoVoice) speak(getExtra(m));
+  renderMission();
+}
+function renderMission(){
+  let m=MISSIONS[currentMission];
+  if(!m){ document.getElementById('missionTitle').innerText=UI[currentLang].finish; document.getElementById('missionDish').innerText="🏆"; document.getElementById('missionNeed').innerHTML=""; return; }
+  let t=UI[currentLang];
+  document.getElementById('missionTitle').innerText=`${t.mission} ${currentMission+1} / 30 • ⭐ ${totalScore}`;
+  document.getElementById('missionDish').innerHTML=`${m.dish} <button onclick="speakMission()" style="border:none;background:#ff4d8d;color:white;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer">🔊 Listen</button>`;
+  document.getElementById('missionDesc').innerText=t.guess+` • Budget Rp ${m.budget.toLocaleString('id-ID')}`;
+  document.getElementById('budgetLabel').innerText='Rp '+m.budget.toLocaleString('id-ID');
+  document.getElementById('missionReward').innerText=`⭐ +${m.reward}`;
+  let clues=getClues(m);
+  let collected=m.need.filter(n=>isCollected(n)).length;
+  document.getElementById('missionNeed').innerHTML=clues.map((c,i)=>{
+    let done=isCollected(m.need[i]);
+    return `<div class="clue ${done?'done':''}"><span><b>${t.clueLabel} ${i+1}:</b> ${done ? t.found+' ✅' : c}</span><button onclick="speak('${c.replace(/'/g,"")}')">🔊</button></div>`;
+  }).join('');
+  document.getElementById('progressBar').style.width=(collected/3*100)+'%';
+  document.getElementById('missionStatus').innerText=`${collected} / 3 ${t.collected} • Score: ${totalScore}`;
+  document.getElementById('missionList').innerHTML=MISSIONS.map((mm,i)=>{
+    let cls=i<currentMission?'done':i===currentMission?'cur':'';
+    return `<span class="${cls}">${i+1}. ${mm.dish}</span>`;
+  }).join('');
+  document.getElementById('extraHint').style.display='none';
+}
+function render(){
+  let q=document.getElementById('searchInput').value.toLowerCase();
+  let filtered=items.map((it,i)=>({...it, idx:i})).filter(it=>{
+    if(activeCat!=="All" && it.cat!==activeCat) return false;
+    if(q && !(it.indo.toLowerCase().includes(q) || it.eng.toLowerCase().includes(q) || it.kor.includes(q) || it.baca.toLowerCase().includes(q))) return false;
+    return true;
+  }).slice(0,100);
+  document.getElementById('showing').innerText=`${UI[currentLang].showing} ${filtered.length} ${UI[currentLang].from}`;
+  let shop=document.getElementById('shop'); shop.innerHTML="";
+  filtered.forEach(it=>{
+    let div=document.createElement('div');
+    div.className='item'+(cart.includes(it.idx)?' selected':'');
+    div.innerHTML=`<button class="speakBtn" onclick="event.stopPropagation(); speakIngredient(${JSON.stringify(it).replace(/"/g,'&quot;')})">🔊</button>
+      <div class="thai">${it.thai}</div><div class="baca">${it.baca}</div>
+      <div class="row">
+        <div><b>EN</b><span>${it.eng}</span><button onclick="event.stopPropagation(); speak('${it.eng.replace(/'/g,"")}','en-US')" style="border:none;background:#e0e7ff;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
+        <div><b>ID</b><span>${it.indo}</span><button onclick="event.stopPropagation(); speak('${it.indo.replace(/'/g,"")}','id-ID')" style="border:none;background:#ffe4e6;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
+        <div><b>TH</b><span>${it.thai}</span><button onclick="event.stopPropagation(); speak('${it.thai.replace(/'/g,"")}','th-TH')" style="border:none;background:#ede9fe;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
+        <div><b>KR</b><span>${it.kor}</span><button onclick="event.stopPropagation(); speak('${it.kor.replace(/'/g,"")}','ko-KR')" style="border:none;background:#fef3c7;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
+      </div>
+      <div style="margin-top:6px"><span class="badge">${getCatName(it.cat)}</span></div>
+      <div class="price">Rp ${it.price.toLocaleString('id-ID')}</div>`;
+    div.onclick=()=>{toggle(it.idx); render(); renderMission();};
+    shop.appendChild(div);
+  });
+}
+function toggle(i){
+  let idx=cart.indexOf(i); if(idx>-1) cart.splice(idx,1); else cart.push(i);
+  if(autoVoice && idx===-1){
+    let it=items[i];
+    let name = currentLang==='id'?it.indo:currentLang==='th'?it.thai:currentLang==='ko'?it.kor:it.eng;
+    let msg = currentLang==='id'?`Oke, ${name} masuk keranjang!`:currentLang==='th'?`โอเค ${name} ใส่ตะกร้าแล้ว!`:currentLang==='ko'?`좋아, ${name} 장바구니에 담았어!`:`Okay, ${name} added to cart!`;
+    speak(msg);
+  }
+  update(); renderMission();
+}
+function update(){
+  let total=cart.reduce((s,i)=>s+items[i].price,0); let budget=getBudget();
+  document.getElementById('total').innerText='Rp '+total.toLocaleString('id-ID');
+  document.getElementById('sisa').innerText='Rp '+(budget-total).toLocaleString('id-ID');
+  document.getElementById('countCart').innerText=cart.length;
+  let t=UI[currentLang];
+  document.getElementById('list').innerHTML=cart.length===0?t.empty:cart.map(i=>{
+    let it=items[i]; let name=currentLang==='id'?it.indo:currentLang==='th'?it.thai:currentLang==='ko'?it.kor:it.eng;
+    return `${it.thai} (${name}) - Rp ${it.price.toLocaleString('id-ID')}`;
+  }).join('<br>');
+}
+function checkout(){
+  let m=MISSIONS[currentMission]; if(!m){ alert(UI[currentLang].finish); return; }
+  let total=cart.reduce((s,i)=>s+items[i].price,0); let t=UI[currentLang];
+  if(cart.length===0){ document.getElementById('result').innerText=t.emptyCart; if(autoVoice) speak(t.emptyCart); return; }
+  if(total>m.budget){ document.getElementById('result').innerText=`${t.over} Rp ${(total-m.budget).toLocaleString('id-ID')}`; if(autoVoice) speak(t.over); return; }
+  let missing=m.need.filter(n=>!isCollected(n));
+  if(missing.length>0){ document.getElementById('result').innerText=t.incomplete; if(autoVoice) speakWrong(); return; }
+  if(cart.length!==3){ document.getElementById('result').innerText= currentLang==='en' ? "You must buy EXACTLY 3 items! No cheating by buying everything!" : currentLang==='id' ? "Harus beli TEPAT 3 barang! Gak boleh borong semua!" : currentLang==='th' ? "ต้องซื้อแค่ 3 อย่างเท่านั้น! ห้ามเหมาหมด!" : "정확히 3개만 사야 해! 다 사면 안 돼!"; return; }
+  totalScore+=m.reward;
+  document.getElementById('result').innerText=`${t.success} +${m.reward} ⭐ Score: ${totalScore}`;
+  if(autoVoice) speakCheckoutSuccess(m);
+  let nextDish=MISSIONS[currentMission+1]?MISSIONS[currentMission+1].dish:"FINISH";
+  setTimeout(()=>{
+    alert(`${t.success}\nMission ${currentMission+1}: ${m.dish} DONE!\nAnswers were: ${m.need.join(', ')}\n+${m.reward} points\nScore: ${totalScore}\n\n${t.next} ${nextDish}`);
+    cart=[]; currentMission++; hintUsed=false;
+    if(currentMission>=30){ alert(UI[currentLang].finish); }
+    document.getElementById('searchInput').value="";
+    renderMission(); update(); render(); window.scrollTo(0,0);
+    if(autoVoice && currentMission<30) setTimeout(()=>speakMission(), 800);
+  }, 800);
+}
+function resetGame(){ cart=[]; update(); render(); renderMission(); document.getElementById('result').innerText=''; }
+buildFilter(); renderMission(); update(); render();
+</script>
+</body>
+</html>
