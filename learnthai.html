@@ -4,552 +4,450 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Ainun Mart</title>
+<title>Learn Thai - All Levels Open</title>
 <style>
-*{box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-body{margin:0;background:#fff0f5;padding:12px;color:#333;padding-bottom:170px}
-h1{text-align:center;color:#ff4d8d;margin:6px 0 2px;font-size:22px}
-.sub{text-align:center;margin:0 0 10px;color:#888;font-size:12px}
-.screen{display:none}
-.screen.active{display:block}
-#screen-cover{padding:0;text-align:center;min-height:92vh;display:none;flex-direction:column;justify-content:center}
-#screen-cover.active{display:flex}
-.coverImg{width:100%;max-width:480px;margin:0 auto;border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(255,77,141,.35);background:#ffd6e7;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+Thai:wght@400;700&display=swap');
+body{margin:0;font-family:'Fredoka',sans-serif;background:#FFF7E6;display:flex;justify-content:center;padding:15px 0;min-height:100vh}
+.card{background:white;width:92%;max-width:460px;border-radius:28px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
+h1{color:#FF8A00;font-size:26px;margin:8px 0}
+h2{color:#333;font-size:18px}
+.sub{color:#888;font-size:12px;line-height:1.5}
+.btn{background:#FF8A00;color:white;border:none;padding:14px;border-radius:30px;font-size:16px;font-weight:600;width:100%;cursor:pointer;margin-top:10px}
+.btn2{background:#eee;color:#666}
+.input{width:100%;padding:14px;border-radius:20px;border:2px solid #FFE0B2;outline:none;font-size:16px;text-align:center;box-sizing:border-box}
+.thai{font-family:'Noto Sans Thai',sans-serif;font-size:38px;line-height:1.4;color:#FF8A00;font-weight:700;margin:12px 0;word-break:break-word}
+.option{display:block;background:#FFF7E6;border:2px solid #FFE0B2;padding:13px 15px;border-radius:16px;margin:7px 0;text-align:left;cursor:pointer;font-size:14px}
+.option.correct{background:#22C55E;color:white;border-color:#22C55E}
+.option.wrong{background:#EF4444;color:white;border-color:#EF4444}
+.progress{height:8px;background:#FFE0B2;border-radius:10px;overflow:hidden;margin:10px 0}
+.bar{height:100%;background:#FF8A00;transition:.3s}
+.hide{display:none}
+.levelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.levelCard{background:#FFF7E6;border:2px solid #FFE0B2;border-radius:18px;padding:14px;cursor:pointer;text-align:left}
+.levelCard b{font-size:15px}
+.levelCard p{margin:4px 0 0;font-size:11px;color:#888}
+.levelCard .emoji{font-size:24px}
+.badge{display:inline-block;background:#FFE0B2;color:#FF8A00;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.speakBtn{background:#222;color:white;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;margin:8px 0}
+.result-box{text-align:left;background:#FFF7E6;padding:16px;border-radius:18px;font-size:14px;line-height:1.7}
+/* ===== COVER & NAME ===== */
+.coverImg{width:100%;border-radius:22px;overflow:hidden;background:#FFE0B2;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
 .coverImg img{width:100%;height:100%;object-fit:cover;display:block}
-.coverImg .fallback{font-size:90px}
-.coverTitle{font-size:28px;font-weight:900;color:#ff4d8d;margin:16px 0 4px}
-.coverSub{color:#888;font-size:13px;margin:0 0 16px}
-.btnStart{width:100%;max-width:480px;margin:0 auto;padding:16px;border:none;border-radius:16px;background:linear-gradient(135deg,#ff4d8d,#a855f7);color:white;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px rgba(255,77,141,.4)}
+.coverTitle{font-size:28px;font-weight:700;color:#FF8A00;margin:14px 0 4px}
+.coverSub{color:#888;font-size:12px;line-height:1.5;margin:0 0 10px}
+.btnStart{width:100%;padding:16px;border:none;border-radius:30px;background:linear-gradient(135deg,#FF8A00,#FFB300);color:white;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(255,138,0,.4)}
 .btnStart:active{transform:scale(.98)}
-.btnSmall{padding:10px 16px;border:none;border-radius:20px;background:white;border:1px solid #ffb3cd;color:#ff4d8d;font-weight:800;cursor:pointer}
-#screen-name{min-height:92vh;display:none;flex-direction:column;justify-content:center;max-width:480px;margin:0 auto;text-align:center}
-#screen-name.active{display:flex}
-.nameCard{background:white;border-radius:22px;padding:22px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-.nameCard h2{color:#ff4d8d;margin:0 0 6px}
-.nameCard p{color:#888;font-size:13px;margin:0 0 14px}
-.nameCard input{width:100%;padding:14px;border-radius:14px;border:2px solid #ffd0de;outline:none;font-size:16px;text-align:center}
-.nameCard .btnGo{width:100%;padding:14px;border:none;border-radius:14px;background:#ff4d8d;color:white;font-weight:900;font-size:16px;margin-top:12px;cursor:pointer}
-.nameCard .back{margin-top:10px;background:none;border:none;color:#999;cursor:pointer}
-.playerBadge{background:#fff;border:1px solid #ffd0de;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;color:#ff4d8d;display:inline-block;margin-bottom:8px}
-.lang-switch{display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
-.lang-switch button{padding:8px 12px;border-radius:20px;border:1px solid #ffb3cd;background:white;font-weight:700;cursor:pointer;font-size:12px}
-.lang-switch button.active{background:#ff4d8d;color:white}
-.ainunBar{background:linear-gradient(135deg,#ff4d8d,#a855f7);color:white;border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:10px;box-shadow:0 4px 14px rgba(255,77,141,.3)}
-.ainunBar .avatar{font-size:36px;background:white;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ainunBar .txt{flex:1}
-.ainunBar .txt b{font-size:14px}
-.ainunBar .txt p{margin:2px 0 0;font-size:12px;line-height:1.4;opacity:.95}
-.voiceBtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.voiceBtns button{border:none;padding:7px 10px;border-radius:20px;font-weight:800;font-size:11px;cursor:pointer;background:white;color:#ff4d8d}
-.voiceBtns button.on{background:#2d0a1f;color:white}
-.voiceBtns button.speak{background:#ffd166;color:#5c3d00}
-.top{position:sticky;top:0;z-index:10;background:#fff0f5;padding:8px 0;display:flex;gap:8px}
-.card{flex:1;background:white;border-radius:12px;padding:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.card b{font-size:14px;color:#ff4d8d}
-.card span{font-size:11px;color:#888}
-.search{position:sticky;top:60px;z-index:10;background:#fff0f5;padding-bottom:8px}
-.search input{width:100%;padding:12px;border-radius:12px;border:2px solid #ffd0de;outline:none;font-size:14px;background:white}
-.filter{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
-.filter button{white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid #ffb3cd;background:white;font-weight:700;cursor:pointer;font-size:12px}
-.filter button.active{background:#ff4d8d;color:white}
-.missionBox{background:#fff;border:2px solid #ff4d8d;border-radius:16px;padding:12px;margin:8px 0}
-.missionBox .head{display:flex;justify-content:space-between;align-items:center}
-.missionBox .head b{color:#ff4d8d;font-size:15px}
-.missionBox .dish{font-size:18px;font-weight:900;margin:6px 0 4px}
-.clue{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:8px 10px;margin:5px 0;font-size:13px;line-height:1.5;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.clue.done{background:#d1fae5;border-color:#34d399}
-.clue b{color:#9a3412}
-.clue.done b{color:#065f46}
-.clue button{border:none;background:#ff4d8d;color:white;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;flex-shrink:0}
-.progress{height:10px;background:#ffeef3;border-radius:10px;overflow:hidden;margin-top:8px}
-.progress div{height:100%;background:#ff4d8d;transition:.3s}
-.missionList{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
-.missionList span{white-space:nowrap;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;background:white;border:1px solid #ddd}
-.missionList span.cur{background:#ff4d8d;color:white;border-color:#ff4d8d}
-.missionList span.done{background:#d1fae5;color:#065f46}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.item{background:white;border-radius:16px;padding:12px 10px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:2px solid transparent;position:relative}
-.item:active{transform:scale(.97)}
-.item .thai{font-size:20px;font-weight:900;color:#7c3aed;line-height:1.2}
-.item .baca{font-size:11px;font-weight:700;color:#999}
-.item .row{margin-top:6px;border-top:1px dashed #eee;padding-top:6px;text-align:left;font-size:12px;line-height:1.7}
-.item .row div{display:flex;justify-content:space-between;gap:6px;align-items:center}
-.item .row b{font-size:10px;color:#aaa;min-width:28px}
-.item .price{margin-top:8px;font-weight:900;color:#ff4d8d;font-size:13px;background:#fff0f5;padding:5px;border-radius:8px}
-.item.selected{border-color:#ff4d8d;background:#fff5f8}
-.item.selected .price{background:#ff4d8d;color:white}
-.badge{font-size:10px;background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:10px;font-weight:700}
-.speakBtn{position:absolute;top:6px;right:6px;border:none;background:#f3e8ff;color:#7c3aed;width:28px;height:28px;border-radius:50%;font-size:13px;cursor:pointer}
-.speakBtn:hover{background:#7c3aed;color:white}
-.cart{position:fixed;bottom:0;left:0;right:0;background:#2d0a1f;color:white;padding:12px;border-radius:16px 16px 0 0;max-height:42vh;overflow:auto}
-.cart h3{margin:0 0 6px;font-size:15px}
-#list{font-size:12px;line-height:1.6;max-height:90px;overflow:auto}
-.cart button{width:100%;padding:12px;border:none;border-radius:10px;background:#ff4d8d;color:white;font-weight:800;font-size:14px;margin-top:8px}
-.cart button.reset{background:transparent;color:#ff9ec0;border:1px solid #ff4d8d;margin-top:6px}
-#result{text-align:center;font-weight:800;margin-top:6px;font-size:13px}
-.count{text-align:center;font-size:12px;color:#888;margin:6px 0}
-.hintBtn{background:#fef3c7;border:1px solid #fbbf24;color:#92400e;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer;margin-top:6px}
-.speaking{animation:pulse 1s infinite}
-@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.backBtn{background:none;border:none;color:#aaa;cursor:pointer;margin-top:10px;font-size:13px}
+.nameError{color:#EF4444;font-size:12px;display:none;margin-top:8px}
 </style>
 </head>
 <body>
-<div id="screen-cover" class="screen active">
+
+<!-- ========== SCREEN 1: COVER ========== -->
+<div class="card" id="coverScreen">
   <div class="coverImg">
-    <img src="myainunmart.jpg" alt="My Ainun Mart" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
-    <div id="coverFallback" class="fallback" style="display:none">🛒👧💖<br><span style="font-size:16px;color:#ff4d8d;font-weight:900">My Ainun Mart</span></div>
+    <!-- GAMBAR DARI FILE myainunlearnthai.jpg -->
+    <img src="myainunlearnthai.jpg" alt="Learn Thai - My Ainun" onerror="this.style.display='none';document.getElementById('coverFallback').style.display='block'">
+    <div id="coverFallback" style="display:none;font-size:80px">🇹🇭<br><span style="font-size:18px;color:#FF8A00;font-weight:700">Learn Thai</span></div>
   </div>
-  <div class="coverTitle">My Ainun Mart</div>
-  <p class="coverSub">1000 Ingredients • 30 Mystery Missions • Ainun Voice • Main: English</p>
+  <div class="coverTitle">Learn Thai<br>Baca Tulisan Thailand</div>
+  <p class="coverSub">Level 1: 44 Huruf<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
   <button class="btnStart" onclick="goToName()">▶ START GAME</button>
-  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to play with Ainun!</p>
+  <p style="font-size:11px;color:#aaa;margin-top:10px">Tap START to learn Thai with Ainun!</p>
 </div>
-<div id="screen-name" class="screen">
-  <div style="font-size:60px">👧💖</div>
-  <div class="nameCard">
-    <h2 id="nameTitle">Write Your Name</h2>
-    <p id="nameSub">Ainun wants to know your name!</p>
-    <input id="playerNameInput" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') startGame()">
-    <button class="btnGo" onclick="startGame()" id="btnGo">LET'S GO! →</button>
-    <button class="back" onclick="showScreen('screen-cover')">← Back</button>
-    <p id="nameError" style="color:#ff4d8d;font-size:12px;display:none;margin-top:8px">Please write your name first!</p>
-  </div>
+
+<!-- ========== SCREEN 2: WRITE YOUR NAME ========== -->
+<div class="card hide" id="nameScreen">
+  <div style="font-size:55px">👧🇹🇭</div>
+  <h1>Write Your Name</h1>
+  <p class="sub">Ainun wants to know your name!</p>
+  <input class="input" id="playerName" placeholder="Write your name here..." maxlength="20" onkeydown="if(event.key==='Enter') goLevels()">
+  <button class="btn" onclick="goLevels()">LET'S GO! →</button>
+  <button class="backBtn" onclick="showScreen('coverScreen')">← Back</button>
+  <p class="nameError" id="nameError">Please write your name first!</p>
 </div>
-<div id="screen-game" class="screen">
-  <div style="text-align:center">
-    <span class="playerBadge" id="playerBadge">👤 Player: Guest</span>
-    <button class="btnSmall" onclick="showScreen('screen-cover')" style="margin-left:6px">🏠 Home</button>
-  </div>
-  <h1 id="title">My Ainun Mart</h1>
-  <p class="sub">1000 Ingredients • 30 Mystery Missions • Ainun Voice • Main: English</p>
-  <div class="ainunBar" id="ainunBar">
-    <div class="avatar" id="ainunAvatar">👧</div>
-    <div class="txt">
-      <b>✨ Ainun AI - Your Shopping Buddy</b>
-      <p id="ainunText">Hi! I'm Ainun! Let's go shopping! Tap the speaker to hear me!</p>
-      <div class="voiceBtns">
-        <button onclick="ainunGreet()" class="speak">🔊 Say Hi, Ainun!</button>
-        <button onclick="toggleAutoVoice()" id="autoVoiceBtn">🔔 Auto Voice: ON</button>
-        <button onclick="speakMission()">🗣️ Read Mission</button>
-        <button onclick="stopVoice()">⏹️ Stop</button>
-      </div>
-    </div>
-  </div>
-  <div class="lang-switch">
-    <button onclick="setLang('en')" id="btn-en" class="active">🇺🇸 English</button>
-    <button onclick="setLang('id')" id="btn-id">🇮🇩 Indonesia</button>
-    <button onclick="setLang('th')" id="btn-th">🇹🇭 ไทย</button>
-    <button onclick="setLang('ko')" id="btn-ko">🇰🇷 한국어</button>
-  </div>
-  <div class="top">
-    <div class="card"><span id="lbl-budget">Budget</span><br><b id="budgetLabel">Rp 100,000</b></div>
-    <div class="card"><span id="lbl-total">Total</span><br><b id="total">Rp 0</b></div>
-    <div class="card"><span id="lbl-left">Left</span><br><b id="sisa">Rp 100,000</b></div>
-    <div class="card"><span id="lbl-cart">Cart</span><br><b id="countCart">0</b></div>
-  </div>
-  <div class="missionBox">
-    <div class="head"><b id="missionTitle">MISSION 1 / 30</b><span id="missionReward">⭐ +100</span></div>
-    <div class="dish" id="missionDish">Tom Yum Goong <button onclick="speakMission()" style="border:none;background:#ff4d8d;color:white;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer">🔊 Listen</button></div>
-    <div id="missionDesc" style="font-size:12px;color:#666">Guess the 3 ingredients from the clues!</div>
-    <div id="missionNeed"></div>
-    <button class="hintBtn" onclick="showHint()" id="hintBtn">💡 Need One More Hint? ( -10 points )</button>
-    <div id="extraHint" style="font-size:12px;color:#92400e;margin-top:6px;display:none"></div>
-    <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-    <div id="missionStatus" style="font-size:11px;color:#888;margin-top:4px">0 / 3 collected</div>
-  </div>
-  <div class="missionList" id="missionList"></div>
-  <div class="search"><input id="searchInput" placeholder="Search ingredient... Guess it!" oninput="render()"></div>
-  <div class="filter" id="filter"></div>
-  <div class="count" id="showing"></div>
-  <div class="grid" id="shop"></div>
-  <div class="cart">
-    <h3 id="cartTitle">Cart</h3>
-    <div id="list">No items yet...</div>
-    <button onclick="checkout()" id="btnCheckout">CHECKOUT & GIVE TO AINUN</button>
-    <button class="reset" onclick="resetGame()" id="btnReset">Reset Cart</button>
-    <div id="result"></div>
-  </div>
+
+<!-- ========== SCREEN 3: INTRO / LEVEL SELECT (GAME) ========== -->
+<div class="card hide" id="intro">
+  <div style="font-size:55px">🇹🇭</div>
+  <h1>Learn Thai<br>Baca Tulisan Thailand</h1>
+  <p class="sub">Level 1: 44 Huruf<br>Level 2: 200 Kata<br>Level 3: 200 Kalimat Penuh!<br>Semua Level Langsung Kebuka!</p>
+  <button class="btn" onclick="goLevelsFromIntro()">CHOOSE LEVEL ▶</button>
+  <button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
 </div>
+
+<div class="card hide" id="levelScreen">
+<h2 id="helloName">Hi!</h2>
+<p class="sub">⭐ Score: <b id="totalScore">0</b> | 🔓 Semua Level Terbuka!</p>
+<div class="levelGrid" id="levelGrid"></div>
+<button class="btn btn2" onclick="showScreen('nameScreen')">Ganti Nama</button>
+</div>
+
+<div class="card hide" id="quizScreen">
+<div class="progress"><div class="bar" id="bar"></div></div>
+<p class="sub" id="qCount"></p>
+<span class="badge" id="qLevel"></span>
+<div class="thai" id="qThai"></div>
+<button class="speakBtn" onclick="speakThai()">🔊 Dengerin Bunyinya</button>
+<h2 id="qTitle"></h2>
+<div id="qOptions"></div>
+<button class="btn hide" id="nextBtn" onclick="nextQ()">Next ➜</button>
+<p class="sub" id="reviewTxt"></p>
+</div>
+
+<div class="card hide" id="resultScreen">
+<div style="font-size:48px">🎉</div>
+<h1 id="resTitle"></h1>
+<div class="result-box" id="resText"></div>
+<button class="btn" onclick="backToLevels()">Pilih Level Lagi</button>
+<button class="btn btn2" onclick="retryLevel()">Ulangi Level Ini</button>
+</div>
+
 <script>
-let playerName = "";
+// ===== SCREEN FLOW =====
 function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  ['coverScreen','nameScreen','intro','levelScreen','quizScreen','resultScreen'].forEach(s=>{
+    document.getElementById(s).classList.add('hide');
+  });
+  document.getElementById(id).classList.remove('hide');
   window.scrollTo(0,0);
-  document.querySelector('.cart').style.display = (id==='screen-game') ? 'block' : 'none';
-  document.body.style.paddingBottom = (id==='screen-game') ? '170px' : '12px';
 }
 function goToName(){
-  showScreen('screen-name');
-  setTimeout(()=>document.getElementById('playerNameInput').focus(), 200);
-  if(autoVoice) speak("Hi! What is your name? Write your name, please!", 'en-US');
+  showScreen('nameScreen');
+  setTimeout(()=>document.getElementById('playerName').focus(), 200);
+  speakEN("Hi! What is your name? Write your name, please!");
 }
-function startGame(){
-  let v = document.getElementById('playerNameInput').value.trim();
+function goLevels(){
+  let v = document.getElementById('playerName').value.trim();
   if(!v){
     document.getElementById('nameError').style.display='block';
-    if(autoVoice) speak("Please write your name first!", 'en-US');
+    speakEN("Please write your name first!");
     return;
   }
-  playerName = v;
   document.getElementById('nameError').style.display='none';
-  document.getElementById('playerBadge').innerText = "👤 Player: " + playerName;
-  showScreen('screen-game');
-  buildFilter(); renderMission(); update(); render();
-  setTimeout(()=>{
-    let msg = currentLang==='id' ? `Hai ${playerName}! Aku Ainun! Yuk belanja bareng! Kamu cantik banget!`
-      : currentLang==='th' ? `สวัสดี ${playerName}! ฉันไอนุน! ไปช้อปปิ้งด้วยกันเถอะ! คุณสวยมาก!`
-      : currentLang==='ko' ? `안녕 ${playerName}! 나는 아이눈이야! 같이 쇼핑 가자! 너 정말 예뻐!`
-      : `Hi ${playerName}! I'm Ainun! Let's go shopping together! You are so beautiful!`;
-    document.getElementById('ainunText').innerText = msg;
-    if(autoVoice) speak(msg, VOICE_MAP[currentLang]);
-  }, 400);
+  name = v;
+  // Langsung ke pilih level, skip intro biar cepat
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇹🇭`;
+  renderLevels();
+  speakEN(`Hi ${name}, welcome! All levels are open!`);
 }
-showScreen('screen-cover');
-let autoVoice = true;
-const VOICE_MAP = {en:'en-US', id:'id-ID', th:'th-TH', ko:'ko-KR'};
-function getVoice(lang){
-  let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-  // FIX: Prioritaskan suara Google Thai / Native Thai untuk th-TH
-  if(lang==='th-TH'){
-    let v = voices.find(x=> x.lang==='th-TH' && /google|thai|natural|neural/i.test(x.name));
-    if(v) return v;
-    v = voices.find(x=> x.lang==='th-TH');
-    if(v) return v;
+function goLevelsFromIntro(){
+  showScreen('levelScreen');
+  document.getElementById('helloName').innerText=`Hi ${name}! 🇹🇭`;
+  renderLevels();
+}
+
+let name="You", currentLevel=1, idx=0, score=0, totalScore=0, currentQ=null, currentPool=[];
+function speakThai(text){ const t=text||document.getElementById('qThai').innerText; if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='th-TH'; u.rate=0.65; speechSynthesis.speak(u);} }
+function speakEN(t){ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);} }
+
+const L1 = [
+["ก","Gor / g"],["ข","Khor / kh"],["ฃ","Khor / kh"],["ค","Khor / kh"],["ฅ","Khor / kh"],["ฆ","Khor / kh"],["ง","Ngor / ng"],
+["จ","Jor / j"],["ฉ","Chor / ch"],["ช","Chor / ch"],["ซ","Sor / s"],["ฌ","Chor / ch"],["ญ","Yor / y"],["ฎ","Dor / d"],["ฏ","Tor / t"],["ฐ","Thor / th"],["ฑ","Thor / th"],["ฒ","Thor / th"],["ณ","Nor / n"],
+["ด","Dor / d"],["ต","Tor / t"],["ถ","Thor / th"],["ท","Thor / th"],["ธ","Thor / th"],["น","Nor / n"],["บ","Bor / b"],["ป","Por / p"],["ผ","Phor / ph"],["ฝ","For / f"],["พ","Phor / ph"],["ฟ","For / f"],["ภ","Phor / ph"],["ม","Mor / m"],["ย","Yor / y"],["ร","Ror / r"],["ล","Lor / l"],["ว","Wor / w"],["ศ","Sor / s"],["ษ","Sor / s"],["ส","Sor / s"],["ห","Hor / h"],["ฬ","Lor / l"],["อ","Or / o"],["ฮ","Hor / h"]
+];
+
+const L2 = [
+["หมา","Dog"],["แมว","Cat"],["นก","Bird"],["ปลา","Fish"],["ไก่","Chicken"],["หมู","Pig"],["วัว","Cow"],["ควาย","Buffalo"],["ช้าง","Elephant"],["ม้า","Horse"],
+["ลิง","Monkey"],["เสือ","Tiger"],["สิงโต","Lion"],["งู","Snake"],["กบ","Frog"],["เป็ด","Duck"],["ห่าน","Goose"],["กระต่าย","Rabbit"],["หนู","Mouse"],["หมี","Bear"],
+["น้ำ","Water"],["ข้าว","Rice"],["ขนมปัง","Bread"],["นม","Milk"],["กาแฟ","Coffee"],["ชา","Tea"],["น้ำส้ม","Orange juice"],["เบียร์","Beer"],["ไวน์","Wine"],["ผลไม้","Fruit"],
+["บ้าน","House"],["โรงเรียน","School"],["โรงพยาบาล","Hospital"],["ตลาด","Market"],["วัด","Temple"],["ร้าน","Shop"],["โรงแรม","Hotel"],["สนามบิน","Airport"],["สถานี","Station"],["สวน","Park"],
+["แม่","Mother"],["พ่อ","Father"],["พี่","Older sibling"],["น้อง","Younger sibling"],["ลูก","Child"],["เพื่อน","Friend"],["แฟน","Boyfriend / Girlfriend"],["ครู","Teacher"],["หมอ","Doctor"],["ตำรวจ","Police"],
+["รัก","Love"],["ชอบ","Like"],["คิดถึง","Miss"],["กลัว","Afraid"],["โกรธ","Angry"],["เศร้า","Sad"],["มีความสุข","Happy"],["เหนื่อย","Tired"],["หิว","Hungry"],["กิน","Eat"],
+["ดื่ม","Drink"],["นอน","Sleep"],["ตื่น","Wake up"],["วิ่ง","Run"],["เดิน","Walk"],["นั่ง","Sit"],["พูด","Speak"],["ฟัง","Listen"],["ดู","Watch"],["อ่าน","Read"],
+["เขียน","Write"],["เรียน","Study"],["ทำงาน","Work"],["เล่น","Play"],["ร้องเพลง","Sing"],["เต้น","Dance"],["ว่ายน้ำ","Swim"],["ขับรถ","Drive"],["สวย","Beautiful"],["หล่อ","Handsome"],
+["ใหญ่","Big"],["เล็ก","Small"],["สูง","Tall"],["เตี้ย","Short"],["ร้อน","Hot"],["หนาว","Cold"],["เร็ว","Fast"],["ช้า","Slow"],["ใหม่","New"],["เก่า","Old"],
+["ดี","Good"],["แพง","Expensive"],["ถูก","Cheap"],["ง่าย","Easy"],["ยาก","Difficult"],["แดง","Red"],["น้ำเงิน","Blue"],["เขียว","Green"],["เหลือง","Yellow"],["ดำ","Black"],
+["ขาว","White"],["ชมพู","Pink"],["ม่วง","Purple"],["ส้ม","Orange"],["น้ำตาล","Brown"],["หนึ่ง","One"],["สอง","Two"],["สาม","Three"],["สี่","Four"],["ห้า","Five"],
+["หก","Six"],["เจ็ด","Seven"],["แปด","Eight"],["เก้า","Nine"],["สิบ","Ten"],["วันนี้","Today"],["พรุ่งนี้","Tomorrow"],["เมื่อวาน","Yesterday"],["ตอนเช้า","Morning"],["ตอนเย็น","Evening"],
+["ตอนนี้","Now"],["ทุกวัน","Every day"],["สัปดาห์","Week"],["เดือน","Month"],["ปี","Year"],["เวลา","Time"],["ทะเล","Sea"],["ภูเขา","Mountain"],["แม่น้ำ","River"],["ป่า","Forest"],
+["ดอกไม้","Flower"],["ต้นไม้","Tree"],["พระอาทิตย์","Sun"],["พระจันทร์","Moon"],["ดาว","Star"],["ฝน","Rain"],["เมฆ","Cloud"],["ลม","Wind"],["ฟ้า","Sky"],["ไฟ","Fire"],
+["เสื้อ","Shirt"],["กางเกง","Pants"],["กระโปรง","Skirt"],["ชุด","Dress"],["รองเท้า","Shoes"],["หมวก","Hat"],["แว่นตา","Glasses"],["กระเป๋า","Bag"],["นาฬิกา","Watch"],["แหวน","Ring"],
+["หัว","Head"],["ตา","Eye"],["จมูก","Nose"],["ปาก","Mouth"],["หู","Ear"],["มือ","Hand"],["เท้า","Foot"],["แขน","Arm"],["ขา","Leg"],["ผม","Hair"],
+["หัวใจ","Heart"],["สมอง","Brain"],["ร่างกาย","Body"],["ผิว","Skin"],["ฟัน","Teeth"],["เพลง","Song"],["หนัง","Movie"],["หนังสือ","Book"],["เกม","Game"],["โทรศัพท์","Phone"],
+["คอมพิวเตอร์","Computer"],["รถ","Car"],["รถไฟ","Train"],["เรือ","Boat"],["เครื่องบิน","Airplane"],["อาหาร","Food"],["ผัก","Vegetable"],["เนื้อ","Meat"],["ไข่","Egg"],["เกลือ","Salt"],
+["น้ำตาล","Sugar"],["พริก","Chili"],["อร่อย","Delicious"],["เผ็ด","Spicy"],["หวาน","Sweet"],["เปรี้ยว","Sour"],["เค็ม","Salty"],["สะอาด","Clean"],["สกปรก","Dirty"],["เงียบ","Quiet"],
+["ดัง","Loud"],["สว่าง","Bright"],["มืด","Dark"],["กว้าง","Wide"],["แคบ","Narrow"],["ยาว","Long"],["สั้น","Short"],["หนัก","Heavy"],["เบา","Light"],["แข็ง","Hard"],
+["นุ่ม","Soft"],["แห้ง","Dry"],["เปียก","Wet"],["เต็ม","Full"],["ว่าง","Empty"],["ใกล้","Near"],["ไกล","Far"],["ข้างใน","Inside"],["ข้างนอก","Outside"],["ซ้าย","Left"],
+["ขวา","Right"],["ตรงกลาง","Middle"],["หน้า","Front"],["หลัง","Back"],["ข้างบน","Above"],["ข้างล่าง","Below"],["เงิน","Money"],["ทอง","Gold"],["เพชร","Diamond"],["หิน","Stone"]
+];
+
+const L3 = [
+["สวัสดีค่ะ","Hello (female)"],["สวัสดีครับ","Hello (male)"],["สบายดีไหม","How are you?"],["สบายดี","I am fine"],["ขอบคุณมาก","Thank you very much"],["ขอบคุณค่ะ","Thank you (female)"],["ขอบคุณครับ","Thank you (male)"],["ขอโทษค่ะ","Sorry (female)"],["ขอโทษครับ","Sorry (male)"],["ไม่เป็นไร","You're welcome / It's okay"],
+["คุณชื่ออะไร","What is your name?"],["ฉันชื่ออันนัน","My name is Annan"],["ฉันชื่อนุ่น","My name is Nun"],["คุณมาจากไหน","Where are you from?"],["ฉันมาจากอินโดนีเซีย","I am from Indonesia"],["ฉันมาจากประเทศไทย","I am from Thailand"],["คุณอายุเท่าไหร่","How old are you?"],["ฉันอายุยี่สิบปี","I am twenty years old"],["ยินดีที่ได้รู้จัก","Nice to meet you"],["ยินดีที่ได้รู้จักเช่นกัน","Nice to meet you too"],
+["ฉันรักเธอ","I love you"],["ฉันรักเธอมาก","I love you so much"],["คิดถึงเธอ","I miss you"],["คิดถึงเธอมาก","I miss you so much"],["เธอสวยมาก","You are very beautiful"],["เธอหล่อมาก","You are very handsome"],["เธอน่ารักมาก","You are very cute"],["ฉันชอบเธอ","I like you"],["เธอเป็นแฟนฉันไหม","Will you be my girlfriend?"],["แต่งงานกับฉันไหม","Will you marry me?"],
+["กินข้าวหรือยัง","Have you eaten?"],["กินข้าวแล้ว","I have eaten"],["ยังไม่ได้กิน","I haven't eaten yet"],["หิวข้าว","I am hungry"],["อยากกินข้าว","I want to eat rice"],["อยากกินอะไร","What do you want to eat?"],["อยากกินข้าวผัด","I want to eat fried rice"],["อาหารอร่อยมาก","The food is very delicious"],["ไม่เผ็ด","Not spicy"],["เผ็ดมาก","Very spicy"],
+["ไปไหน","Where are you going?"],["ไปโรงเรียน","I am going to school"],["ไปทำงาน","I am going to work"],["ไปตลาด","I am going to the market"],["ไปเที่ยว","I am going traveling"],["ไปเที่ยวกัน","Let's travel together"],["ไปกินข้าวกัน","Let's eat together"],["ไปดูหนังกัน","Let's watch a movie together"],["ไปด้วยกันไหม","Do you want to go together?"],["ไปด้วยกัน","Let's go together"],
+["วันนี้อากาศดี","Today the weather is good"],["วันนี้ร้อนมาก","Today is very hot"],["วันนี้หนาว","Today is cold"],["ฝนตก","It's raining"],["พรุ่งนี้จะไปไหน","Where will you go tomorrow?"],["เมื่อวานไปไหนมา","Where did you go yesterday?"],["ตอนนี้ทำอะไร","What are you doing now?"],["ตอนนี้อยู่บ้าน","I am at home now"],["ตอนนี้อยู่โรงเรียน","I am at school now"],["กำลังทำอะไร","What are you doing?"],
+["ฉันกำลังเรียน","I am studying"],["ฉันกำลังทำงาน","I am working"],["ฉันกำลังกินข้าว","I am eating"],["ฉันกำลังนอน","I am sleeping"],["ฉันกำลังเล่นเกม","I am playing a game"],["ฉันกำลังฟังเพลง","I am listening to music"],["ฉันกำลังดูหนัง","I am watching a movie"],["ฉันกำลังอ่านหนังสือ","I am reading a book"],["ฉันกำลังขับรถ","I am driving"],["ฉันกำลังเดิน","I am walking"],
+["ช่วยด้วย","Help!"],["ช่วยฉันหน่อย","Please help me"],["ช่วยบอกหน่อย","Please tell me"],["พูดช้าๆ หน่อย","Please speak slowly"],["พูดอีกครั้งได้ไหม","Can you say it again?"],["ไม่เข้าใจ","I don't understand"],["เข้าใจแล้ว","I understand now"],["เข้าใจไหม","Do you understand?"],["รู้แล้ว","I know"],["ไม่รู้","I don't know"],
+["เท่าไหร่","How much?"],["อันนี้เท่าไหร่","How much is this?"],["แพงไป","Too expensive"],["ลดหน่อยได้ไหม","Can you give a discount?"],["ถูกมาก","Very cheap"],["ซื้ออันนี้","I will buy this"],["ไม่ซื้อ","I won't buy"],["อยากซื้อ","I want to buy"],["มีสีอื่นไหม","Do you have another color?"],["มีไซส์ใหญ่กว่านี้ไหม","Do you have a bigger size?"],
+["ห้องน้ำอยู่ที่ไหน","Where is the bathroom?"],["โรงพยาบาลอยู่ที่ไหน","Where is the hospital?"],["สถานีรถไฟอยู่ที่ไหน","Where is the train station?"],["สนามบินอยู่ที่ไหน","Where is the airport?"],["ตลาดอยู่ที่ไหน","Where is the market?"],["ไปทางไหน","Which way to go?"],["เลี้ยวซ้าย","Turn left"],["เลี้ยวขวา","Turn right"],["ตรงไป","Go straight"],["อยู่ใกล้ๆ","It's nearby"],
+["ฉันเหนื่อย","I am tired"],["ฉันง่วง","I am sleepy"],["ฉันป่วย","I am sick"],["ปวดหัว","I have a headache"],["ปวดท้อง","I have a stomachache"],["ไปหาหมอ","Go see a doctor"],["กินยา","Take medicine"],["พักผ่อน","Rest"],["นอนหลับฝันดี","Sleep well, sweet dreams"],["ฝันดีนะ","Good night, sweet dreams"],
+["โชคดีนะ","Good luck"],["สู้ๆ","Fighting! You can do it"],["เก่งมาก","Very good / Awesome"],["ทำได้ดีมาก","You did very well"],["ไม่ต้องห่วง","Don't worry"],["ไม่ต้องกลัว","Don't be afraid"],["ใจเย็นๆ","Calm down"],["อย่าร้องไห้","Don't cry"],["ยิ้มหน่อย","Smile a little"],["เธอเก่งที่สุด","You are the best"],
+["ฉันอยากไปประเทศไทย","I want to go to Thailand"],["ฉันอยากเรียนภาษาไทย","I want to learn Thai"],["ภาษาไทยยาก","Thai is difficult"],["ภาษาไทยสนุก","Thai is fun"],["ฉันพูดไทยได้นิดหน่อย","I can speak a little Thai"],["ฉันพูดไทยไม่ได้","I can't speak Thai"],["สอนฉันหน่อย","Please teach me"],["เธอสอนดีมาก","You teach very well"],["ขอบคุณที่สอนฉัน","Thank you for teaching me"],["วันนี้สนุกมาก","Today was so fun"],
+["พรุ่งนี้เจอกัน","See you tomorrow"],["เจอกันพรุ่งนี้","See you tomorrow"],["แล้วเจอกัน","See you later"],["บ๊ายบาย","Bye bye"],["ดูแลตัวเองดีๆ","Take care of yourself"],["คิดถึงนะ","Miss you"],["รักนะ","Love you"],["จุ๊บๆ","Kiss kiss"],["กอดหน่อย","Give me a hug"],["อยู่ด้วยกันนะ","Stay with me"],
+["ฉันอยากอยู่กับเธอ","I want to be with you"],["เธออยู่ไหน","Where are you?"],["เธอทำอะไรอยู่","What are you doing?"],["เธอคิดถึงฉันไหม","Do you miss me?"],["เธอรักฉันไหม","Do you love me?"],["ฉันรักเธอคนเดียว","I love only you"],["เธอคือทุกอย่างของฉัน","You are my everything"],["เธอคือโลกของฉัน","You are my world"],["ไม่มีเธอฉันอยู่ไม่ได้","Without you I can't live"],["เธอสำคัญที่สุด","You are the most important"],
+["วันนี้วันอะไร","What day is today?"],["วันนี้วันจันทร์","Today is Monday"],["วันนี้วันศุกร์","Today is Friday"],["วันเกิดของฉัน","My birthday"],["สุขสันต์วันเกิด","Happy birthday"],["สุขสันต์วันปีใหม่","Happy New Year"],["สวัสดีปีใหม่","Happy New Year"],["ขอให้โชคดี","I wish you good luck"],["ขอให้มีความสุข","I wish you happiness"],["ขอให้สุขภาพดี","I wish you good health"],
+["ฉันอยากดื่มน้ำ","I want to drink water"],["ฉันอยากดื่มกาแฟ","I want to drink coffee"],["อยากกินไอศกรีม","I want to eat ice cream"],["อยากกินผลไม้","I want to eat fruit"],["อยากไปทะเล","I want to go to the sea"],["อยากไปภูเขา","I want to go to the mountain"],["อยากไปวัด","I want to go to the temple"],["อยากถ่ายรูป","I want to take a photo"],["ถ่ายรูปกับฉันหน่อย","Please take a photo with me"],["รูปสวยมาก","The photo is very beautiful"],
+["เธอชอบเพลงอะไร","What song do you like?"],["ฉันชอบเพลงไทย","I like Thai songs"],["เธอชอบหนังอะไร","What movie do you like?"],["ฉันชอบดูหนัง","I like watching movies"],["เธอชอบเล่นเกมไหม","Do you like playing games?"],["ฉันชอบเล่นเกม","I like playing games"],["เธอชอบสีอะไร","What color do you like?"],["ฉันชอบสีชมพู","I like pink"],["ฉันชอบสีดำ","I like black"],["ฉันชอบสีขาว","I like white"],
+["บ้านเธออยู่ที่ไหน","Where is your house?"],["บ้านฉันอยู่ใกล้ๆ","My house is nearby"],["บ้านฉันใหญ่มาก","My house is very big"],["ห้องของฉัน","My room"],["ห้องของฉันเล็ก","My room is small"],["แมวของฉัน","My cat"],["หมาของฉัน","My dog"],["เพื่อนของฉัน","My friend"],["ครอบครัวของฉัน","My family"],["พ่อแม่ของฉัน","My parents"],
+["วันนี้ฉันมีความสุข","Today I am happy"],["วันนี้ฉันเศร้า","Today I am sad"],["วันนี้ฉันโกรธ","Today I am angry"],["วันนี้ฉันเบื่อ","Today I am bored"],["วันนี้ฉันตื่นเต้น","Today I am excited"],["วันนี้ฉันกังวล","Today I am worried"],["ไม่ต้องเศร้า","Don't be sad"],["อย่าโกรธนะ","Don't be angry"],["เธอโอเคไหม","Are you okay?"],["ฉันโอเค","I am okay"],
+["เวลาเท่าไหร่แล้ว","What time is it?"],["ตอนนี้กี่โมง","What time is it now?"],["ตอนนี้เที่ยง","It's noon now"],["ตอนนี้เย็นแล้ว","It's evening now"],["พรุ่งนี้เช้าเจอกัน","See you tomorrow morning"],["คืนนี้เจอกัน","See you tonight"],["อาทิตย์หน้าเจอกัน","See you next week"],["ปีหน้าเจอกัน","See you next year"],["นานแล้วไม่ได้เจอกัน","Long time no see"],["ไม่ได้เจอกันนาน","Haven't seen you in a long time"]
+];
+
+const L4 = [["๑","1"],["๒","2"],["๓","3"],["๔","4"],["๕","5"],["๖","6"],["๗","7"],["๘","8"],["๙","9"],["๑๐","10"]];
+const L5 = [["อะ","a (short)"],["อา","aa (long)"],["อิ","i"],["อี","ii (long)"],["อุ","u"],["อู","uu (long)"],["เอ","e"],["โอ","oo"],["ใ","ai"],["ไ","ai"]];
+const L6 = [
+["ข้าวผัด","Fried rice"],["ข้าวมันไก่","Chicken rice"],["ข้าวผัดกะเพรา","Basil fried rice"],["ก๋วยเตี๋ยว","Noodle soup"],["ก๋วยเตี๋ยวเรือ","Boat noodles"],["ผัดไทย","Pad Thai"],["ต้มยำ","Tom Yum soup"],["ต้มยำกุ้ง","Tom Yum with shrimp"],["แกงเขียวหวาน","Green curry"],["แกงเผ็ด","Red curry"],
+["แกงมัสมั่น","Massaman curry"],["แกงส้ม","Sour curry"],["ส้มตำ","Papaya salad"],["ลาบ","Larb salad"],["ยำ","Spicy salad"],["ไก่ทอด","Fried chicken"],["ไก่ย่าง","Grilled chicken"],["หมูทอด","Fried pork"],["หมูย่าง","Grilled pork"],["หมูกระทะ","Thai BBQ"],
+["ปลาทอด","Fried fish"],["ปลานึ่ง","Steamed fish"],["กุ้ง","Shrimp"],["ปู","Crab"],["หอย","Shellfish"],["ไข่เจียว","Omelette"],["ไข่ต้ม","Boiled egg"],["ไข่ดาว","Fried egg"],["ผัดผัก","Stir-fried vegetables"],["ผัดซีอิ๊ว","Stir-fried noodles"],
+["ข้าวต้ม","Rice porridge"],["โจ๊ก","Congee"],["ซุป","Soup"],["สลัด","Salad"],["แซนด์วิช","Sandwich"],["พิซซ่า","Pizza"],["เบอร์เกอร์","Burger"],["บะหมี่","Noodles"],["ข้าวเหนียว","Sticky rice"],["มะม่วง","Mango"],
+["กล้วย","Banana"],["ส้ม","Orange"],["แอปเปิ้ล","Apple"],["องุ่น","Grape"],["แตงโม","Watermelon"],["น้ำส้ม","Orange juice"],["น้ำมะพร้าว","Coconut water"],["กาแฟ","Coffee"],["กาแฟเย็น","Iced coffee"],["ชา","Tea"],
+["ชาเย็น","Iced tea"],["ชานม","Milk tea"],["น้ำเปล่า","Plain water"],["น้ำอัดลม","Soda"],["นม","Milk"],["นมเย็น","Iced milk"],["ไอศกรีม","Ice cream"],["เค้ก","Cake"],["ขนม","Snack / Dessert"],["ช็อกโกแลต","Chocolate"]
+];
+const L7 = [["แดง","Red"],["น้ำเงิน","Blue"],["เขียว","Green"],["เหลือง","Yellow"],["ดำ","Black"],["ขาว","White"],["ชมพู","Pink"],["ดี","Good"],["เก่ง","Smart"],["สนุก","Fun"]];
+const L8 = [
+["พ่อ","Father"],["แม่","Mother"],["พี่ชาย","Older brother"],["พี่สาว","Older sister"],["น้องชาย","Younger brother"],["น้องสาว","Younger sister"],["พี่","Older sibling"],["น้อง","Younger sibling"],["ลูกชาย","Son"],["ลูกสาว","Daughter"],
+["ลูก","Child"],["หลาน","Grandchild / Nephew"],["ปู่","Grandfather (dad side)"],["ย่า","Grandmother (dad side)"],["ตา","Grandfather (mom side)"],["ยาย","Grandmother (mom side)"],["ลุง","Uncle (older)"],["ป้า","Aunt (older)"],["อา","Uncle / Aunt (younger)"],["น้า","Uncle / Aunt (mom side)"],
+["แฟน","Boyfriend / Girlfriend"],["สามี","Husband"],["ภรรยา","Wife"],["เพื่อน","Friend"],["เพื่อนสนิท","Best friend"],["เพื่อนร่วมงาน","Coworker"],["เจ้านาย","Boss"],["ลูกน้อง","Employee"],["ครู","Teacher"],["นักเรียน","Student"],
+["หมอ","Doctor"],["พยาบาล","Nurse"],["ตำรวจ","Police"],["ทหาร","Soldier"],["ชาวนา","Farmer"],["พ่อครัว","Chef"],["พนักงาน","Staff"],["คนขับรถ","Driver"],["ช่าง","Technician"],["นักร้อง","Singer"],
+["นักแสดง","Actor"],["นักกีฬา","Athlete"],["คนไทย","Thai person"],["คนอินโดนีเซีย","Indonesian person"],["คนจีน","Chinese person"],["คนญี่ปุ่น","Japanese person"],["คนเกาหลี","Korean person"],["คนอังกฤษ","English person"],["คนอเมริกา","American person"],["เด็ก","Child / Kid"]
+];
+const L9 = [
+["วันนี้","Today"],["พรุ่งนี้","Tomorrow"],["เมื่อวาน","Yesterday"],["มะรืนนี้","Day after tomorrow"],["เมื่อวานซืน","Day before yesterday"],["ตอนนี้","Now"],["ตอนเช้า","Morning"],["ตอนสาย","Late morning"],["ตอนเที่ยง","Noon"],["ตอนบ่าย","Afternoon"],
+["ตอนเย็น","Evening"],["ตอนกลางคืน","Night"],["ตอนดึก","Late night"],["ตอนรุ่งเช้า","Dawn"],["ทุกวัน","Every day"],["ทุกเช้า","Every morning"],["ทุกคืน","Every night"],["สัปดาห์นี้","This week"],["สัปดาห์หน้า","Next week"],["สัปดาห์ที่แล้ว","Last week"],
+["เดือนนี้","This month"],["เดือนหน้า","Next month"],["เดือนที่แล้ว","Last month"],["ปีนี้","This year"],["ปีหน้า","Next year"],["ปีที่แล้ว","Last year"],["ปีใหม่","New Year"],["วันจันทร์","Monday"],["วันอังคาร","Tuesday"],["วันพุธ","Wednesday"],
+["วันพฤหัสบดี","Thursday"],["วันศุกร์","Friday"],["วันเสาร์","Saturday"],["วันอาทิตย์","Sunday"],["วันหยุด","Holiday"],["วันเกิด","Birthday"],["วันแต่งงาน","Wedding day"],["เวลา","Time"],["ชั่วโมง","Hour"],["นาที","Minute"],
+["วินาที","Second"],["เช้า","Morning"],["เย็น","Evening"],["ดึก","Late night"],["เที่ยงคืน","Midnight"],["ตีหนึ่ง","1 AM"],["ตีสอง","2 AM"],["ตีสาม","3 AM"],["หกโมงเช้า","6 AM"],["หกโมงเย็น","6 PM"],
+["เช้าตรู่","Early morning"],["บ่ายโมง","1 PM"],["บ่ายสองโมง","2 PM"],["สามทุ่ม","9 PM"],["สี่ทุ่ม","10 PM"],["ห้าทุ่ม","11 PM"],["เมื่อเช้า","This morning"],["เมื่อคืน","Last night"],["คืนนี้","Tonight"],["คืนพรุ่งนี้","Tomorrow night"],
+["มกราคม","January"],["กุมภาพันธ์","February"],["มีนาคม","March"],["เมษายน","April"],["พฤษภาคม","May"],["มิถุนายน","June"],["กรกฎาคม","July"],["สิงหาคม","August"],["กันยายน","September"],["ตุลาคม","October"],
+["พฤศจิกายน","November"],["ธันวาคม","December"],["ฤดูร้อน","Summer"],["ฤดูฝน","Rainy season"],["ฤดูหนาว","Winter"],["ฤดูใบไม้ผลิ","Spring"],["ฤดูใบไม้ร่วง","Autumn"],["ต้นเดือน","Beginning of month"],["ปลายเดือน","End of month"],["กลางเดือน","Middle of month"],
+["อดีต","Past"],["ปัจจุบัน","Present"],["อนาคต","Future"],["นานแล้ว","Long time ago"],["เร็วๆ นี้","Soon"],["เดี๋ยวนี้","Right now"],["สักครู่","A moment"],["สักพัก","A while"],["ตลอดเวลา","All the time"],["บางครั้ง","Sometimes"],
+["บ่อยๆ","Often"],["ไม่เคย","Never"],["เสมอ","Always"],["บ้าน","House"],["ห้อง","Room"],["ห้องนอน","Bedroom"],["ห้องน้ำ","Bathroom"],["ห้องครัว","Kitchen"],["ห้องนั่งเล่น","Living room"],["ห้องเรียน","Classroom"],
+["โรงเรียน","School"],["มหาวิทยาลัย","University"],["โรงพยาบาล","Hospital"],["คลินิก","Clinic"],["ร้านขายยา","Pharmacy"],["ตลาด","Market"],["ซุปเปอร์มาร์เก็ต","Supermarket"],["ร้านค้า","Shop"],["ห้างสรรพสินค้า","Mall"],["ร้านอาหาร","Restaurant"],
+["ร้านกาแฟ","Coffee shop"],["โรงแรม","Hotel"],["วัด","Temple"],["โบสถ์","Church"],["มัสยิด","Mosque"],["สวน","Park"],["สวนสัตว์","Zoo"],["พิพิธภัณฑ์","Museum"],["โรงหนัง","Cinema"],["โรงละคร","Theater"],
+["สนามบิน","Airport"],["สถานีรถไฟ","Train station"],["สถานีรถเมล์","Bus station"],["ท่าเรือ","Port"],["ป้ายรถเมล์","Bus stop"],["ถนน","Road"],["สะพาน","Bridge"],["สี่แยก","Intersection"],["ไฟแดง","Traffic light"],["ที่จอดรถ","Parking lot"],
+["ทะเล","Sea"],["ชายหาด","Beach"],["เกาะ","Island"],["แม่น้ำ","River"],["คลอง","Canal"],["ทะเลสาบ","Lake"],["น้ำตก","Waterfall"],["ภูเขา","Mountain"],["ป่า","Forest"],["ทุ่งนา","Rice field"],
+["หมู่บ้าน","Village"],["เมือง","City"],["จังหวัด","Province"],["ประเทศ","Country"],["อำเภอ","District"],["ตำบล","Subdistrict"],["ซอย","Alley"],["อาคาร","Building"],["ตึก","Building / Tower"],["คอนโด","Condo"],
+["หอพัก","Dormitory"],["บ้านพัก","Guest house"],["สำนักงาน","Office"],["บริษัท","Company"],["ธนาคาร","Bank"],["ไปรษณีย์","Post office"],["สถานีตำรวจ","Police station"],["สถานีดับเพลิง","Fire station"],["ห้องสมุด","Library"],["สนามกีฬา","Stadium"],
+["สนามฟุตบอล","Football field"],["สระว่ายน้ำ","Swimming pool"],["สวนสนุก","Amusement park"],["ร้านหนังสือ","Bookstore"],["ร้านเสื้อผ้า","Clothing store"],["ร้านตัดผม","Barbershop"],["ร้านเสริมสวย","Beauty salon"],["ตลาดนัด","Flea market"],["ตลาดน้ำ","Floating market"],["ตลาดเช้า","Morning market"],
+["ตลาดเย็น","Evening market"],["ร้านสะดวกซื้อ","Convenience store"],["ร้านเบเกอรี่","Bakery"],["ร้านดอกไม้","Flower shop"],["ฟาร์ม","Farm"],["ไร่","Farm / Plantation"],["สวนผลไม้","Orchard"],["ชายแดน","Border"],["สนามบินนานาชาติ","International airport"],["สถานทูต","Embassy"],
+["โรงเรียนอนุบาล","Kindergarten"],["โรงเรียนประถม","Primary school"],["โรงเรียนมัธยม","High school"],["วิทยาลัย","College"],["ห้องประชุม","Meeting room"],["ห้องทำงาน","Office room"],["ห้องเก็บของ","Storage room"],["ห้องใต้ดิน","Basement"],["ชั้นหนึ่ง","First floor"],["ชั้นสอง","Second floor"],
+["ชั้นสาม","Third floor"],["ลิฟต์","Elevator"],["บันได","Stairs"],["ประตู","Door"],["หน้าต่าง","Window"],["หลังคา","Roof"],["กำแพง","Wall"],["รั้ว","Fence"],["ประตูใหญ่","Main gate"],["ลานจอดรถ","Parking area"],
+["ข้างใน","Inside"],["ข้างนอก","Outside"],["ข้างบน","Above"],["ข้างล่าง","Below"],["ข้างหน้า","In front"],["ข้างหลัง","Behind"],["ข้างซ้าย","On the left"],["ข้างขวา","On the right"],["ตรงกลาง","In the middle"],["ใกล้ๆ","Nearby"],
+["ไกลๆ","Far away"],["ที่นี่","Here"],["ที่นั่น","There"],["ที่ไหน","Where"],["ทุกที่","Everywhere"],["ที่ทำงาน","Workplace"],["ที่บ้าน","At home"],["ที่โรงเรียน","At school"],["ที่วัด","At the temple"],["ที่ตลาด","At the market"]
+];
+
+const L10_MANUAL = [
+  ["คุณชื่ออะไร","What is your name?"],["คุณมาจากไหน","Where are you from?"],["คุณมาทำอะไรที่นี่","What are you doing here?"],["ทำไมเมื่อวานคุณไปโรงพยาบาล เกิดอะไรขึ้น","Why did you go to the hospital yesterday? What happened?"],["เมื่อวานคุณไปไหนมา","Where did you go yesterday?"],["พรุ่งนี้คุณจะไปไหน","Where will you go tomorrow?"],["ตอนนี้คุณทำอะไรอยู่","What are you doing now?"],["คุณอยู่ไหน","Where are you?"],["คุณสบายดีไหม","Are you okay?"],["คุณอายุเท่าไหร่","How old are you?"],
+  ["คุณทำงานอะไร","What is your job?"],["คุณเรียนที่ไหน","Where do you study?"],["คุณพักอยู่ที่ไหน","Where do you live?"],["คุณมีแฟนหรือยัง","Do you have a boyfriend / girlfriend yet?"],["คุณแต่งงานแล้วหรือยัง","Are you married yet?"],["คุณมีลูกกี่คน","How many children do you have?"],["คุณชอบสีอะไร","What color do you like?"],["คุณชอบเพลงอะไร","What song do you like?"],["คุณชอบกินอะไร","What do you like to eat?"],["คุณชอบดูหนังไหม","Do you like watching movies?"],
+  ["คุณพูดภาษาไทยได้ไหม","Can you speak Thai?"],["คุณพูดไทยเก่งมาก","You speak Thai very well"],["คุณเข้าใจไหม","Do you understand?"],["คุณจำฉันได้ไหม","Do you remember me?"],["คุณคิดถึงฉันไหม","Do you miss me?"],["คุณรักฉันไหม","Do you love me?"],["คุณโกรธฉันไหม","Are you angry with me?"],["คุณเหนื่อยไหม","Are you tired?"],["คุณหิวไหม","Are you hungry?"],["คุณง่วงไหม","Are you sleepy?"],
+  ["คุณว่างไหม","Are you free?"],["คุณพร้อมหรือยัง","Are you ready?"],["คุณไปกับใคร","Who are you going with?"],["คุณมากับใคร","Who did you come with?"],["คุณกลับบ้านกี่โมง","What time do you go home?"],["คุณตื่นกี่โมง","What time do you wake up?"],["คุณนอนกี่โมง","What time do you sleep?"],["คุณกินข้าวหรือยัง","Have you eaten yet?"],["คุณกินข้าวที่ไหน","Where did you eat?"],["คุณจะไปเที่ยวไหน","Where will you travel to?"],
+  ["คุณอยากไปไหน","Where do you want to go?"],["คุณอยากกินอะไร","What do you want to eat?"],["คุณอยากดื่มอะไร","What do you want to drink?"],["คุณอยากทำอะไรวันนี้","What do you want to do today?"],["คุณอยากอยู่กับใคร","Who do you want to be with?"],["ทำไมคุณไม่ตอบฉัน","Why didn't you reply to me?"],["ทำไมคุณไม่มา","Why didn't you come?"],["ทำไมคุณร้องไห้","Why are you crying?"],["ทำไมคุณหัวเราะ","Why are you laughing?"],["ทำไมคุณมาสาย","Why are you late?"],
+  ["ทำไมคุณไม่กินข้าว","Why didn't you eat?"],["ทำไมคุณไม่นอน","Why aren't you sleeping?"],["เมื่อไหร่คุณจะมา","When will you come?"],["เมื่อไหร่คุณจะกลับ","When will you go back?"],["เมื่อไหร่เราจะเจอกัน","When will we meet?"],["วันนี้คุณสวยมาก","Today you are very beautiful"],["วันนี้คุณหล่อมาก","Today you are very handsome"],["วันนี้คุณดูเหนื่อย","Today you look tired"],["วันนี้คุณดูเศร้า","Today you look sad"],["วันนี้คุณดูมีความสุข","Today you look happy"],
+  ["เสื้อของคุณสวยมาก","Your shirt is very beautiful"],["ผมของคุณสวยมาก","Your hair is very beautiful"],["ยิ้มของคุณสวยมาก","Your smile is very beautiful"],["เสียงของคุณเพราะมาก","Your voice is very beautiful"],["บ้านของคุณใหญ่มาก","Your house is very big"],["รถของคุณใหม่มาก","Your car is very new"],["แมวของคุณน่ารักมาก","Your cat is very cute"],["หมาของคุณน่ารักมาก","Your dog is very cute"],["ลูกของคุณน่ารักมาก","Your child is very cute"],["เพื่อนของคุณใจดีมาก","Your friend is very kind"],
+  ["แม่ของคุณใจดีมาก","Your mother is very kind"],["พ่อของคุณเก่งมาก","Your father is very great"],["ครูของคุณสอนดีมาก","Your teacher teaches very well"],["งานของคุณยากไหม","Is your work difficult?"],["งานของคุณสนุกไหม","Is your work fun?"],["โรงเรียนของคุณอยู่ที่ไหน","Where is your school?"],["บ้านของคุณอยู่ที่ไหน","Where is your house?"],["ร้านของคุณเปิดกี่โมง","What time does your shop open?"],["ร้านของคุณปิดกี่โมง","What time does your shop close?"],
+  ["ฉันรักเธอ","I love you"],["ฉันรักเธอมาก","I love you so much"],["ฉันรักเธอคนเดียว","I love only you"],["ฉันรักเธอที่สุด","I love you the most"],["ฉันคิดถึงเธอ","I miss you"],["ฉันคิดถึงเธอมาก","I miss you so much"],["ฉันคิดถึงเธอทุกวัน","I miss you every day"],["ฉันคิดถึงเธอทุกคืน","I miss you every night"],["ฉันฝันถึงเธอทุกคืน","I dream of you every night"],["ฉันอยากอยู่กับเธอ","I want to be with you"],
+  ["ฉันอยากอยู่กับเธอตลอดไป","I want to be with you forever"],["ฉันอยากดูแลเธอตลอดไป","I want to take care of you forever"],["เธอคือโลกของฉัน","You are my world"],["เธอคือทุกอย่างของฉัน","You are my everything"],["เธอคือความสุขของฉัน","You are my happiness"],["เธอคือแสงสว่างของฉัน","You are my light"],["เธอคือบ้านของฉัน","You are my home"],["ไม่มีเธอฉันอยู่ไม่ได้","Without you I can't live"],["ไม่มีเธอฉันเหงา","Without you I am lonely"],["เธอสำคัญที่สุดสำหรับฉัน","You are the most important for me"],
+  ["เธอสวยที่สุดในโลก","You are the most beautiful in the world"],["เธอคือฝันที่เป็นจริง","You are a dream come true"],["ขอบคุณที่เข้ามาในชีวิตฉัน","Thank you for coming into my life"],["ขอบคุณที่รักฉัน","Thank you for loving me"],["ขอบคุณที่อยู่กับฉัน","Thank you for being with me"],["อยู่กับฉันนะ","Stay with me"],["อย่าทิ้งฉันนะ","Don't leave me"],["อย่าไปไหนนะ","Don't go anywhere"],["กอดฉันหน่อย","Hug me"],["กอดฉันแน่นๆ","Hug me tightly"],
+  ["จับมือฉันหน่อย","Hold my hand"],["เธอทำให้ฉันมีความสุข","You make me happy"],["เธอทำให้ฉันยิ้ม","You make me smile"],["เธอทำให้ฉันหัวเราะ","You make me laugh"],["ฉันมีความสุขเมื่ออยู่กับเธอ","I am happy when I am with you"],["ฉันเหงาเมื่อไม่มีเธอ","I am lonely when you are not here"],["ฉันเศร้าเมื่อเธอไม่ตอบ","I am sad when you don't reply"],["ฉันโกรธเมื่อเธอโกหก","I am angry when you lie"],["ฉันกลัวว่าเธอจะทิ้งฉัน","I am afraid you will leave me"],["ฉันกลัวว่าเธอจะไม่รักฉัน","I am afraid you won't love me"],
+  ["เธอจะรักฉันตลอดไปไหม","Will you love me forever?"],["เธอจะอยู่กับฉันตลอดไปไหม","Will you stay with me forever?"],["แต่งงานกับฉันไหม","Will you marry me?"],["เธอเป็นแฟนฉันไหม","Will you be my girlfriend?"],["เธอเป็นแฟนฉันได้ไหม","Can you be my girlfriend?"],["ฉันอยากแต่งงานกับเธอ","I want to marry you"],["ฉันอยากมีลูกกับเธอ","I want to have a child with you"],["ฉันอยากแก่ไปกับเธอ","I want to grow old with you"],["เธอคือคนเดียวที่ฉันรัก","You are the only one I love"],["ฉันไม่เคยรักใครแบบนี้","I have never loved anyone like this"],
+  ["ตั้งแต่เจอเธอชีวิตฉันเปลี่ยนไป","Since I met you my life changed"],["ตั้งแต่เจอเธอฉันมีความสุข","Since I met you I am happy"],["ทุกครั้งที่เห็นเธอหัวใจฉันเต้นแรง","Every time I see you my heart beats fast"],["ฉันชอบเสียงของเธอ","I like your voice"],["ฉันชอบรอยยิ้มของเธอ","I like your smile"],["ฉันชอบเวลาที่เธอหัวเราะ","I like it when you laugh"],["ฉันชอบเวลาที่เธออยู่กับฉัน","I like it when you are with me"],["อย่าร้องไห้","Don't cry"],["อย่าเศร้า","Don't be sad"],["อย่าโกรธนะ","Don't be angry"],
+  ["อย่ากังวล","Don't worry"],["ไม่ต้องกลัว","Don't be afraid"],["ไม่ต้องห่วง","Don't worry"],["ใจเย็นๆ","Calm down"],["ฉันอยู่ตรงนี้กับเธอ","I am here with you"],["ฉันจะไม่ทิ้งเธอ","I will not leave you"],["ฉันจะอยู่ข้างๆ เธอเสมอ","I will always be beside you"],["ฉันจะดูแลเธอ","I will take care of you"],["ฉันจะปกป้องเธอ","I will protect you"],["ฉันสัญญาว่าจะรักเธอตลอดไป","I promise I will love you forever"],
+  ["ฉันสัญญาว่าจะไม่ทิ้งเธอ","I promise I will not leave you"],["ฝันดีนะที่รัก","Good night my love"],["ตื่นแล้วหรอที่รัก","Are you awake my love?"],["กินข้าวหรือยังที่รัก","Have you eaten my love?"],["ดูแลตัวเองดีๆ นะที่รัก","Take care of yourself my love"],["คิดถึงนะที่รัก","Miss you my love"],["รักนะที่รัก","Love you my love"],["จุ๊บๆ ที่รัก","Kiss kiss my love"],["เธอคือคนพิเศษของฉัน","You are my special person"],["เธอคือของขวัญที่ดีที่สุด","You are the best gift"],
+  ["เจอเธอคือโชคดีที่สุด","Meeting you is the luckiest"],["ฉันโชคดีที่มีเธอ","I am lucky to have you"],
+  ["ตอนนี้ฉันมีสัญญากับลูกค้าว่าเขาอยากให้สัญญาเรื่องโปรเจกต์ใหม่","Now I have a promise with the customer that he wants a promise about the new project"],["ตอนนี้ฉันทำงานเรื่องโปรเจกต์ใหม่","Now I am working on the new project"],["พรุ่งนี้ฉันต้องส่งงาน","Tomorrow I have to submit the work"],["วันนี้ฉันต้องประชุม","Today I have to have a meeting"],["พรุ่งนี้ฉันมีประชุมตอนเช้า","Tomorrow I have a meeting in the morning"],["วันนี้ฉันประชุมกับลูกค้า","Today I meet with the customer"],["ลูกค้าอยากให้เราทำโปรเจกต์ใหม่","The customer wants us to make a new project"],["ลูกค้าอยากให้เราแก้ไขงาน","The customer wants us to fix the work"],["ลูกค้าบอกว่างานของเราดีมาก","The customer said our work is very good"],["ลูกค้ายังไม่ตอบฉัน","The customer hasn't replied to me yet"],
+  ["ฉันต้องส่งงานวันนี้","I have to submit the work today"],["ฉันยังทำงานไม่เสร็จ","I haven't finished the work yet"],["งานนี้ยากมาก","This work is very difficult"],["งานนี้เยอะมาก","This work is a lot"],["งานนี้ต้องเสร็จพรุ่งนี้","This work must be finished tomorrow"],["ฉันเหนื่อยจากงาน","I am tired from work"],["วันนี้ฉันทำงานทั้งวัน","Today I worked all day"],["พรุ่งนี้ฉันหยุดงาน","Tomorrow I am off work"],["ฉันอยากลาออก","I want to quit my job"],["ฉันอยากหางานใหม่","I want to find a new job"],
+  ["ฉันอยากได้เงินเดือนเพิ่ม","I want a salary increase"],["เจ้านายของฉันใจดีมาก","My boss is very kind"],["เจ้านายของฉันดุมาก","My boss is very strict"],["เพื่อนร่วมงานของฉันดีมาก","My coworkers are very nice"],["วันนี้ฉันไปโรงเรียน","Today I go to school"],["วันนี้ฉันไปเรียน","Today I go to study"],["วันนี้ฉันมีสอบ","Today I have an exam"],["พรุ่งนี้ฉันมีสอบ","Tomorrow I have an exam"],["เมื่อวานฉันสอบไม่ผ่าน","Yesterday I failed the exam"],["วันนี้ฉันสอบผ่าน","Today I passed the exam"],
+  ["ฉันต้องทำการบ้าน","I have to do homework"],["ฉันยังทำการบ้านไม่เสร็จ","I haven't finished my homework yet"],["ครูของฉันสอนดีมาก","My teacher teaches very well"],["ครูให้การบ้านเยอะมาก","The teacher gave a lot of homework"],["ฉันชอบวิชาภาษาไทย","I like Thai subject"],["ฉันไม่ชอบวิชาคณิตศาสตร์","I don't like math"],["ฉันเรียนภาษาไทยทุกวัน","I learn Thai every day"],["ฉันอยากเรียนภาษาไทยให้เก่ง","I want to learn Thai to be good"],["ฉันอยากพูดไทยให้คล่อง","I want to speak Thai fluently"],["ภาษาไทยยากแต่สนุก","Thai is difficult but fun"],
+  ["ฉันอ่านหนังสือทุกคืน","I read a book every night"],["ฉันเขียนจดหมายถึงเธอ","I write a letter to you"],["ฉันส่งข้อความหาเธอ","I send a message to you"],["เธอตอบข้อความฉันหรือยัง","Have you replied to my message?"],["ทำไมเธอไม่ตอบข้อความฉัน","Why don't you reply to my message?"],["ฉันโทรหาเธอแต่เธอไม่รับ","I called you but you didn't answer"],["โทรกลับหาฉันหน่อย","Please call me back"],["ฉันจะโทรหาเธอคืนนี้","I will call you tonight"],["ฉันจะส่งรูปให้เธอ","I will send a photo to you"],["ส่งรูปให้ฉันหน่อย","Please send me a photo"],
+  ["ฉันกำลังทำงานอยู่","I am working"],["ฉันกำลังเรียนอยู่","I am studying"],["ฉันกำลังประชุมอยู่","I am in a meeting"],["ตอนนี้ฉันไม่ว่าง","Now I am not free"],["ตอนนี้ฉันว่าง","Now I am free"],["พรุ่งนี้ฉันว่าง","Tomorrow I am free"],["วันนี้ฉันว่างทั้งวัน","Today I am free all day"],["เจอกันพรุ่งนี้ที่โรงเรียน","See you tomorrow at school"],["เจอกันพรุ่งนี้ที่ทำงาน","See you tomorrow at work"],["เจอกันที่ร้านกาแฟ","See you at the coffee shop"],
+  ["เจอกันที่ตลาด","See you at the market"],["ฉันรอเธอที่บ้าน","I wait for you at home"],["ฉันรอเธอที่โรงเรียน","I wait for you at school"],["อย่ามาสาย","Don't be late"],["วันนี้ฉันมาสาย","Today I am late"],["เมื่อวานฉันมาสาย","Yesterday I was late"],["รถติดมากวันนี้","Traffic is very bad today"],["วันนี้ฝนตกเลยมาสาย","Today it rained so I was late"],["ฉันลืมกระเป๋า","I forgot my bag"],["ฉันลืมโทรศัพท์","I forgot my phone"],
+  ["ฉันลืมกุญแจบ้าน","I forgot my house key"],["ฉันจำไม่ได้","I don't remember"],["ฉันจำเธอได้","I remember you"],["ฉันจำวันเกิดเธอได้","I remember your birthday"],["ฉันลืมวันเกิดเธอ","I forgot your birthday"],["ขอโทษฉันลืม","Sorry I forgot"],["ไม่เป็นไรฉันเข้าใจ","It's okay I understand"],["ฉันเข้าใจแล้ว","I understand now"],["ฉันไม่เข้าใจ","I don't understand"],["ช่วยอธิบายอีกครั้งได้ไหม","Can you explain again?"],
+  ["พูดช้าๆ หน่อย","Please speak slowly"],["พูดดังๆ หน่อย","Please speak louder"],["เขียนให้ฉันหน่อย","Please write it for me"],["สอนฉันหน่อย","Please teach me"],["ช่วยฉันหน่อย","Please help me"],["ช่วยถือกระเป๋าหน่อย","Please help carry the bag"],["ช่วยเปิดประตูหน่อย","Please help open the door"],["ขอบคุณที่ช่วยฉัน","Thank you for helping me"],["ขอบคุณที่สอนฉัน","Thank you for teaching me"],["ขอบคุณที่รอฉัน","Thank you for waiting for me"],
+  ["ขอบคุณที่มาหาฉัน","Thank you for coming to see me"],["ยินดีที่ได้ช่วย","Happy to help"],["ไม่ต้องขอบคุณ","No need to thank"],["ไม่เป็นไร","It's okay"],["สู้ๆ นะ","Fighting!"],["เธอทำได้","You can do it"],["เธอเก่งมาก","You are very good"],["เธอทำได้ดีมาก","You did very well"],["ฉันภูมิใจในตัวเธอ","I am proud of you"],["ฉันเชื่อในตัวเธอ","I believe in you"],
+  ["ฉันหิวข้าว","I am hungry"],["ฉันอยากกินข้าว","I want to eat rice"],["ฉันอยากกินข้าวผัด","I want to eat fried rice"],["ฉันอยากกินผัดไทย","I want to eat Pad Thai"],["ฉันอยากกินต้มยำ","I want to eat Tom Yum"],["วันนี้ฉันกินข้าวที่บ้าน","Today I eat rice at home"],["วันนี้ฉันกินข้าวที่ร้าน","Today I eat at the restaurant"],["เมื่อวานฉันกินข้าวกับเพื่อน","Yesterday I ate with my friend"],["พรุ่งนี้ฉันจะกินข้าวกับเธอ","Tomorrow I will eat with you"],["ไปกินข้าวกัน","Let's eat together"],
+  ["ไปกินข้าวที่ตลาดกัน","Let's eat at the market"],["อาหารอร่อยมาก","The food is very delicious"],["อาหารร้านนี้อร่อยมาก","The food at this shop is very delicious"],["อาหารเผ็ดมาก","The food is very spicy"],["อาหารหวานมาก","The food is very sweet"],["อาหารเค็มมาก","The food is very salty"],["ฉันกินเผ็ดไม่ได้","I can't eat spicy"],["ฉันกินเผ็ดได้","I can eat spicy"],["ไม่ใส่พริก","No chili"],["ใส่พริกนิดหน่อย","Put a little chili"],
+  ["ฉันอยากดื่มน้ำ","I want to drink water"],["ฉันอยากดื่มกาแฟ","I want to drink coffee"],["ฉันอยากดื่มชาเย็น","I want to drink iced tea"],["ฉันกระหายน้ำ","I am thirsty"],["ดื่มน้ำเยอะๆ","Drink a lot of water"],["ฉันอยากกินไอศกรีม","I want to eat ice cream"],["ฉันอยากกินผลไม้","I want to eat fruit"],["ฉันอยากกินมะม่วง","I want to eat mango"],["ผลไม้สดมาก","The fruit is very fresh"],["ฉันซื้อผลไม้ที่ตลาด","I buy fruit at the market"],
+  ["ฉันซื้อเสื้อที่ห้าง","I buy a shirt at the mall"],["เสื้อตัวนี้เท่าไหร่","How much is this shirt?"],["อันนี้เท่าไหร่","How much is this?"],["แพงไป","Too expensive"],["ลดหน่อยได้ไหม","Can you give a discount?"],["ถูกมาก","Very cheap"],["ฉันจะซื้ออันนี้","I will buy this"],["ฉันไม่ซื้อ","I won't buy"],["มีสีอื่นไหม","Do you have another color?"],["มีไซส์ใหญ่กว่านี้ไหม","Do you have a bigger size?"],
+  ["มีไซส์เล็กกว่านี้ไหม","Do you have a smaller size?"],["ขอลองได้ไหม","Can I try it?"],["ห้องลองเสื้ออยู่ที่ไหน","Where is the fitting room?"],["ฉันจ่ายด้วยเงินสด","I pay with cash"],["ฉันจ่ายด้วยบัตร","I pay with card"],["ฉันไม่มีเงิน","I don't have money"],["ฉันลืมกระเป๋าตังค์","I forgot my wallet"],["เงินของฉันหาย","My money is gone"],["วันนี้ฉันใช้เงินเยอะ","Today I spent a lot of money"],["พรุ่งนี้ฉันจะไปตลาด","Tomorrow I will go to the market"],
+  ["ตลาดเปิดกี่โมง","What time does the market open?"],["ตลาดปิดกี่โมง","What time does the market close?"],["ตลาดอยู่ใกล้บ้านฉัน","The market is near my house"],["ร้านนี้ขายอะไร","What does this shop sell?"],["ร้านนี้ขายเสื้อผ้า","This shop sells clothes"],["ร้านนี้ขายอาหาร","This shop sells food"],["ฉันอยากซื้อของขวัญให้เธอ","I want to buy a gift for you"],["ของขวัญชิ้นนี้สำหรับเธอ","This gift is for you"],["เธอชอบของขวัญไหม","Do you like the gift?"],["ขอบคุณสำหรับของขวัญ","Thank you for the gift"],
+  ["ฉันอยากซื้อดอกไม้ให้เธอ","I want to buy flowers for you"],["ดอกไม้สวยมาก","The flowers are very beautiful"],["ดอกไม้หอมมาก","The flowers smell very good"],["ฉันชอบดอกกุหลาบ","I like roses"],["เธอชอบดอกไม้อะไร","What flower do you like?"],["ฉันชอบกินช็อกโกแลต","I like eating chocolate"],["ฉันไม่กินเนื้อ","I don't eat meat"],["ฉันไม่ดื่มเหล้า","I don't drink alcohol"],["ฉันไม่สูบบุหรี่","I don't smoke"],["ฉันอยากลดน้ำหนัก","I want to lose weight"],
+  ["ฉันอยากออกกำลังกาย","I want to exercise"],["พรุ่งนี้ฉันจะวิ่งที่สวน","Tomorrow I will run at the park"],["วันนี้ฉันวิ่งที่สวน","Today I run at the park"],["ฉันเหนื่อยจากการวิ่ง","I am tired from running"],["ฉันอยากว่ายน้ำ","I want to swim"],["พรุ่งนี้ฉันจะไปว่ายน้ำ","Tomorrow I will go swimming"],["สระว่ายน้ำอยู่ที่ไหน","Where is the swimming pool?"],["ฉันว่ายน้ำไม่เป็น","I can't swim"],["สอนฉันว่ายน้ำหน่อย","Please teach me to swim"],["ฉันชอบเล่นฟุตบอล","I like playing football"],
+  ["เธอชอบเล่นเกมไหม","Do you like playing games?"],["ฉันชอบเล่นเกมกับเธอ","I like playing games with you"],["คืนนี้เราเล่นเกมกัน","Tonight we play games together"],["เมื่อคืนฉันเล่นเกมทั้งคืน","Last night I played games all night"],["ฉันนอนดึกเพราะเล่นเกม","I slept late because I played games"],
+  ["ฉันป่วย","I am sick"],["ฉันปวดหัว","I have a headache"],["ฉันปวดท้อง","I have a stomachache"],["ฉันปวดฟัน","I have a toothache"],["ฉันเป็นไข้","I have a fever"],["ฉันไอ","I cough"],["ฉันเป็นหวัด","I have a cold"],["ฉันเจ็บขา","My leg hurts"],["ฉันเจ็บแขน","My arm hurts"],["ฉันล้ม","I fell down"],
+  ["ฉันบาดเจ็บ","I am injured"],["ไปหาหมอ","Go see a doctor"],["ไปโรงพยาบาลกัน","Let's go to the hospital"],["ทำไมเมื่อวานเธอไปโรงพยาบาล","Why did you go to the hospital yesterday?"],["เมื่อวานฉันไปโรงพยาบาลเพราะปวดท้อง","Yesterday I went to the hospital because of stomachache"],["หมอบอกว่าฉันต้องพักผ่อน","The doctor said I have to rest"],["หมอบอกว่าฉันต้องกินยา","The doctor said I have to take medicine"],["กินยาตรงเวลา","Take medicine on time"],["อย่าลืมกินยา","Don't forget to take medicine"],["พักผ่อนเยอะๆ","Rest a lot"],
+  ["นอนพักผ่อน","Sleep and rest"],["เธอหายดีหรือยัง","Are you better yet?"],["ฉันหายดีแล้ว","I am better now"],["ฉันยังไม่หายดี","I am not better yet"],["ดูแลตัวเองดีๆ","Take care of yourself"],["วันนี้อากาศดี","Today the weather is good"],["วันนี้อากาศร้อนมาก","Today the weather is very hot"],["วันนี้อากาศหนาว","Today the weather is cold"],["วันนี้ฝนตก","Today it rains"],["เมื่อวานฝนตกหนัก","Yesterday it rained heavily"],
+  ["พรุ่งนี้ฝนจะตกไหม","Will it rain tomorrow?"],["วันนี้เมฆเยอะ","Today there are many clouds"],["วันนี้ลมแรง","Today the wind is strong"],["วันนี้แดดแรง","Today the sun is strong"],["ใส่หมวก","Wear a hat"],["ใส่เสื้อกันหนาว","Wear a jacket"],["อย่าลืมเอาร่ม","Don't forget to bring an umbrella"],["ฉันเปียกฝน","I got wet from the rain"],["เสื้อของฉันเปียก","My shirt is wet"],["ฉันอยากไปทะเล","I want to go to the sea"],
+  ["พรุ่งนี้ฉันจะไปทะเล","Tomorrow I will go to the sea"],["เมื่อวานฉันไปทะเลกับเพื่อน","Yesterday I went to the sea with my friend"],["ทะเลสวยมาก","The sea is very beautiful"],["น้ำทะเลเย็นมาก","The sea water is very cold"],["ฉันอยากไปภูเขา","I want to go to the mountain"],["ฉันอยากไปวัด","I want to go to the temple"],["พรุ่งนี้ฉันจะไปวัด","Tomorrow I will go to the temple"],["เมื่อวานฉันไปวัดกับแม่","Yesterday I went to the temple with my mother"],["วัดสวยมาก","The temple is very beautiful"],["ฉันอยากถ่ายรูปที่วัด","I want to take photos at the temple"],
+  ["ถ่ายรูปกับฉันหน่อย","Please take a photo with me"],["รูปสวยมาก","The photo is very beautiful"],["รูปนี้ถ่ายที่ไหน","Where was this photo taken?"],["ฉันอยากไปกรุงเทพ","I want to go to Bangkok"],["เธอเคยไปกรุงเทพไหม","Have you ever been to Bangkok?"],["ฉันเคยไปกรุงเทพแล้ว","I have been to Bangkok"],["ฉันไม่เคยไปกรุงเทพ","I have never been to Bangkok"],["ฉันอยากไปอินโดนีเซีย","I want to go to Indonesia"],["เธอเคยไปอินโดนีเซียไหม","Have you ever been to Indonesia?"],["เที่ยวบินกี่โมง","What time is the flight?"],
+  ["สนามบินอยู่ที่ไหน","Where is the airport?"],["ฉันจะไปสนามบินพรุ่งนี้","I will go to the airport tomorrow"],["รถไฟออกกี่โมง","What time does the train leave?"],["สถานีรถไฟอยู่ที่ไหน","Where is the train station?"],["ฉันจะนั่งรถไฟไปกรุงเทพ","I will take the train to Bangkok"],["รถเมล์สายนี้ไปไหน","Where does this bus go?"],["ค่ารถเท่าไหร่","How much is the fare?"],["เลี้ยวซ้าย","Turn left"],["เลี้ยวขวา","Turn right"],["ตรงไป","Go straight"],
+  ["อยู่ใกล้ๆ","It's nearby"],["อยู่ไกลมาก","It's very far"],["ห้องน้ำอยู่ที่ไหน","Where is the bathroom?"],["โรงแรมอยู่ที่ไหน","Where is the hotel?"],["ฉันพักที่โรงแรม","I stay at the hotel"],["ฉันจองโรงแรมแล้ว","I have booked the hotel"],["ห้องของฉันอยู่ชั้นสอง","My room is on the second floor"],["กุญแจห้องของฉันหาย","My room key is gone"],["ฉันอยากเช่ารถ","I want to rent a car"],["ฉันขับรถไม่เป็น","I can't drive"],
+  ["เธอขับรถเป็นไหม","Can you drive?"],["ขับรถระวังๆ","Drive carefully"],["รถของฉันเสีย","My car is broken"],["รถของฉันน้ำมันหมด","My car ran out of gas"],["ฉันลืมทาง","I forgot the way"],["ฉันหลงทาง","I am lost"],["ช่วยบอกทางหน่อย","Please tell me the way"],["ไปทางไหน","Which way to go?"],["เธออยู่ใกล้ไหม","Are you near?"],["ฉันอยู่ใกล้บ้านเธอ","I am near your house"],
+  ["ฉันกำลังไปหาเธอ","I am going to see you"],["รอฉันแป๊บนึง","Wait for me a moment"],["รอฉันที่บ้าน","Wait for me at home"],["ฉันกำลังกลับบ้าน","I am going home"],["ฉันถึงบ้านแล้ว","I have arrived home"],["เธอถึงบ้านหรือยัง","Have you arrived home?"],["ถึงแล้วบอกฉันนะ","Tell me when you arrive"],["เดินทางปลอดภัยนะ","Have a safe trip"],["ขับรถดีๆ นะ","Drive well"],["เจอกันพรุ่งนี้","See you tomorrow"],
+  ["เจอกันคืนนี้","See you tonight"],["เจอกันอาทิตย์หน้า","See you next week"],["นานแล้วไม่ได้เจอกัน","Long time no see"],["ไม่ได้เจอกันนาน","Haven't seen you in a long time"],["ฉันคิดถึงเธอมากไม่ได้เจอกันนาน","I miss you so much, haven't seen you for a long time"],
+];
+
+const LOGICAL_PAIRS = [
+  ["กิน","eat","ข้าว","rice","ที่บ้าน","at home"],
+  ["กิน","eat","ผลไม้","fruit","ที่บ้าน","at home"],
+  ["กิน","eat","ข้าวผัด","fried rice","ที่ร้าน","at the shop"],
+  ["ดื่ม","drink","น้ำ","water","ที่บ้าน","at home"],
+  ["ดื่ม","drink","กาแฟ","coffee","ที่ร้านกาแฟ","at the coffee shop"],
+  ["ดื่ม","drink","ชา","tea","ที่บ้าน","at home"],
+  ["อ่าน","read","หนังสือ","book","ที่ห้อง","in the room"],
+  ["อ่าน","read","จดหมาย","letter","ที่บ้าน","at home"],
+  ["เขียน","write","จดหมาย","letter","ที่บ้าน","at home"],
+  ["เขียน","write","หนังสือ","book","ที่ห้อง","in the room"],
+  ["ดู","watch","หนัง","movie","ที่บ้าน","at home"],
+  ["ฟัง","listen to","เพลง","song","ที่บ้าน","at home"],
+  ["เล่น","play","เกม","game","ที่บ้าน","at home"],
+  ["เล่น","play","ฟุตบอล","football","ที่สนาม","at the field"],
+  ["เรียน","study","ภาษาไทย","Thai language","ที่โรงเรียน","at school"],
+  ["เรียน","study","ภาษาอังกฤษ","English","ที่โรงเรียน","at school"],
+  ["ทำงาน","work","","","ที่ทำงาน","at work"],
+  ["ทำความสะอาด","clean","ห้อง","room","ที่บ้าน","at home"],
+  ["ทำอาหาร","cook","ข้าว","rice","ที่บ้าน","at home"],
+  ["ทำอาหาร","cook","อาหาร","food","ที่บ้าน","at home"],
+  ["ซื้อ","buy","เสื้อ","shirt","ที่ห้าง","at the mall"],
+  ["ซื้อ","buy","ผลไม้","fruit","ที่ตลาด","at the market"],
+  ["ซื้อ","buy","ดอกไม้","flower","ที่ตลาด","at the market"],
+  ["ขาย","sell","เสื้อ","shirt","ที่ตลาด","at the market"],
+  ["ถ่ายรูป","take photo","","","ที่วัด","at the temple"],
+  ["ถ่ายรูป","take photo","","","ที่ทะเล","at the sea"],
+  ["ว่ายน้ำ","swim","","","ที่สระว่ายน้ำ","at the swimming pool"],
+  ["วิ่ง","run","","","ที่สวน","at the park"],
+  ["เดิน","walk","","","ที่สวน","at the park"],
+  ["ขับรถ","drive","รถ","car","ไปทำงาน","to work"],
+  ["ไป","go","โรงเรียน","school","",""],
+  ["ไป","go","ตลาด","market","",""],
+  ["ไป","go","วัด","temple","",""],
+  ["ไป","go","ทะเล","sea","",""],
+  ["ไป","go","โรงพยาบาล","hospital","",""],
+  ["มา","come","บ้าน","home","",""],
+  ["มา","come","โรงเรียน","school","",""],
+  ["นอน","sleep","","","ที่บ้าน","at home"],
+  ["ตื่น","wake up","","","ตอนเช้า","in the morning"],
+  ["ร้องเพลง","sing","เพลง","song","ที่บ้าน","at home"],
+  ["เต้น","dance","","","ที่บ้าน","at home"],
+  ["ช่วย","help","เพื่อน","friend","ที่โรงเรียน","at school"],
+  ["สอน","teach","ภาษาไทย","Thai language","ที่โรงเรียน","at school"],
+  ["โทรหา","call","เธอ","you","",""],
+  ["ส่งข้อความหา","send message to","เธอ","you","",""],
+  ["รอ","wait for","เธอ","you","ที่บ้าน","at home"],
+  ["คิดถึง","miss","เธอ","you","",""],
+  ["รัก","love","เธอ","you","",""],
+  ["กอด","hug","เธอ","you","",""],
+  ["ดูแล","take care of","เธอ","you","",""],
+  ["เยี่ยม","visit","แม่","mother","ที่บ้าน","at home"],
+  ["เยี่ยม","visit","เพื่อน","friend","ที่โรงพยาบาล","at the hospital"],
+];
+
+function buildL10(){
+  let out = [...L10_MANUAL];
+  let seen = new Set(out.map(x=>x[0]));
+  const times = [
+    ["วันนี้","today"],["พรุ่งนี้","tomorrow"],["เมื่อวาน","yesterday"],["ตอนเช้า","in the morning"],["ตอนเย็น","in the evening"],["ทุกวัน","every day"],["ตอนนี้","now"]
+  ];
+  let idx = 0;
+  while(out.length < 1000 && idx < 5000){
+    idx++;
+    const p = LOGICAL_PAIRS[idx % LOGICAL_PAIRS.length];
+    const t = times[idx % times.length];
+    const subj = ["ฉัน","เธอ","เขา","เรา"][idx % 4];
+    const subjEng = ["I","You","He/She","We"][idx % 4];
+    let thai = `${subj}${p[0]}${p[2]}${p[4]}${t[0]}`;
+    let eng = `${subjEng} ${p[1]} ${p[3]} ${p[5]} ${t[1]}`.replace(/\s+/g,' ').trim();
+    thai = thai.replace("ที่บ้านที่บ้าน","ที่บ้าน");
+    if(!seen.has(thai) && thai.length > 4){
+      seen.add(thai);
+      out.push([thai, eng]);
+    }
   }
-  let v = voices.find(x=> x.lang===lang && /female|zira|samantha|google|natural|neural/i.test(x.name));
-  if(!v) v = voices.find(x=> x.lang===lang);
-  if(!v) v = voices.find(x=> x.lang && x.lang.startsWith(lang.split('-')[0]));
-  return v || null;
+  return out.slice(0,1000);
 }
-function speak(text, lang){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  let u = new SpeechSynthesisUtterance(text);
-  u.lang = lang || VOICE_MAP[currentLang] || 'en-US';
-  // FIX: Thai lebih pelan biar Khai tidak jadi Ki
-  u.rate = (u.lang==='th-TH') ? 0.85 : 0.95;
-  u.pitch = 1.15; u.volume = 1;
-  let v = getVoice(u.lang); if(v) u.voice = v;
-  let av = document.getElementById('ainunAvatar');
-  if(av){ av.classList.add('speaking'); av.innerText='🗣️'; }
-  u.onend = ()=>{ if(av){ av.classList.remove('speaking'); av.innerText='👧'; } };
-  u.onerror = ()=>{ if(av){ av.classList.remove('speaking'); av.innerText='👧'; } };
-  window.speechSynthesis.speak(u);
-  let at = document.getElementById('ainunText'); if(at) at.innerText = text;
+const L10 = buildL10();
+
+const LEVELS=[
+{ id:1, emoji:"🔤", title:"Level 1 - 44 Huruf", desc:"44 Soal", q:"How to read this?", pool:L1 },
+{ id:2, emoji:"📚", title:"Level 2 - 200 Kata", desc:"200 Soal", q:"What does this mean?", pool:L2 },
+{ id:3, emoji:"💬", title:"Level 3 - 200 Kalimat", desc:"200 Soal • Kalimat penuh", q:"What does this sentence mean?", pool:L3 },
+{ id:4, emoji:"🔢", title:"Level 4 - Angka", desc:"10 Soal", q:"What number is this?", pool:L4 },
+{ id:5, emoji:"🅰️", title:"Level 5 - Vokal", desc:"10 Soal", q:"How to read this?", pool:L5 },
+{ id:6, emoji:"🍜", title:"Level 6 - Makanan", desc:"50 Soal", q:"What does this mean?", pool:L6 },
+{ id:7, emoji:"🎨", title:"Level 7 - Warna", desc:"10 Soal", q:"What does this mean?", pool:L7 },
+{ id:8, emoji:"👨‍👩‍👧", title:"Level 8 - Keluarga", desc:"50 Soal", q:"What does this mean?", pool:L8 },
+{ id:9, emoji:"📅", title:"Level 9 - Waktu & Tempat", desc:"200 Soal", q:"What does this mean?", pool:L9 },
+{ id:10, emoji:"👑", title:"Level 10 - MASTER", desc:"815 Soal • MASTER TEST", q:"What does this mean?", pool:L10 },
+];
+
+function renderLevels(){
+  const grid=document.getElementById('levelGrid'); grid.innerHTML='';
+  document.getElementById('totalScore').innerText=totalScore;
+  LEVELS.forEach(l=>{
+    const div=document.createElement('div'); div.className='levelCard';
+    div.innerHTML=`<div class="emoji">${l.emoji}</div><b>${l.title}</b><p>${l.desc}</p><p>▶ Mainkan</p>`;
+    div.onclick=()=>{ startLevel(l.id); };
+    grid.appendChild(div);
+  });
 }
-function speakThai(text){
-  // FIX UTAMA: Paksa suara Thai, jangan ikut currentLang
-  speak(text, 'th-TH');
+function startLevel(id){
+  currentLevel=id; idx=0; score=0;
+  const lvl=LEVELS.find(l=>l.id===id);
+  currentPool=[...lvl.pool].sort(()=>Math.random()-0.5);
+  showScreen('quizScreen');
+  showQ();
 }
-function speakQueue(list){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  list.forEach(item => {
-    let u = new SpeechSynthesisUtterance(item.text);
-    u.lang = item.lang;
-    u.rate = (item.lang==='th-TH') ? 0.85 : 0.95;
-    u.pitch = 1.15;
-    let v = getVoice(item.lang); if(v) u.voice = v;
-    u.onend = ()=>{
-      let av=document.getElementById('ainunAvatar');
-      if(av){ av.classList.remove('speaking'); av.innerText='👧'; }
+function getOptions(correct, allAnswers){
+  let others=[...new Set(allAnswers.filter(a=>a!==correct))].sort(()=>Math.random()-0.5).slice(0,3);
+  return [correct, ...others].sort(()=>Math.random()-0.5);
+}
+function showQ(){
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const curPair=currentPool[idx];
+  const thai=curPair[0], ans=curPair[1];
+  currentQ={thai, ans};
+  const allAns = currentPool.map(p=>p[1]);
+  const opts=getOptions(ans, allAns);
+  document.getElementById('qCount').innerText=`Question ${idx+1} of ${currentPool.length} • Score: ${score}`;
+  document.getElementById('qLevel').innerText=lvl.title;
+  document.getElementById('bar').style.width=((idx/currentPool.length)*100)+'%';
+  document.getElementById('qThai').innerText=thai;
+  document.getElementById('qTitle').innerText=lvl.q;
+  document.getElementById('reviewTxt').innerText='';
+  const box=document.getElementById('qOptions'); box.innerHTML='';
+  opts.forEach(o=>{
+    let d=document.createElement('div'); d.className='option'; d.innerText=o;
+    d.onclick=()=>{
+      if(d.classList.contains('correct')||d.classList.contains('wrong')) return;
+      document.querySelectorAll('.option').forEach(x=>{
+        if(x.innerText===ans) x.classList.add('correct');
+        else if(x===d) x.classList.add('wrong');
+        x.style.pointerEvents='none';
+      });
+      if(o===ans){ score+=10; totalScore+=10; speakEN('Correct!'); } else { speakEN('Wrong.'); }
+      document.getElementById('reviewTxt').innerText=`${thai} = ${ans}`;
+      document.getElementById('nextBtn').classList.remove('hide');
+      setTimeout(()=>speakThai(thai), 500);
     };
-    window.speechSynthesis.speak(u);
+    box.appendChild(d);
   });
-  let av=document.getElementById('ainunAvatar');
-  if(av){ av.classList.add('speaking'); av.innerText='🗣️'; }
+  document.getElementById('nextBtn').classList.add('hide');
+  speakThai(thai);
 }
-function stopVoice(){
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
-  let av=document.getElementById('ainunAvatar'); if(av){ av.classList.remove('speaking'); av.innerText='👧'; }
+function nextQ(){ idx++; if(idx<currentPool.length) showQ(); else showResult(); }
+function showResult(){
+  showScreen('resultScreen');
+  const lvl=LEVELS.find(l=>l.id===currentLevel);
+  const max=currentPool.length*10;
+  const pass = score >= max*0.6;
+  document.getElementById('resTitle').innerText= pass ? `Level ${currentLevel} LULUS! 🎉` : `Level ${currentLevel} Belum Lulus 😅`;
+  document.getElementById('resText').innerText=`Hi ${name}!\n\nLevel: ${lvl.title}\nScore: ${score} / ${max}\nTotal Soal: ${currentPool.length}\n\n${pass ? 'Kamu hebat!' : 'Butuh 60% buat lulus. Coba lagi ya!'}\n\nTotal Score: ${totalScore}`;
+  speakEN(pass ? `Congratulations ${name}, you passed level ${currentLevel}` : `Keep trying ${name}`);
 }
-function toggleAutoVoice(){
-  autoVoice=!autoVoice;
-  let btn=document.getElementById('autoVoiceBtn');
-  btn.innerText = autoVoice ? '🔔 Auto Voice: ON' : '🔕 Auto Voice: OFF';
-  btn.classList.toggle('on', !autoVoice);
-  if(autoVoice) speak(currentLang==='id'?'Oke, suara otomatis nyala lagi!':currentLang==='th'?'โอเค เปิดเสียงอัตโนมัติแล้ว!':currentLang==='ko'?'좋아, 자동 음성 켰어!':'Okay, auto voice is on again!', VOICE_MAP[currentLang]);
-}
-function ainunGreet(){
-  let name = playerName ? " " + playerName : "";
-  let texts = {
-    en: `Hi${name}! I'm Ainun! Let's go shopping together! Can you guess what I want to cook today? I love you, you are so beautiful!`,
-    id: `Hai${name}! Aku Ainun! Yuk belanja bareng! Kamu bisa tebak gak aku mau masak apa hari ini? Kamu cantik banget!`,
-    th: `สวัสดี${name}! ฉันไอนุน! ไปช้อปปิ้งด้วยกันเถอะ! ทายสิว่าวันนี้ฉันอยากทำอาหารอะไร? คุณสวยมาก!`,
-    ko: `안녕${name}! 나는 아이눈이야! 같이 쇼핑 가자! 오늘 내가 뭘 요리하고 싶은지 맞춰볼래? 너 정말 예뻐!`
-  };
-  speak(texts[currentLang] || texts.en, VOICE_MAP[currentLang]);
-}
-function speakMission(){
-  let m=MISSIONS[currentMission]; if(!m) return;
-  let clues=getClues(m);
-  let texts = {
-    en: `Mission! I want to cook ${m.dish}. Clue one: ${clues[0]}. Clue two: ${clues[1]}. Clue three: ${clues[2]}. Can you guess?`,
-    id: `Misi! Aku mau masak ${m.dish}. Petunjuk satu: ${clues[0]}. Petunjuk dua: ${clues[1]}. Petunjuk tiga: ${clues[2]}. Bisa tebak gak?`,
-    th: `ภารกิจ! ฉันอยากทำ ${m.dish}. คำใบ้ที่หนึ่ง: ${clues[0]}. คำใบ้ที่สอง: ${clues[1]}. คำใบ้ที่สาม: ${clues[2]}. ทายได้ไหม?`,
-    ko: `미션! 나는 ${m.dish} 요리하고 싶어. 힌트 하나: ${clues[0]}. 힌트 둘: ${clues[1]}. 힌트 셋: ${clues[2]}. 맞춰볼래?`
-  };
-  speak(texts[currentLang] || texts.en, VOICE_MAP[currentLang]);
-}
-function speakIngredient(item){
-  // FIX UTAMA: Jangan campur bahasa dalam 1 utterance. Pecah jadi 4 suara asli
-  speakQueue([
-    {text: item.thai, lang: 'th-TH'},
-    {text: item.indo, lang: 'id-ID'},
-    {text: item.eng, lang: 'en-US'},
-    {text: item.kor, lang: 'ko-KR'}
-  ]);
-}
-function speakCheckoutSuccess(m){
-  let name = playerName ? " " + playerName : "";
-  let texts = {
-    en: `Yay! Mission complete! Thank you so much${name}! You are so beautiful! Next mission, I want to cook ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'something special'}!`,
-    id: `Yeay! Misi selesai! Makasih banyak ya${name}! Kamu cantik banget! Misi selanjutnya, aku mau masak ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'sesuatu yang spesial'}!`,
-    th: `เย้! ภารกิจสำเร็จ! ขอบคุณมาก${name}! คุณสวยมาก! ภารกิจต่อไป ฉันอยากทำ ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : 'อะไรพิเศษ'}!`,
-    ko: `야호! 미션 완료! 정말 고마워${name}! 너 정말 예뻐! 다음 미션은 ${MISSIONS[currentMission+1] ? MISSIONS[currentMission+1].dish : '특별한 거'} 요리하고 싶어!`
-  };
-  speak(texts[currentLang] || texts.en, VOICE_MAP[currentLang]);
-}
-function speakWrong(){
-  let texts = {
-    en: "Hmm, not yet! Try again! Check the clues! You can do it!",
-    id: "Hmm, belum bener! Coba lagi! Cek lagi petunjuknya! Kamu pasti bisa!",
-    th: "อืม ยังไม่ถูก! ลองอีกครั้ง! ดูคำใบ้อีกครั้ง! คุณทำได้!",
-    ko: "음, 아직 아니야! 다시 해봐! 힌트를 다시 봐! 넌 할 수 있어!"
-  };
-  speak(texts[currentLang] || texts.en, VOICE_MAP[currentLang]);
-}
-if('speechSynthesis' in window){
-  window.speechSynthesis.onvoiceschanged = ()=>{ window.speechSynthesis.getVoices(); };
-  setTimeout(()=>{ window.speechSynthesis.getVoices(); }, 500);
-}
-const UI = {
-  en: {title:"My Ainun Mart", budget:"Budget", total:"Total", left:"Left", cart:"Cart", cartTitle:"Cart", empty:"No items yet...", checkout:"CHECKOUT & GIVE TO AINUN", reset:"Reset Cart", showing:"Showing", from:"of 1000 ingredients", success:"MISSION COMPLETE!", over:"OVER BUDGET! Need", incomplete:"Not yet! Still wrong / missing. Check your clues again!", emptyCart:"Cart is empty!", all:"All", mission:"MISSION", collected:"collected", next:"Next Mission:", finish:"ALL 30 MISSIONS DONE! You are Ainun's Best Chef!", hint:"💡 Need One More Hint? ( -10 points )", clueLabel:"Clue", found:"FOUND!", guess:"Guess the 3 ingredients from the clues!"},
-  id: {title:"My Ainun Mart", budget:"Budget", total:"Total", left:"Sisa", cart:"Keranjang", cartTitle:"Keranjang", empty:"Belum ada barang...", checkout:"CHECKOUT & KASIH KE AINUN", reset:"Reset Keranjang", showing:"Menampilkan", from:"dari 1000 bahan", success:"MISI SELESAI!", over:"OVER BUDGET! Kurang", incomplete:"Belum bener! Masih ada yang salah / kurang. Cek lagi petunjuknya!", emptyCart:"Keranjang kosong!", all:"Semua", mission:"MISI", collected:"terkumpul", next:"Misi Selanjutnya:", finish:"SEMUA 30 MISI SELESAI! Kamu Chef Terbaik Ainun!", hint:"💡 Butuh Petunjuk Tambahan? ( -10 poin )", clueLabel:"Petunjuk", found:"KETEMU!", guess:"Tebak 3 bahan dari petunjuknya!"},
-  th: {title:"My Ainun Mart", budget:"งบ", total:"ทั้งหมด", left:"เหลือ", cart:"ตะกร้า", cartTitle:"ตะกร้า", empty:"ยังไม่มีสินค้า...", checkout:"เช็คเอาท์ & ให้ไอนุน", reset:"รีเซ็ต", showing:"แสดง", from:"จาก 1000 วัตถุดิบ", success:"ภารกิจสำเร็จ!", over:"เกินงบ! ขาด", incomplete:"ยังไม่ถูก! ยังมีผิด / ขาดอยู่ ดูคำใบ้อีกครั้ง!", emptyCart:"ตะกร้าว่างเปล่า!", all:"ทั้งหมด", mission:"ภารกิจ", collected:"เก็บแล้ว", next:"ภารกิจต่อไป:", finish:"ครบ 30 ภารกิจ! คุณคือเชฟที่ดีที่สุดของไอนุน!", hint:"💡 ต้องการคำใบ้เพิ่ม? ( -10 คะแนน )", clueLabel:"คำใบ้", found:"เจอแล้ว!", guess:"ทายวัตถุดิบ 3 อย่างจากคำใบ้!"},
-  ko: {title:"My Ainun Mart", budget:"예산", total:"합계", left:"남은 돈", cart:"장바구니", cartTitle:"장바구니", empty:"아직 물건이 없어요...", checkout:"결제 & 아이눈에게 주기", reset:"초기화", showing:"표시 중", from:"/ 1000개 재료 중", success:"미션 완료!", over:"예산 초과! 부족", incomplete:"아직 아니야! 틀리거나 부족한 재료가 있어. 힌트를 다시 봐!", emptyCart:"장바구니가 비었어요!", all:"전체", mission:"미션", collected:"수집됨", next:"다음 미션:", finish:"30개 미션 모두 완료! 넌 아이눈의 최고의 셰프야!", hint:"💡 힌트 하나 더 필요해? ( -10점 )", clueLabel:"힌트", found:"찾았어!", guess:"힌트로 3가지 재료를 맞춰봐!"},
-};
-let currentLang='en';
-let hintUsed=false;
-const MISSIONS = [
-  {dish:"Tom Yum Goong", need:["Lime","Chili","Mushroom"], budget:100000, reward:100, clues_en:["Sour green fruit, makes soup fresh & sour","Small red thing, makes your mouth burn","Grows in damp place, soft & umbrella-like"], clues_id:["Buah ijo asem, bikin kuah jadi seger","Benda merah kecil, bikin mulut kebakar","Tumbuh di tempat lembab, lembut kayak payung"], clues_th:["ผลสีเขียวรสเปรี้ยว ทำให้น้ำซุปสดชื่น","สิ่งเล็กๆ สีแดง ทำให้ปากแสบ","ขึ้นในที่ชื้น นุ่มๆ เหมือนร่ม"], clues_ko:["신맛 나는 초록 과일, 국물을 상큼하게","작고 빨간 것, 입을 얼얼하게","습한 곳에서 자라, 부드럽고 우산 같아"], extra_en:"First one starts with L, second with C, third with M", extra_id:"Yang pertama huruf L, kedua C, ketiga M", extra_th:"อันแรกขึ้นต้นด้วย L อันที่สอง C อันที่สาม M", extra_ko:"첫 번째는 L, 두 번째는 C, 세 번째는 M으로 시작"},
-  {dish:"Pad Thai", need:["Rice","Egg","Shrimp"], budget:120000, reward:120, clues_en:["White grains, main food in Asia","Comes from chicken, oval & can be fried","Pink sea animal with tail, loves to curl"], clues_id:["Butiran putih, makanan utama di Asia","Dari ayam, bentuk oval bisa digoreng","Hewan laut pink berekor, suka melengkung"], clues_th:["เมล็ดสีขาว อาหารหลักในเอเชีย","มาจากไก่ รูปไข่ ทอดได้","สัตว์ทะเลสีชมพูมีหาง ชอบม้วนตัว"], clues_ko:["하얀 알갱이, 아시아 주식","닭이 낳아, 타원형이고 튀길 수 있어","꼬리 있는 분홍 바다 동물, 둥글게 말려"], extra_en:"Think: noodle's best friends", extra_id:"Pikirkan: teman terbaiknya mie", extra_th:"คิดถึง: เพื่อนที่ดีที่สุดของก๋วยเตี๋ยว", extra_ko:"면의 절친을 생각해봐"},
-  {dish:"Green Curry", need:["Coconut Milk","Basil","Chicken"], budget:130000, reward:130, clues_en:["White creamy liquid from brown hard fruit","Green leaf with strong smell, for curry","Bird that says cluck, its meat is popular"], clues_id:["Cairan putih creamy dari buah coklat keras","Daun hijau bau menyengat, buat kari","Hewan yang bunyi petok, dagingnya populer"], clues_th:["น้ำสีขาวครีมมี่จากผลสีน้ำตาลแข็ง","ใบสีเขียวกลิ่นแรง สำหรับแกง","สัตว์ที่ร้องกุ๊กๆ เนื้อเป็นที่นิยม"], clues_ko:["갈색 단단한 과일에서 나온 하얀 크림 액체","향 강한 초록 잎, 커리용","꼬꼬댁 하는 새, 고기가 인기 많아"], extra_en:"Green + creamy + meat", extra_id:"Hijau + creamy + daging", extra_th:"เขียว + ครีมมี่ + เนื้อ", extra_ko:"초록 + 크리미 + 고기"},
-  {dish:"Mango Sticky Rice", need:["Mango","Rice","Coconut Milk"], budget:110000, reward:110, clues_en:["Yellow sweet fruit, soft & fragrant","White grains, sticky version for dessert","White creamy liquid from brown fruit"], clues_id:["Buah kuning manis, lembut & wangi","Butiran putih, yang lengket buat dessert","Cairan putih creamy dari buah coklat"], clues_th:["ผลสีเหลืองหวาน นุ่ม & หอม","เมล็ดสีขาว แบบเหนียวสำหรับของหวาน","น้ำสีขาวครีมมี่จากผลสีน้ำตาล"], clues_ko:["노랗고 달콤한 과일, 부드럽고 향기","하얀 알갱이, 디저트용 찰진 버전","갈색 과일에서 나온 하얀 크림"], extra_en:"Sweet dessert, yellow + white + white", extra_id:"Dessert manis, kuning + putih + putih", extra_th:"ของหวาน สีเหลือง + ขาว + ขาว", extra_ko:"달콤한 디저트, 노랑 + 하양 + 하양"},
-  {dish:"Fried Rice", need:["Rice","Egg","Garlic"], budget:90000, reward:90, clues_en:["White grains, fried in pan","Oval from chicken","White small bulb, smells strong, makes food tasty"], clues_id:["Butiran putih, digoreng di wajan","Bentuk oval dari ayam","Umbi putih kecil, bau menyengat, bikin masakan enak"], clues_th:["เมล็ดสีขาว ผัดในกระทะ","รูปไข่จากไก่","หัวเล็กสีขาว กลิ่นแรง ทำให้อาหารอร่อย"], clues_ko:["하얀 알갱이, 팬에 볶아","닭에서 나온 타원형","작고 하얀 알, 냄새 강하고 요리를 맛있게"], extra_en:"Basic ingredients in every kitchen", extra_id:"Bahan dasar di semua dapur", extra_th:"วัตถุดิบพื้นฐานในทุกครัว", extra_ko:"모든 부엌에 있는 기본 재료"},
-  {dish:"Som Tam", need:["Papaya","Chili","Lime"], budget:90000, reward:90, clues_en:["Long green fruit, not ripe yet, for salad","Small red, burns mouth","Sour green fruit"], clues_id:["Buah panjang hijau, belum mateng, buat salad","Merah kecil, bikin mulut kebakar","Buah ijo asem"], clues_th:["ผลยาวสีเขียว ยังไม่สุก สำหรับสลัด","แดงเล็กๆ ทำให้ปากแสบ","ผลเขียวรสเปรี้ยว"], clues_ko:["아직 안 익은 길고 초록 과일, 샐러드용","작고 빨개, 입을 얼얼하게","신맛 나는 초록 과일"], extra_en:"Spicy salad!", extra_id:"Salad pedas!", extra_th:"สลัดเผ็ด!", extra_ko:"매운 샐러드!"},
-  {dish:"Tom Kha Soup", need:["Chicken","Coconut Milk","Galangal"], budget:140000, reward:140, clues_en:["Cluck animal meat","White creamy liquid","Root like ginger but for Tom Kha, smells like forest"], clues_id:["Daging hewan petok","Cairan putih creamy","Akar mirip jahe tapi buat Tom Kha, bau hutan"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","น้ำสีขาวครีมมี่","รากคล้ายขิง แต่สำหรับต้มข่า กลิ่นเหมือนป่า"], clues_ko:["꼬꼬댁 동물 고기","하얀 크림 액체","생강 같은 뿌리, 똠카용, 숲 냄새"], extra_en:"Creamy soup", extra_id:"Sup creamy", extra_th:"ซุปครีมมี่", extra_ko:"크리미 수프"},
-  {dish:"Thai Tea", need:["Tea","Milk","Sugar"], budget:70000, reward:70, clues_en:["Brown drink leaves, brewed hot","White liquid from cow","Sweet white crystals"], clues_id:["Daun minuman coklat, diseduh panas","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ใบเครื่องดื่มสีน้ำตาล ชงร้อน","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 음료 잎, 뜨겁게 우려","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Orange sweet drink", extra_id:"Minuman oranye manis", extra_th:"เครื่องดื่มสีส้มหวาน", extra_ko:"주황 달콤 음료"},
-  {dish:"Grilled Shrimp", need:["Shrimp","Garlic","Lime"], budget:150000, reward:150, clues_en:["Pink sea animal with tail","White bulb, strong smell","Sour green fruit"], clues_id:["Hewan laut pink berekor","Umbi putih bau menyengat","Buah ijo asem"], clues_th:["สัตว์ทะเลสีชมพูมีหาง","หัวสีขาวกลิ่นแรง","ผลเขียวรสเปรี้ยว"], clues_ko:["꼬리 있는 분홍 바다 동물","냄새 강한 하얀 알","신맛 나는 초록 과일"], extra_en:"BBQ seafood", extra_id:"BBQ seafood", extra_th:"บาร์บีคิวซีฟู้ด", extra_ko:"BBQ 해산물"},
-  {dish:"Banana Pancake", need:["Banana","Milk","Sugar"], budget:80000, reward:80, clues_en:["Yellow curved fruit, monkeys love it","White liquid from cow","Sweet white crystals"], clues_id:["Buah kuning melengkung, monyet suka","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีเหลืองโค้ง ลิงชอบ","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["노랗고 굽은 과일, 원숭이가 좋아해","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Breakfast sweet", extra_id:"Sarapan manis", extra_th:"อาหารเช้าหวานๆ", extra_ko:"달콤한 아침"},
-  {dish:"Chicken Satay", need:["Chicken","Peanut","Soy Sauce"], budget:150000, reward:150, clues_en:["Cluck animal meat","Small brown nut in shell, for sauce","Dark salty liquid in bottle"], clues_id:["Daging hewan petok","Kacang coklat kecil berkulit, buat saus","Cairan asin gelap di botol"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","ถั่วเล็กสีน้ำตาลมีเปลือก สำหรับซอส","น้ำสีเข้มรสเค็มในขวด"], clues_ko:["꼬꼬댁 동물 고기","껍질 있는 작은 갈색 견과, 소스용","병에 든 짭짤한 검은 액체"], extra_en:"Skewer + sauce", extra_id:"Tusuk + saus", extra_th:"ไม้เสียบ + ซอส", extra_ko:"꼬치 + 소스"},
-  {dish:"Spicy Basil Chicken", need:["Chicken","Basil","Chili"], budget:130000, reward:130, clues_en:["Cluck animal meat","Green fragrant leaf","Small red, burns mouth"], clues_id:["Daging hewan petok","Daun hijau wangi","Merah kecil, bikin mulut kebakar"], clues_th:["เนื้อสัตว์ที่ร้องกุ๊กๆ","ใบเขียวหอม","แดงเล็กๆ ทำให้ปากแสบ"], clues_ko:["꼬꼬댁 동물 고기","향기로운 초록 잎","작고 빨개, 입을 얼얼하게"], extra_en:"Pad Krapao!", extra_id:"Pad Krapao!", extra_th:"ผัดกะเพรา!", extra_ko:"팟 끄라파오!"},
-  {dish:"Fruit Smoothie", need:["Banana","Mango","Milk"], budget:100000, reward:100, clues_en:["Yellow curved fruit","Yellow sweet fragrant fruit","White liquid from cow"], clues_id:["Buah kuning melengkung","Buah kuning manis wangi","Cairan putih dari sapi"], clues_th:["ผลสีเหลืองโค้ง","ผลสีเหลืองหวานหอม","น้ำสีขาวจากวัว"], clues_ko:["노랗고 굽은 과일","노랗고 달콤 향기로운 과일","소에서 나온 하얀 액체"], extra_en:"Blend it!", extra_id:"Di-blender!", extra_th:"ปั่นเลย!", extra_ko:"갈아봐!"},
-  {dish:"Chocolate Cake", need:["Chocolate","Milk","Sugar"], budget:120000, reward:120, clues_en:["Brown sweet, melts in mouth","White liquid from cow","Sweet white crystals"], clues_id:["Coklat manis, lumer di mulut","Cairan putih dari sapi","Kristal putih manis"], clues_th:["สีน้ำตาลหวาน ละลายในปาก","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 달콤, 입에서 녹아","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Birthday sweet", extra_id:"Manis buat ultah", extra_th:"หวานๆ วันเกิด", extra_ko:"생일 달콤"},
-  {dish:"Seafood Curry", need:["Shrimp","Fish","Coconut Milk"], budget:180000, reward:180, clues_en:["Pink tail sea animal","Swims, has fins","White creamy liquid"], clues_id:["Hewan laut pink berekor","Berenang, punya sirip","Cairan putih creamy"], clues_th:["สัตว์ทะเลสีชมพูมีหาง","ว่ายน้ำ มีครีบ","น้ำสีขาวครีมมี่"], clues_ko:["꼬리 있는 분홍 바다 동물","헤엄쳐, 지느러미 있어","하얀 크림 액체"], extra_en:"Sea + Sea + Cream", extra_id:"Laut + Laut + Cream", extra_th:"ทะเล + ทะเล + ครีม", extra_ko:"바다 + 바다 + 크림"},
-  {dish:"Lemon Fish", need:["Fish","Lime","Garlic"], budget:140000, reward:140, clues_en:["Swims, has fins","Sour green fruit","White bulb, strong smell"], clues_id:["Berenang, punya sirip","Buah ijo asem","Umbi putih bau menyengat"], clues_th:["ว่ายน้ำ มีครีบ","ผลเขียวรสเปรี้ยว","หัวสีขาวกลิ่นแรง"], clues_ko:["헤엄쳐, 지느러미 있어","신맛 나는 초록 과일","냄새 강한 하얀 알"], extra_en:"Steamed & sour", extra_id:"Kukus & asem", extra_th:"นึ่ง & เปรี้ยว", extra_ko:"찜 & 신맛"},
-  {dish:"Kimchi Fried Rice", need:["Rice","Kimchi","Egg"], budget:130000, reward:130, clues_en:["White grains","Spicy fermented Korean cabbage, red","Oval from chicken"], clues_id:["Butiran putih","Sayur fermentasi pedas Korea, merah","Bentuk oval dari ayam"], clues_th:["เมล็ดสีขาว","ผักดองเผ็ดเกาหลี สีแดง","รูปไข่จากไก่"], clues_ko:["하얀 알갱이","매운 발효 한국 배추, 빨개","닭에서 나온 타원형"], extra_en:"Korean spicy!", extra_id:"Pedas Korea!", extra_th:"เผ็ดแบบเกาหลี!", extra_ko:"한국 매운맛!"},
-  {dish:"Bibimbap Thai", need:["Rice","Egg","Carrot"], budget:120000, reward:120, clues_en:["White grains","Oval from chicken","Orange long root, rabbits love it"], clues_id:["Butiran putih","Bentuk oval dari ayam","Akar oranye panjang, kelinci suka"], clues_th:["เมล็ดสีขาว","รูปไข่จากไก่","รากยาวสีส้ม กระต่ายชอบ"], clues_ko:["하얀 알갱이","닭에서 나온 타원형","주황 긴 뿌리, 토끼가 좋아해"], extra_en:"Colorful bowl", extra_id:"Mangkuk warna-warni", extra_th:"ชามสีสัน", extra_ko:"알록달록 그릇"},
-  {dish:"Tteokbokki", need:["Rice Cake","Chili","Sugar"], budget:110000, reward:110, clues_en:["Chewy white Korean rice cake","Small red, burns mouth","Sweet white crystals"], clues_id:["Kue beras Korea putih kenyal","Merah kecil, bikin mulut kebakar","Kristal putih manis"], clues_th:["เค้กข้าวเกาหลีสีขาวหนึบ","แดงเล็กๆ ทำให้ปากแสบ","ผลึกสีขาวรสหวาน"], clues_ko:["쫄깃한 하얀 한국 떡","작고 빨개, 입을 얼얼하게","달콤한 하얀 결정"], extra_en:"Spicy chewy!", extra_id:"Pedas kenyal!", extra_th:"เผ็ดหนึบ!", extra_ko:"매콤 쫄깃!"},
-  {dish:"Kimbap", need:["Rice","Egg","Cucumber"], budget:110000, reward:110, clues_en:["White grains","Oval from chicken","Green long watery veggie, cool"], clues_id:["Butiran putih","Bentuk oval dari ayam","Sayur hijau panjang berair, seger"], clues_th:["เมล็ดสีขาว","รูปไข่จากไก่","ผักเขียวยาวฉ่ำน้ำ เย็นๆ"], clues_ko:["하얀 알갱이","닭에서 나온 타원형","초록 길고 수분 많은 채소, 시원"], extra_en:"Roll it!", extra_id:"Digulung!", extra_th:"ม้วนเลย!", extra_ko:"말아봐!"},
-  {dish:"Korean BBQ", need:["Meat","Garlic","Soy Sauce"], budget:200000, reward:200, clues_en:["Red meat, grill it","White bulb, strong smell","Dark salty liquid"], clues_id:["Daging merah, dibakar","Umbi putih bau menyengat","Cairan asin gelap"], clues_th:["เนื้อแดง ย่างเลย","หัวสีขาวกลิ่นแรง","น้ำสีเข้มรสเค็ม"], clues_ko:["빨간 고기, 구워","냄새 강한 하얀 알","짭짤한 검은 액체"], extra_en:"Grill night!", extra_id:"Malam bakar-bakar!", extra_th:"คืนย่าง!", extra_ko:"구이 밤!"},
-  {dish:"Ramen", need:["Noodle","Egg","Chicken"], budget:130000, reward:130, clues_en:["Long yellow strings in soup","Oval from chicken","Cluck animal meat"], clues_id:["Untaian kuning panjang di kuah","Bentuk oval dari ayam","Daging hewan petok"], clues_th:["เส้นยาวสีเหลืองในน้ำซุป","รูปไข่จากไก่","เนื้อสัตว์ที่ร้องกุ๊กๆ"], clues_ko:["국물 속 긴 노란 면","닭에서 나온 타원형","꼬꼬댁 동물 고기"], extra_en:"Slurp!", extra_id:"Seruput!", extra_th:"ซู้ด!", extra_ko:"후루룩!"},
-  {dish:"Salad Bowl", need:["Tomato","Cucumber","Cabbage"], budget:80000, reward:80, clues_en:["Red round fruit, for salad","Green long watery veggie","Green round leafy veggie, layers"], clues_id:["Buah bulat merah, buat salad","Sayur hijau panjang berair","Sayur hijau bulat berlapis"], clues_th:["ผลกลมสีแดง สำหรับสลัด","ผักเขียวยาวฉ่ำน้ำ","ผักเขียวกลมเป็นชั้นๆ"], clues_ko:["빨간 둥근 과일, 샐러드용","초록 길고 수분 많은 채소","초록 둥근 겹겹 채소"], extra_en:"All green & red, healthy!", extra_id:"Semua ijo & merah, sehat!", extra_th:"เขียว & แดง สุขภาพดี!", extra_ko:"초록 & 빨강, 건강!"},
-  {dish:"Coffee Latte", need:["Coffee","Milk","Sugar"], budget:70000, reward:70, clues_en:["Brown bitter beans, morning drink","White liquid from cow","Sweet white crystals"], clues_id:["Biji coklat pahit, minuman pagi","Cairan putih dari sapi","Kristal putih manis"], clues_th:["เมล็ดสีน้ำตาลขม เครื่องดื่มยามเช้า","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["갈색 쓴 콩, 아침 음료","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Morning!", extra_id:"Pagi!", extra_th:"ยามเช้า!", extra_ko:"아침!"},
-  {dish:"Garlic Bread", need:["Bread","Garlic","Butter"], budget:90000, reward:90, clues_en:["Baked soft loaf","White bulb, strong smell","Yellow creamy, melts, for bread"], clues_id:["Roti panggang lembut","Umbi putih bau menyengat","Kuning creamy, lumer, buat roti"], clues_th:["ขนมปังอบนุ่ม","หัวสีขาวกลิ่นแรง","สีเหลืองครีมมี่ ละลาย สำหรับขนมปัง"], clues_ko:["부드럽게 구운 빵","냄새 강한 하얀 알","노란 크림, 녹아, 빵용"], extra_en:"Crispy!", extra_id:"Renyah!", extra_th:"กรอบ!", extra_ko:"바삭!"},
-  {dish:"Pancake Honey", need:["Flour","Egg","Honey"], budget:90000, reward:90, clues_en:["White powder for baking","Oval from chicken","Golden sweet liquid from bees"], clues_id:["Bubuk putih buat baking","Bentuk oval dari ayam","Cairan emas manis dari lebah"], clues_th:["ผงสีขาวสำหรับอบ","รูปไข่จากไก่","น้ำสีทองหวานจากผึ้ง"], clues_ko:["베이킹용 하얀 가루","닭에서 나온 타원형","꿀벌의 황금 달콤 액체"], extra_en:"Sweet & fluffy", extra_id:"Manis & fluffy", extra_th:"หวาน & นุ่มฟู", extra_ko:"달콤 & 푹신"},
-  {dish:"Spicy Noodle", need:["Noodle","Chili","Chicken"], budget:130000, reward:130, clues_en:["Long yellow strings","Small red, burns mouth","Cluck animal meat"], clues_id:["Untaian kuning panjang","Merah kecil, bikin mulut kebakar","Daging hewan petok"], clues_th:["เส้นยาวสีเหลือง","แดงเล็กๆ ทำให้ปากแสบ","เนื้อสัตว์ที่ร้องกุ๊กๆ"], clues_ko:["긴 노란 면","작고 빨개, 입을 얼얼하게","꼬꼬댁 동물 고기"], extra_en:"Hot challenge!", extra_id:"Tantangan pedas!", extra_th:"ท้าทายความเผ็ด!", extra_ko:"매운 챌린지!"},
-  {dish:"Coconut Ice Cream", need:["Coconut","Milk","Sugar"], budget:100000, reward:100, clues_en:["Brown hard fruit with white inside","White liquid from cow","Sweet white crystals"], clues_id:["Buah coklat keras isi putih","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีน้ำตาลแข็งข้างในสีขาว","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["속 하얀 갈색 단단한 과일","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Cold & sweet", extra_id:"Dingin & manis", extra_th:"เย็น & หวาน", extra_ko:"시원 & 달콤"},
-  {dish:"Strawberry Milk", need:["Strawberry","Milk","Sugar"], budget:80000, reward:80, clues_en:["Red heart fruit with seeds outside","White liquid from cow","Sweet white crystals"], clues_id:["Buah merah bentuk hati biji di luar","Cairan putih dari sapi","Kristal putih manis"], clues_th:["ผลสีแดงรูปหัวใจ เมล็ดอยู่ข้างนอก","น้ำสีขาวจากวัว","ผลึกสีขาวรสหวาน"], clues_ko:["씨앗이 밖에 있는 빨간 하트 과일","소에서 나온 하얀 액체","달콤한 하얀 결정"], extra_en:"Pink drink!", extra_id:"Minuman pink!", extra_th:"เครื่องดื่มสีชมพู!", extra_ko:"핑크 음료!"},
-  {dish:"Grand Feast", need:["Meat","Rice","Chili"], budget:250000, reward:500, clues_en:["Red meat, main protein","White grains, main food","Small red, burns mouth"], clues_id:["Daging merah, protein utama","Butiran putih, makanan utama","Merah kecil, bikin mulut kebakar"], clues_th:["เนื้อแดง โปรตีนหลัก","เมล็ดสีขาว อาหารหลัก","แดงเล็กๆ ทำให้ปากแสบ"], clues_ko:["빨간 고기, 주 단백질","하얀 알갱이, 주식","작고 빨개, 입을 얼얼하게"], extra_en:"FINAL! Biggest feast!", extra_id:"FINAL! Pesta terbesar!", extra_th:"สุดท้าย! งานเลี้ยงใหญ่ที่สุด!", extra_ko:"최종! 가장 큰 잔치!"},
-];
-const extraWords = [
-  {thai:"ไก่", baca:"Khai", indo:"Ayam", eng:"Chicken", kor:"닭고기", cat:"Meat"},
-  {thai:"กิมจิ", baca:"Kim-chi", indo:"Kimchi", eng:"Kimchi", kor:"김치", cat:"Spice"},
-  {thai:"เส้นก๋วยเตี๋ยว", baca:"Sen Kuai-tiao", indo:"Mie", eng:"Noodle", kor:"국수", cat:"Bread & Rice"},
-  {thai:"มะละกอ", baca:"Ma-la-ko", indo:"Pepaya", eng:"Papaya", kor:"파파야", cat:"Fruit"},
-  {thai:"ถั่วลิสง", baca:"Thua Li-song", indo:"Kacang", eng:"Peanut", kor:"땅콩", cat:"Spice"},
-  {thai:"ขนมปัง", baca:"Kha-nom Pang", indo:"Roti", eng:"Bread", kor:"빵", cat:"Bread & Rice"},
-  {thai:"เนย", baca:"Noei", indo:"Mentega", eng:"Butter", kor:"버터", cat:"Milk & Egg"},
-  {thai:"แป้ง", baca:"Paeng", indo:"Tepung", eng:"Flour", kor:"밀가루", cat:"Bread & Rice"},
-  {thai:"น้ำผึ้ง", baca:"Nam Phueng", indo:"Madu", eng:"Honey", kor:"꿀", cat:"Drink"},
-  {thai:"ข้าวเหนียว", baca:"Khao Niao", indo:"Ketan", eng:"Rice Cake", kor:"떡", cat:"Bread & Rice"},
-];
-let currentMission=0, totalScore=0, cart=[], activeCat="All";
-function setLang(l){
-  currentLang=l;
-  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('btn-'+l).classList.add('active');
-  let t=UI[l];
-  document.getElementById('title').innerText=t.title;
-  document.getElementById('lbl-budget').innerText=t.budget;
-  document.getElementById('lbl-total').innerText=t.total;
-  document.getElementById('lbl-left').innerText=t.left;
-  document.getElementById('lbl-cart').innerText=t.cart;
-  document.getElementById('cartTitle').innerText=t.cartTitle;
-  document.getElementById('btnCheckout').innerText=t.checkout;
-  document.getElementById('btnReset').innerText=t.reset;
-  document.getElementById('hintBtn').innerText=t.hint;
-  document.documentElement.lang=l;
-  buildFilter(); renderMission(); render(); update();
-  if(autoVoice){
-    let msg = l==='id'?'Bahasa diganti ke Indonesia!':l==='th'?'เปลี่ยนเป็นภาษาไทยแล้ว!':l==='ko'?'한국어로 바꿨어!':'Language changed to English!';
-    speak(msg, VOICE_MAP[l]);
-  }
-}
-const categories = ["Vegetable","Fruit","Meat","Spice","Drink","Snack","Bread & Rice","Milk & Egg","Frozen","Others"];
-const catMap = {"Vegetable":{id:"Sayur",th:"ผัก",ko:"채소"}, "Fruit":{id:"Buah",th:"ผลไม้",ko:"과일"}, "Meat":{id:"Daging",th:"เนื้อ",ko:"고기"}, "Spice":{id:"Bumbu",th:"เครื่องเทศ",ko:"양념"}, "Drink":{id:"Minuman",th:"เครื่องดื่ม",ko:"음료"}, "Snack":{id:"Snack",th:"ขนม",ko:"간식"}, "Bread & Rice":{id:"Roti & Nasi",th:"ขนมปัง & ข้าว",ko:"빵 & 밥"}, "Milk & Egg":{id:"Susu & Telur",th:"นม & ไข่",ko:"우유 & 계란"}, "Frozen":{id:"Frozen",th:"แช่แข็ง",ko:"냉동"}, "Others":{id:"Lainnya",th:"อื่นๆ",ko:"기타"}};
-const thaiWords = ["มะนาว","พริก","เห็ด","มะม่วง","มะพร้าว","ข้าว","นม","ไข่","เนื้อ","ปลา","กุ้ง","ผัก","ผลไม้","กระเทียม","ขิง","น้ำตาล","เกลือ","ชา","กาแฟ","ช็อกโกแลต","กล้วย","ส้ม","แอปเปิ้ล","องุ่น","สตรอเบอร์รี่","มะเขือเทศ","แตงกวา","แครอท","กะหล่ำ","มันฝรั่ง","หอม","พริกไทย","ใบกะเพรา","ตะไคร้","ข่า","มะกรูด","กะทิ","ซอส","น้ำปลา","ซีอิ๊ว","น้ำมัน"];
-const indoWords = ["Jeruk Nipis","Cabai","Jamur","Mangga","Kelapa","Nasi","Susu","Telur","Daging","Ikan","Udang","Sayur","Buah","Bawang Putih","Jahe","Gula","Garam","Teh","Kopi","Coklat","Pisang","Jeruk","Apel","Anggur","Stroberi","Tomat","Timun","Wortel","Kol","Kentang","Bawang","Lada","Kemangi","Sereh","Lengkuas","Jeruk Purut","Santan","Saus","Kecap Ikan","Kecap","Minyak"];
-// FIX BACA: Pakai romanisasi Thai bener, bukan ejaan Indo. Khai bukan Kai, Khao bukan Kao
-const bacaWords = ["Ma-nao","Phrik","Het","Ma-muang","Ma-phrao","Khao","Nom","Khai","Nuea","Pla","Kung","Phak","Phon-la-mai","Kra-thiam","Khing","Nam-tan","Kluea","Cha","Ka-fae","Chok-ko-lat","Kluai","Som","Aep-poen","A-ngun","Sa-to-boe-ri","Ma-khuea-thet","Taeng-kwa","Khae-rot","Ka-lam","Man-fa-rang","Hom","Phrik Thai","Bai Ka-phrao","Ta-khrai","Kha","Ma-krut","Ka-thi","Sot","Nam-pla","Si-io","Nam-man"];
-const engWords = ["Lime","Chili","Mushroom","Mango","Coconut","Rice","Milk","Egg","Meat","Fish","Shrimp","Vegetable","Fruit","Garlic","Ginger","Sugar","Salt","Tea","Coffee","Chocolate","Banana","Orange","Apple","Grape","Strawberry","Tomato","Cucumber","Carrot","Cabbage","Potato","Onion","Pepper","Basil","Lemongrass","Galangal","Kaffir Lime","Coconut Milk","Sauce","Fish Sauce","Soy Sauce","Oil"];
-const korWords = ["라임","고추","버섯","망고","코코넛","밥","우유","계란","고기","생선","새우","채소","과일","마늘","생강","설탕","소금","차","커피","초콜릿","바나나","오렌지","사과","포도","딸기","토마토","오이","당근","양배추","감자","양파","후추","바질","레몬그라스","갈랑갈","카피르 라임","코코넛 밀크","소스","피시 소스","간장","기름"];
-const adjEN = ["Fresh","Sweet","Big","Small","Premium","Organic","Local","Golden","Juicy","Crispy","Soft","Spicy","Sour","Ripe","Tender","Classic","Royal","Garden","Sunny","Daily"];
-const adjID = ["Segar","Manis","Besar","Kecil","Premium","Organik","Lokal","Emas","Juicy","Renyah","Lembut","Pedas","Asam","Matang","Empuk","Klasik","Royal","Kebun","Cerah","Harian"];
-const adjTH = ["สด","หวาน","ใหญ่","เล็ก","พรีเมียม","ออร์แกนิก","ท้องถิ่น","ทอง","ฉ่ำ","กรอบ","นุ่ม","เผ็ด","เปรี้ยว","สุก","นุ่มละมุน","คลาสสิก","ราชวงศ์","สวน","แดด","ประจำวัน"];
-const adjKR = ["신선한","달콤한","큰","작은","프리미엄","유기농","로컬","골든","육즙","바삭한","부드러운","매운","신","익은","연한","클래식","로얄","가든","써니","데일리"];
-const adjBaca = ["Sot","Wan","Yai","Lek","Phri-miam","O-ka-nik","Thong-thin","Thong","Cham","Krop","Num","Phet","Priao","Suk","Num-la-mun","Khla-sik","Rat-cha-wong","Suan","Daet","Pra-cham-wan"];
-let items=[];
-extraWords.forEach(e=>{ items.push({...e, price:15000}); });
-let baseItems=[];
-for(let i=0;i<thaiWords.length;i++){ baseItems.push({thai:thaiWords[i], baca:bacaWords[i], indo:indoWords[i], eng:engWords[i], kor:korWords[i], cat:categories[i%categories.length]}); }
-baseItems.forEach((b,i)=>{ let price=3000+((i*733)%20000); price=Math.round(price/500)*500; items.push({...b, price:price}); });
-let aIdx=0;
-while(items.length<1000){
-  let b = baseItems[aIdx % baseItems.length];
-  let adjPos = Math.floor(aIdx / baseItems.length);
-  let adj = adjPos % adjEN.length;
-  let e = adjEN[adj], idn = adjID[adj], th = adjTH[adj], kr = adjKR[adj], bc = adjBaca[adj];
-  let second = Math.floor(adjPos / adjEN.length);
-  let prefixEN = second>0 ? adjEN[second-1]+" "+e : e;
-  let prefixID = second>0 ? adjID[second-1]+" "+idn : idn;
-  let prefixTH = second>0 ? adjTH[second-1]+" "+th : th;
-  let prefixKR = second>0 ? adjKR[second-1]+" "+kr : kr;
-  let prefixBaca = second>0 ? adjBaca[second-1]+" "+bc : bc;
-  let price=3000+((aIdx*137)%48000); price=Math.round(price/500)*500;
-  items.push({thai: prefixTH+" "+b.thai, baca: prefixBaca+" "+b.baca, indo: prefixID+" "+b.indo, eng: prefixEN+" "+b.eng, kor: prefixKR+" "+b.kor, price: price, cat: b.cat});
-  aIdx++;
-}
-const filterEl=document.getElementById('filter');
-function getCatName(cat){ if(currentLang==='id') return catMap[cat].id; if(currentLang==='th') return catMap[cat].th; if(currentLang==='ko') return catMap[cat].ko; return cat; }
-function buildFilter(){
-  filterEl.innerHTML="";
-  let allLabel=UI[currentLang].all;
-  let allCats=[allLabel, ...categories.map(c=>getCatName(c))];
-  allCats.forEach((label,i)=>{
-    let b=document.createElement('button'); let value=i===0?"All":categories[i-1];
-    b.innerText=label; if(activeCat===value) b.classList.add('active');
-    b.onclick=()=>{activeCat=value; document.querySelectorAll('.filter button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();};
-    filterEl.appendChild(b);
-  });
-}
-function getBudget(){ return MISSIONS[currentMission]?MISSIONS[currentMission].budget:250000; }
-function isCollected(needName){ return cart.some(i=> items[i].eng===needName); }
-function getClues(m){ if(currentLang==='id') return m.clues_id; if(currentLang==='th') return m.clues_th; if(currentLang==='ko') return m.clues_ko; return m.clues_en; }
-function getExtra(m){ if(currentLang==='id') return m.extra_id; if(currentLang==='th') return m.extra_th; if(currentLang==='ko') return m.extra_ko; return m.extra_en; }
-function showHint(){
-  let m=MISSIONS[currentMission]; if(!m) return;
-  if(!hintUsed){ totalScore=Math.max(0,totalScore-10); hintUsed=true; }
-  document.getElementById('extraHint').style.display='block';
-  document.getElementById('extraHint').innerText='💡 Extra Hint: '+getExtra(m)+' (Score: '+totalScore+')';
-  if(autoVoice) speak(getExtra(m), VOICE_MAP[currentLang]);
-  renderMission();
-}
-function renderMission(){
-  let m=MISSIONS[currentMission];
-  if(!m){ document.getElementById('missionTitle').innerText=UI[currentLang].finish; document.getElementById('missionDish').innerText="🏆"; document.getElementById('missionNeed').innerHTML=""; return; }
-  let t=UI[currentLang];
-  document.getElementById('missionTitle').innerText=`${t.mission} ${currentMission+1} / 30 • ⭐ ${totalScore}`;
-  document.getElementById('missionDish').innerHTML=`${m.dish} <button onclick="speakMission()" style="border:none;background:#ff4d8d;color:white;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer">🔊 Listen</button>`;
-  document.getElementById('missionDesc').innerText=t.guess+` • Budget Rp ${m.budget.toLocaleString('id-ID')}`;
-  document.getElementById('budgetLabel').innerText='Rp '+m.budget.toLocaleString('id-ID');
-  document.getElementById('missionReward').innerText=`⭐ +${m.reward}`;
-  let clues=getClues(m);
-  let collected=m.need.filter(n=>isCollected(n)).length;
-  document.getElementById('missionNeed').innerHTML=clues.map((c,i)=>{
-    let done=isCollected(m.need[i]);
-    return `<div class="clue ${done?'done':''}"><span><b>${t.clueLabel} ${i+1}:</b> ${done ? t.found+' ✅' : c}</span><button onclick="speak('${c.replace(/'/g,"")}', '${VOICE_MAP[currentLang]}')">🔊</button></div>`;
-  }).join('');
-  document.getElementById('progressBar').style.width=(collected/3*100)+'%';
-  document.getElementById('missionStatus').innerText=`${collected} / 3 ${t.collected} • Score: ${totalScore}`;
-  document.getElementById('missionList').innerHTML=MISSIONS.map((mm,i)=>{
-    let cls=i<currentMission?'done':i===currentMission?'cur':'';
-    return `<span class="${cls}">${i+1}. ${mm.dish}</span>`;
-  }).join('');
-  document.getElementById('extraHint').style.display='none';
-}
-function render(){
-  let q=document.getElementById('searchInput').value.toLowerCase();
-  let filtered=items.map((it,i)=>({...it, idx:i})).filter(it=>{
-    if(activeCat!=="All" && it.cat!==activeCat) return false;
-    if(q && !(it.indo.toLowerCase().includes(q) || it.eng.toLowerCase().includes(q) || it.kor.includes(q) || it.baca.toLowerCase().includes(q))) return false;
-    return true;
-  }).slice(0,100);
-  document.getElementById('showing').innerText=`${UI[currentLang].showing} ${filtered.length} ${UI[currentLang].from}`;
-  let shop=document.getElementById('shop'); shop.innerHTML="";
-  filtered.forEach(it=>{
-    let div=document.createElement('div');
-    div.className='item'+(cart.includes(it.idx)?' selected':'');
-    div.innerHTML=`<button class="speakBtn" onclick="event.stopPropagation(); speakIngredient(${JSON.stringify(it).replace(/"/g,'&quot;')})">🔊</button>
-      <div class="thai">${it.thai}</div><div class="baca">${it.baca}</div>
-      <div class="row">
-        <div><b>EN</b><span>${it.eng}</span><button onclick="event.stopPropagation(); speak('${it.eng.replace(/'/g,"")}','en-US')" style="border:none;background:#e0e7ff;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
-        <div><b>ID</b><span>${it.indo}</span><button onclick="event.stopPropagation(); speak('${it.indo.replace(/'/g,"")}','id-ID')" style="border:none;background:#ffe4e6;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
-        <div><b>TH</b><span>${it.thai}</span><button onclick="event.stopPropagation(); speakThai('${it.thai.replace(/'/g,"")}')" style="border:none;background:#ede9fe;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
-        <div><b>KR</b><span>${it.kor}</span><button onclick="event.stopPropagation(); speak('${it.kor.replace(/'/g,"")}','ko-KR')" style="border:none;background:#fef3c7;border-radius:50%;width:22px;height:22px;font-size:10px;cursor:pointer">🔊</button></div>
-      </div>
-      <div style="margin-top:6px"><span class="badge">${getCatName(it.cat)}</span></div>
-      <div class="price">Rp ${it.price.toLocaleString('id-ID')}</div>`;
-    div.onclick=()=>{toggle(it.idx); render(); renderMission();};
-    shop.appendChild(div);
-  });
-}
-function toggle(i){
-  let idx=cart.indexOf(i); if(idx>-1) cart.splice(idx,1); else cart.push(i);
-  if(autoVoice && idx===-1){
-    let it=items[i];
-    let name = currentLang==='id'?it.indo:currentLang==='th'?it.thai:currentLang==='ko'?it.kor:it.eng;
-    let msg = currentLang==='id'?`Oke, ${name} masuk keranjang!`:currentLang==='th'?`โอเค ${name} ใส่ตะกร้าแล้ว!`:currentLang==='ko'?`좋아, ${name} 장바구니에 담았어!`:`Okay, ${name} added to cart!`;
-    speak(msg, VOICE_MAP[currentLang]);
-  }
-  update(); renderMission();
-}
-function update(){
-  let total=cart.reduce((s,i)=>s+items[i].price,0); let budget=getBudget();
-  document.getElementById('total').innerText='Rp '+total.toLocaleString('id-ID');
-  document.getElementById('sisa').innerText='Rp '+(budget-total).toLocaleString('id-ID');
-  document.getElementById('countCart').innerText=cart.length;
-  let t=UI[currentLang];
-  document.getElementById('list').innerHTML=cart.length===0?t.empty:cart.map(i=>{
-    let it=items[i]; let name=currentLang==='id'?it.indo:currentLang==='th'?it.thai:currentLang==='ko'?it.kor:it.eng;
-    return `${it.thai} (${name}) - Rp ${it.price.toLocaleString('id-ID')}`;
-  }).join('<br>');
-}
-function checkout(){
-  let m=MISSIONS[currentMission]; if(!m){ alert(UI[currentLang].finish); return; }
-  let total=cart.reduce((s,i)=>s+items[i].price,0); let t=UI[currentLang];
-  if(cart.length===0){ document.getElementById('result').innerText=t.emptyCart; if(autoVoice) speak(t.emptyCart, VOICE_MAP[currentLang]); return; }
-  if(total>m.budget){ document.getElementById('result').innerText=`${t.over} Rp ${(total-m.budget).toLocaleString('id-ID')}`; if(autoVoice) speak(t.over, VOICE_MAP[currentLang]); return; }
-  let missing=m.need.filter(n=>!isCollected(n));
-  if(missing.length>0){ document.getElementById('result').innerText=t.incomplete; if(autoVoice) speakWrong(); return; }
-  if(cart.length!==3){ document.getElementById('result').innerText= currentLang==='en' ? "You must buy EXACTLY 3 items! No cheating by buying everything!" : currentLang==='id' ? "Harus beli TEPAT 3 barang! Gak boleh borong semua!" : currentLang==='th' ? "ต้องซื้อแค่ 3 อย่างเท่านั้น! ห้ามเหมาหมด!" : "정확히 3개만 사야 해! 다 사면 안 돼!"; return; }
-  totalScore+=m.reward;
-  document.getElementById('result').innerText=`${t.success} +${m.reward} ⭐ Score: ${totalScore}`;
-  if(autoVoice) speakCheckoutSuccess(m);
-  let nextDish=MISSIONS[currentMission+1]?MISSIONS[currentMission+1].dish:"FINISH";
-  setTimeout(()=>{
-    alert(`${t.success}\nMission ${currentMission+1}: ${m.dish} DONE!\nAnswers were: ${m.need.join(', ')}\n+${m.reward} points\nScore: ${totalScore}\n\n${t.next} ${nextDish}`);
-    cart=[]; currentMission++; hintUsed=false;
-    if(currentMission>=30){ alert(UI[currentLang].finish); }
-    document.getElementById('searchInput').value="";
-    renderMission(); update(); render(); window.scrollTo(0,0);
-    if(autoVoice && currentMission<30) setTimeout(()=>speakMission(), 800);
-  }, 800);
-}
-function resetGame(){ cart=[]; update(); render(); renderMission(); document.getElementById('result').innerText=''; }
-buildFilter(); renderMission(); update(); render();
+function backToLevels(){ showScreen('levelScreen'); renderLevels(); }
+function retryLevel(){ startLevel(currentLevel); }
 </script>
 </body>
-</html>
