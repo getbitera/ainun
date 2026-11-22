@@ -8,24 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Kanit:wght@800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;font-family:'Fredoka',sans-serif;display:flex;justify-content:center;padding:10px;min-height:100vh;
-  /* BACKGROUND LUAR KOTAK COKLAT - NGAMBIL DARI guessimage.jpg */
-  background-image:url('guessimage.jpg');
-  background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;
-}
+body{margin:0;font-family:'Fredoka',sans-serif;display:flex;justify-content:center;padding:10px;min-height:100vh;background-image:url('guessimage.jpg');background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}
 body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);backdrop-filter:blur(2px);z-index:-1}
 .frame{width:100%;max-width:520px;background:#8B5A2B;padding:8px;border-radius:18px;box-shadow:0 0 0 4px #6B4226,0 10px 30px rgba(0,0,0,.4)}
 .box{background:linear-gradient(180deg,#FFF8E7,#FFF3D6);border-radius:14px;padding:12px;min-height:90vh;border:3px solid #E8D5A3}
-
-/* SPLASH */
 #splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0;background:#87CEEB}
 #splash img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #splash .overlay{position:relative;z-index:2;width:100%;padding:20px 20px 30px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45));text-align:center}
 #splash button{background:#FFC93C;color:#5A2E0E;border:4px solid #fff;border-radius:30px;padding:16px 44px;font-family:'Kanit';font-weight:800;font-size:22px;cursor:pointer;box-shadow:0 6px 0 #D99A00}
 #splash small{color:#fff;font-size:11px;display:block;margin-top:8px}
-
-/* NAME MODAL */
 #nameModal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
 #nameModal .card{background:#FFF8E7;border:4px solid #8B5A2B;border-radius:20px;padding:22px;width:100%;max-width:380px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 #nameModal h2{font-family:'Kanit';color:#5A2E0E;margin:0 0 6px;font-size:22px}
@@ -33,7 +24,6 @@ body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);
 #nameModal input{width:100%;border:3px solid #8B5A2B;border-radius:12px;padding:12px;font-family:'Fredoka';font-size:16px;text-align:center;outline:none;margin-bottom:12px}
 #nameModal button{background:#FFC93C;color:#5A2E0E;border:3px solid #8B5A2B;border-radius:30px;padding:12px 30px;font-family:'Kanit';font-weight:800;font-size:17px;cursor:pointer;width:100%}
 #nameModal .voice-btn{background:#fff;color:#5A2E0E;margin-top:8px;font-size:13px;padding:10px}
-
 .header{background:#8B5A2B;border:3px solid #6B4226;border-radius:14px;padding:10px;text-align:center;color:#fff;box-shadow:inset 0 0 0 2px #A97C50}
 .header b{font-family:'Kanit';font-size:22px}
 .header b span{color:#FFC93C}.header b span.tosca{color:#5EBBB5}
@@ -44,7 +34,8 @@ body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);
 .level-banner b{font-family:'Kanit';font-size:20px}
 .progress-bar{height:10px;background:#FFF3D6;border:1px solid #E8D5A3;border-radius:20px;overflow:hidden;margin-top:8px}
 .progress-bar div{height:100%;background:#5EBBB5;width:0%;transition:.3s}
-.clue{background:#fff;border-radius:12px;padding:10px;margin-bottom:12px;border:2px solid #E8D5A3;box-shadow:0 3px 0 #E8D5A3}
+.clue{background:#fff;border-radius:12px;padding:10px;margin-bottom:12px;border:2px solid #E8D5A3;box-shadow:0 3px 0 #E8D5A3;scroll-margin-top:20px}
+.clue.done{border-color:#5EBBB5;background:#F0FFFC}
 .clue-title{color:#5A2E0E;font-weight:700;font-size:14px;margin-bottom:8px}
 .pics{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .pic{width:76px;height:76px;background:#FFF8E7;border-radius:12px;border:3px solid #8B5A2B;display:flex;align-items:center;justify-content:center;font-size:38px}
@@ -69,7 +60,6 @@ body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);
   </div>
 </div>
 
-<!-- MODAL ISI NAMA + SUARA AI -->
 <div id="nameModal">
   <div class="card">
     <h2>👋 Hi! Who's Playing?</h2>
@@ -92,13 +82,11 @@ body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);
 </div></div>
 
 <script>
-// ===== AI VOICE =====
 function speakAI(text){
   try{
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US'; u.rate = 1.0; u.pitch = 1.1; u.volume = 1;
-    // cari suara cewek yang bagus kalau ada
     let voices = window.speechSynthesis.getVoices();
     let female = voices.find(v=>v.name.toLowerCase().includes('female')||v.name.includes('Google US English')||v.name.includes('Samantha')||v.name.includes('Zira'));
     if(female) u.voice = female;
@@ -108,7 +96,6 @@ function speakAI(text){
 function openNameModal(){
   document.getElementById('splash').style.display='none';
   document.getElementById('nameModal').style.display='flex';
-  // SUARA AI LANGSUNG BUNYI PAS START
   speakAI("Hello! Welcome to Ainun Guess Word! Please type your name to start playing! I am so excited to play with you!");
   setTimeout(()=>document.getElementById('playerName').focus(),300);
 }
@@ -116,9 +103,9 @@ function startWithName(){
   let name = document.getElementById('playerName').value.trim() || "Friend";
   document.getElementById('playerDisplay').innerText = "👤 Player: " + name;
   document.getElementById('nameModal').style.display='none';
-  // SUARA AI SAPA NAMA
   speakAI(`Hi ${name}! Welcome to Ainun Guess Word! Let's start! Level One! Guess the word from the pictures! You can do it! Good luck!`);
   window.scrollTo({top:0});
+  setTimeout(()=>{ let first = document.querySelector('#list input:not([disabled])'); if(first) first.focus(); },300);
 }
 
 const Q = [
@@ -151,13 +138,16 @@ const LEVELS = [
 {title:"LEVEL 5 - LEGEND", sub:"Final Boss - 30 Questions", from:70, to:100}
 ];
 let currentLevel=0, totalScore=0, solved=new Set(), playerName="Friend";
-function renderLevel(idx){
+
+// === FIX 1: renderLevel cuma scroll ke atas kalau GANTI LEVEL, bukan tiap jawab ===
+function renderLevel(idx, scrollTop=true){
   currentLevel=idx; let lv=LEVELS[idx];
   document.getElementById('cur').innerText=lv.title;
-  document.getElementById('levelBanner').innerHTML=`<div class="level-banner"><b>${lv.title}</b><br><span>${lv.sub}</span><div class="progress-bar"><div id="bar" style="width:${getLevelProgress(idx)}%"></div></div><div style="font-size:12px;margin-top:4px">Progress: ${getLevelSolved(idx)} / ${lv.to-lv.from} solved</div></div>`;
+  document.getElementById('levelBanner').innerHTML=`<div class="level-banner"><b>${lv.title}</b><br><span>${lv.sub}</span><div class="progress-bar"><div id="bar" style="width:${getLevelProgress(idx)}%"></div></div><div id="progText" style="font-size:12px;margin-top:4px">Progress: ${getLevelSolved(idx)} / ${lv.to-lv.from} solved</div></div>`;
   document.getElementById('topNav').innerHTML=idx>0?`<button class="back-btn" onclick="goBack()">← BACK TO LEVEL ${idx}</button>`:'';
-  let html=""; for(let i=lv.from;i<lv.to;i++){ let q=Q[i]; let isDone=solved.has(i); let pics=`<div class="pic">${q[0]}</div><div class="plus">+</div><div class="pic">${q[1]}</div>`; if(q[2]) pics+=`<div class="plus">+</div><div class="pic">${q[2]}</div>`; pics+=`<div class="equal">= ?</div>`; html+=`<div class="clue"><div class="clue-title">${lv.title} - Question ${i-lv.from+1} / ${lv.to-lv.from}</div><div class="pics">${pics}</div><div class="row"><input id="in${i}" placeholder="Type your answer..." ${isDone?'disabled value="'+q[3].toUpperCase()+'"':''}><button onclick="check(${i},'${q[3]}')" ${isDone?'disabled':''}>CHECK</button></div><div class="feedback" id="fb${i}">${isDone?'<span class=ok>✔ CORRECT!</span>':''}</div></div>`; }
-  document.getElementById('list').innerHTML=html; updateNav(); window.scrollTo({top:0,behavior:'smooth'});
+  let html=""; for(let i=lv.from;i<lv.to;i++){ let q=Q[i]; let isDone=solved.has(i); let pics=`<div class="pic">${q[0]}</div><div class="plus">+</div><div class="pic">${q[1]}</div>`; if(q[2]) pics+=`<div class="plus">+</div><div class="pic">${q[2]}</div>`; pics+=`<div class="equal">= ?</div>`; html+=`<div class="clue ${isDone?'done':''}" id="clue${i}"><div class="clue-title">${lv.title} - Question ${i-lv.from+1} / ${lv.to-lv.from}</div><div class="pics">${pics}</div><div class="row"><input id="in${i}" placeholder="Type your answer..." ${isDone?'disabled value="'+q[3].toUpperCase()+'"':''} onkeydown="if(event.key==='Enter') check(${i},'${q[3]}')"><button onclick="check(${i},'${q[3]}')" ${isDone?'disabled':''}>CHECK</button></div><div class="feedback" id="fb${i}">${isDone?'<span class=ok>✔ CORRECT!</span>':''}</div></div>`; }
+  document.getElementById('list').innerHTML=html; updateNav();
+  if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
 }
 function getLevelSolved(idx){ let lv=LEVELS[idx],c=0; for(let i=lv.from;i<lv.to;i++) if(solved.has(i)) c++; return c; }
 function getLevelProgress(idx){ let lv=LEVELS[idx]; return Math.round(getLevelSolved(idx)/(lv.to-lv.from)*100); }
@@ -167,10 +157,47 @@ function updateNav(){
   if(done){ completeMsg.style.display='block'; if(currentLevel<LEVELS.length-1){ nextNav.style.display='block'; nextBtn.innerText=`GO TO LEVEL ${currentLevel+2} →`; nextBtn.onclick=goNext; } else { nextNav.style.display='block'; nextBtn.innerText=`🎉 YOU FINISHED ALL LEVELS! PLAY AGAIN ↻`; nextBtn.onclick=()=>{solved.clear();totalScore=0;document.getElementById('score').innerText=0;renderLevel(0);} } }
   else { completeMsg.style.display='none'; nextNav.style.display='none'; }
   let bar=document.getElementById('bar'); if(bar) bar.style.width=getLevelProgress(currentLevel)+'%';
+  let pt=document.getElementById('progText'); if(pt) pt.innerText=`Progress: ${getLevelSolved(currentLevel)} / ${lv.to-lv.from} solved`;
 }
-function check(n,ans){ const inp=document.getElementById('in'+n); const fb=document.getElementById('fb'+n); const v=inp.value.trim().toLowerCase().replace(/\s/g,''); if(!v){fb.innerHTML='<span class=bad>Please type an answer!</span>';return;} if(v===ans){ if(!solved.has(n)){solved.add(n);totalScore++;document.getElementById('score').innerText=totalScore; speakAI("Correct! Great job!"); } fb.innerHTML='<span class=ok>✔ CORRECT!</span>'; inp.disabled=true; renderLevel(currentLevel); if(getLevelSolved(currentLevel)===(LEVELS[currentLevel].to-LEVELS[currentLevel].from)){ speakAI(`Amazing! Level complete! Let's go to level ${currentLevel+2}!`); setTimeout(()=>alert('🎉 LEVEL COMPLETE! Click GO TO LEVEL '+(currentLevel+2)+'!'),200);} } else { fb.innerHTML='<span class=bad>✘ Wrong, try again!</span>'; speakAI("Oops! Try again!"); } }
-function goNext(){ if(currentLevel<LEVELS.length-1){ renderLevel(currentLevel+1); speakAI(`Welcome to Level ${currentLevel+1}! Let's go!`); } }
-function goBack(){ if(currentLevel>0) renderLevel(currentLevel-1); }
+
+// === FIX 2: check() TIDAK render ulang semua, cuma update soal itu + auto ke soal bawahnya ===
+function check(n,ans){
+  const inp=document.getElementById('in'+n); const fb=document.getElementById('fb'+n);
+  const v=inp.value.trim().toLowerCase().replace(/\s/g,'');
+  if(!v){ fb.innerHTML='<span class=bad>Please type an answer!</span>'; return; }
+  if(v===ans){
+    if(!solved.has(n)){ solved.add(n); totalScore++; document.getElementById('score').innerText=totalScore; speakAI("Correct! Great job!"); }
+    fb.innerHTML='<span class=ok>✔ CORRECT!</span>';
+    inp.disabled=true; inp.value=ans.toUpperCase();
+    let btn=inp.parentElement.querySelector('button'); if(btn) btn.disabled=true;
+    let clue=document.getElementById('clue'+n); if(clue) clue.classList.add('done');
+    updateNav();
+    // Kalau level selesai
+    if(getLevelSolved(currentLevel)===(LEVELS[currentLevel].to-LEVELS[currentLevel].from)){
+      speakAI(`Amazing! Level complete! Let's go to level ${currentLevel+2}!`);
+      setTimeout(()=>{ document.getElementById('nextNav').scrollIntoView({behavior:'smooth',block:'center'}); },300);
+      return;
+    }
+    // === AUTO KE SOAL BAWAHNYA ===
+    setTimeout(()=>{
+      let lv=LEVELS[currentLevel];
+      for(let j=n+1;j<lv.to;j++){
+        if(!solved.has(j)){
+          let nextClue=document.getElementById('clue'+j);
+          let nextInput=document.getElementById('in'+j);
+          if(nextClue) nextClue.scrollIntoView({behavior:'smooth',block:'center'});
+          if(nextInput) nextInput.focus({preventScroll:true});
+          break;
+        }
+      }
+    },350);
+  } else {
+    fb.innerHTML='<span class=bad>✘ Wrong, try again!</span>'; speakAI("Oops! Try again!");
+    inp.select();
+  }
+}
+function goNext(){ if(currentLevel<LEVELS.length-1){ renderLevel(currentLevel+1, true); speakAI(`Welcome to Level ${currentLevel+1}! Let's go!`); } }
+function goBack(){ if(currentLevel>0) renderLevel(currentLevel-1, true); }
 renderLevel(0);
 </script>
 </body>
