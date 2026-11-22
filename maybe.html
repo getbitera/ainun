@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAYBE - อาจจะ | My Ainun Maybe Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600&family=Poppins:wght@400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#160808;min-height:100vh;font-family:'Poppins',sans-serif;color:#fff;display:flex;justify-content:center;overflow-x:hidden}
+  .bg{position:fixed;inset:0;background:radial-gradient(circle at top,#7a0f0f 0%,#1d0606 70%);z-index:0}
+  .container{position:relative;z-index:2;width:96%;max-width:480px;text-align:center;padding:18px 14px 40px}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:99}
+  #flash.go{animation:flashAnim .7s ease-out}
+  @keyframes flashAnim{0%{opacity:0}10%{opacity:.95}25%{opacity:.2}40%{opacity:.8}100%{opacity:0}}
+  #startScreen{display:block}
+  #gameScreen{display:none}
+  .photo-wrap{width:100%;height:280px;border-radius:22px;overflow:hidden;border:3px solid #ffcc66;box-shadow:0 15px 35px rgba(0,0,0,.5);position:relative;background:#333}
+  .photo-wrap img{width:100%;height:100%;object-fit:cover}
+  .photo-wrap .overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75))}
+  .photo-wrap .on-photo{position:absolute;bottom:12px;left:0;right:0;z-index:2}
+  .photo-wrap .on-photo h2{font-size:28px;color:#ffcc66;text-shadow:0 2px 10px #000}
+  .photo-wrap .on-photo p{font-size:12px;color:#fff;letter-spacing:1px}
+  h1{font-family:'Noto Serif Thai',serif;color:#ffcc66;font-size:38px;text-shadow:0 0 20px #ff0000;line-height:1;margin:14px 0 2px}
+  h1 span{display:block;font-size:18px;letter-spacing:4px;color:#fff;margin-top:4px;font-family:'Poppins',sans-serif}
+  .thai-big{font-family:'Noto Serif Thai',serif;color:#ffb3b3;font-size:22px;margin:4px 0}
+  .welcome{font-size:14px;line-height:1.6;color:#ffd9d9;margin:10px 0 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,204,102,.3);border-radius:14px;padding:12px}
+  .welcome b{color:#ffcc66}
+  .name-box{background:#fffaf0;border-radius:16px;padding:16px;color:#2a1405;text-align:left}
+  .name-box label{font-size:12px;font-weight:700;color:#8a0000;letter-spacing:.5px}
+  .name-box input{width:100%;margin-top:8px;padding:13px 14px;border:2px solid #f0d0a0;border-radius:12px;font-size:15px;outline:none}
+  .name-box input:focus{border-color:#b50000}
+  .btn-start{width:100%;margin-top:12px;background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 6px 20px rgba(255,153,0,.4)}
+  .disclaimer{margin-top:14px;font-size:11px;line-height:1.6;color:#ffb3b3;background:rgba(0,0,0,.3);border:1px dashed #ffcc66;border-radius:12px;padding:11px;text-align:left}
+  .disclaimer b{color:#ffcc66}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;flex-wrap:wrap}
+  .player{font-size:13px;background:rgba(255,255,255,.1);padding:6px 12px;border-radius:20px}
+  .player b{color:#ffcc66}
+  .controls{display:flex;gap:6px}
+  .voice-toggle,.thunder-toggle{font-size:12px;background:#ffcc66;color:#5a0a0a;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;font-weight:700}
+  .voice-toggle.off,.thunder-toggle.off{background:#555;color:#fff}
+  .sub{color:#ffb3b3;font-size:12px;letter-spacing:1px;margin:6px 0 16px}
+  .cup-area{position:relative;height:300px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;margin:5px 0 10px}
+  .cup{width:150px;height:185px;background:linear-gradient(180deg,#ff2a2a,#b50000);border-radius:20px 20px 60px 60px;position:relative;box-shadow:0 20px 40px rgba(0,0,0,.6);z-index:3}
+  .cup::after{content:'อาจจะ';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:26px;color:#ffcc66;font-family:'Noto Serif Thai',serif;font-weight:700}
+  .sticks{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:160px;z-index:2}
+  .stick{position:absolute;width:6px;height:140px;background:linear-gradient(#f5e6c8,#d4b896);border-radius:3px;bottom:0;transform-origin:bottom center}
+  .cup.shake{animation:shake .6s ease-in-out infinite}
+  @keyframes shake{0%,100%{transform:rotate(0)}10%{transform:rotate(-8deg) translateY(-5px)}30%{transform:rotate(8deg) translateY(-10px)}50%{transform:rotate(-6deg)}70%{transform:rotate(6deg)}}
+  .stick.fall{animation:fall 1s ease-in forwards}
+  @keyframes fall{0%{transform:translateY(0) rotate(var(--r))}100%{transform:translateY(235px) rotate(calc(var(--r) + 45deg))}}
+  .btn{background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a;border:none;padding:15px 34px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 6px 20px rgba(255,153,0,.4)}
+  .btn:disabled{opacity:.5}
+  .filter{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+  .filter button{border:1px solid #ffcc66;background:transparent;color:#ffcc66;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer}
+  .filter button.active{background:#ffcc66;color:#5a0a0a;font-weight:700}
+  .result{display:none;margin-top:18px;background:linear-gradient(180deg,#fffaf0,#ffecc2);color:#2a1405;border-radius:20px;padding:24px 16px 16px;box-shadow:0 15px 35px rgba(0,0,0,.5),0 0 0 3px #ffcc66,0 0 0 6px #b50000;animation:pop .5s cubic-bezier(.34,1.56,.64,1);text-align:left;position:relative}
+  .result.show{display:block}
+  @keyframes pop{0%{transform:scale(.6) translateY(30px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+  .num-badge{position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#b50000;color:#ffcc66;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;border:3px solid #ffcc66}
+  .result h3{font-size:19px;text-align:center;color:#8a0000;margin:10px 0 2px}
+  .thai{font-family:'Noto Serif Thai',serif;text-align:center;color:#b50000;font-size:14px;margin-bottom:10px}
+  .level{text-align:center;margin-bottom:6px}
+  .level span{display:inline-block;background:#b50000;color:#ffcc66;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700}
+  .intro{text-align:center;font-size:13px;line-height:1.6;color:#5a3a1a;background:#fff8e6;border:1px solid #f0d0a0;border-radius:12px;padding:12px;margin:10px 0}
+  .cat{padding:14px 0;border-bottom:1px dashed #e0b98a}
+  .cat:last-child{border:none}
+  .cat-head{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  .cat-ico{font-size:22px}
+  .cat-head b{font-size:13px;color:#8a0000;letter-spacing:.5px}
+  .cat p{font-size:13.5px;line-height:1.75;color:#3a240a}
+  .score{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .score div{background:#fff;border:1px solid #f0d0a0;border-radius:10px;padding:8px 4px;text-align:center}
+  .score small{font-size:10px;color:#888}
+  .score strong{display:block;font-size:15px;color:#8a0000}
+  .score .bar{height:6px;background:#eee;border-radius:3px;margin-top:5px;overflow:hidden}
+  .score .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff9900,#b50000)}
+  .quote{margin-top:14px;background:rgba(181,0,0,.08);border-left:4px solid #b50000;padding:12px;border-radius:6px;font-size:13px;font-style:italic;line-height:1.6}
+  .voice-box{margin-top:12px;display:flex;gap:8px}
+  .voice-box button{flex:1;border:none;padding:11px;border-radius:20px;cursor:pointer;font-weight:700;font-size:13px}
+  .btn-voice{background:#b50000;color:#fff}
+  .btn-again{background:#fff;border:1px dashed #8a0000;color:#8a0000}
+  .drawers{margin-top:20px;display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+  .drawer{background:rgba(255,0,0,.22);border:1px solid rgba(255,204,102,.3);height:28px;border-radius:5px;font-size:11px;display:flex;align-items:center;justify-content:center;color:#ffcc66;cursor:pointer}
+  .drawer.active{background:#ffcc66;color:#8a0000;font-weight:800;transform:scale(1.2);box-shadow:0 0 10px #ffcc66}
+  .note{font-size:11px;color:#ffb3b3;margin-top:10px}
+  .footer-disclaimer{margin-top:18px;font-size:11px;line-height:1.6;color:#ffb3b3;background:rgba(0,0,0,.35);border:1px dashed #ffcc66;border-radius:12px;padding:11px;text-align:left}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div id="flash"></div>
+<div class="container">
+  <div id="startScreen">
+    <div class="photo-wrap">
+      <img src="myainunmaybe.jpg" alt="My Ainun Maybe" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(180deg,#ff2a2a,#5a0000)'">
+      <div class="overlay"></div>
+      <div class="on-photo"><h2>MY AINUN MAYBE</h2><p>MAYBE • อาจจะ • MUNGKIN</p></div>
+    </div>
+    <h1>MAYBE<span>อาจจะ • AAT JA</span></h1>
+    <div class="thai-big">บางที • อาจจะ • Maybe</div>
+    <div class="welcome">Welcome to <b>My Ainun Maybe Game</b> ✨<br>Shake the tube, get your number, and see what the universe <b>maybe</b> says about you today.</div>
+    <div class="name-box">
+      <label>ENTER YOUR NAME TO START</label>
+      <input type="text" id="playerName" placeholder="Type your name here..." maxlength="20">
+      <button class="btn-start" id="startBtn">▶ START GAME</button>
+    </div>
+    <div class="disclaimer">⚠️ <b>DISCLAIMER:</b> This is <b>only a game for entertainment</b>. This is <b>not real fortune telling</b>, not a prediction, not advice, and not a guide for your behavior or real-life decisions. All numbers, words, and sentences are randomly generated for fun only. Do not make real life decisions based on this game. Play, laugh, and enjoy!</div>
+  </div>
+  <div id="gameScreen">
+    <div class="top-bar">
+      <div class="player">Hi, <b id="displayName">Player</b> 👋</div>
+      <div class="controls">
+        <button class="voice-toggle" id="voiceToggle">🔊 AI VOICE: ON</button>
+        <button class="thunder-toggle" id="thunderToggle">⛈️ THUNDER: ON</button>
+      </div>
+    </div>
+    <h1 style="font-size:28px">MAYBE <span style="font-size:14px">อาจจะ</span></h1>
+    <div class="sub">100 NUMBERS • 6 STORIES PER NUMBER • SHAKE & SEE</div>
+    <div class="cup-area" id="cupArea"><div class="sticks" id="sticks"></div><div class="cup" id="cup"></div></div>
+    <button class="btn" id="shakeBtn">🔮 SHAKE NOW</button>
+    <div class="filter" id="filter">
+      <button class="active" data-f="all">All</button>
+      <button data-f="kerjaan">💼 Work</button>
+      <button data-f="keuangan">💰 Money</button>
+      <button data-f="teman">👯 Friends</button>
+      <button data-f="kesehatan">❤️ Health</button>
+      <button data-f="pasangan">💘 Love</button>
+      <button data-f="cita">🌟 Dreams</button>
+    </div>
+    <div class="result" id="result">
+      <div class="num-badge" id="resNum">01</div>
+      <h3 id="resTitle">No 1</h3>
+      <div class="thai" id="resThai"></div>
+      <div class="level"><span id="resLevel"></span></div>
+      <div class="intro" id="resIntro"></div>
+      <div id="resCats"></div>
+      <div class="score" id="resScore"></div>
+      <div class="quote" id="resQuote"></div>
+      <div class="voice-box">
+        <button class="btn-voice" onclick="speakCurrent()">🔊 LISTEN WITH AI VOICE</button>
+        <button class="btn-again" onclick="resetGame()">Shake Again</button>
+      </div>
+    </div>
+    <div class="drawers" id="drawers"></div>
+    <div class="note">Click any number 1-100 in the drawers to see its story</div>
+    <div class="footer-disclaimer">⚠️ <b>DISCLAIMER - MAYBE GAME:</b> This game is <b>for entertainment only</b>. It is <b>not real</b>, not a fortune, not a prediction, and not an instruction for your behavior or real-life situation. Do not use this game to decide about work, money, health, or relationships. If you need real advice, talk to a professional. Enjoy and have fun!</div>
+  </div>
+</div>
+<script>
+// ===== AI VOICE =====
+let voiceOn = true;
+let currentFortune = null;
+let playerNameGlobal = "Player";
+const voiceToggle = document.getElementById('voiceToggle');
+voiceToggle.onclick = () => {
+  voiceOn = !voiceOn;
+  voiceToggle.textContent = voiceOn ? "🔊 AI VOICE: ON" : "🔇 AI VOICE: OFF";
+  voiceToggle.classList.toggle('off', !voiceOn);
+  if(!voiceOn) speechSynthesis.cancel();
+  if(voiceOn) speakText("Voice on. Welcome to Maybe game.");
+};
+function speakText(text){
+  if(!voiceOn) return;
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.95; u.pitch = 1.05;
+  const voices = speechSynthesis.getVoices();
+  const pref = voices.find(v=>v.name.includes('Samantha')||v.name.includes('Google US English')||v.lang==='en-US');
+  if(pref) u.voice = pref;
+  speechSynthesis.speak(u);
+}
+function speakCurrent(){
+  if(!currentFortune) return;
+  const f = currentFortune;
+  const text = `Hello ${playerNameGlobal}. You got number ${f.n}, ${f.title}. Maybe. ${f.intro} In work, ${f.kerjaan} In money, ${f.keuangan} In friendship, ${f.teman} In health, ${f.kesehatan} In love, ${f.pasangan} And in dreams, ${f.cita} Remember, this is only a game for fun. ${f.quote}`;
+  speakText(text);
+}
+
+// ===== THUNDER SOUND - BAGUS, CUMA 1x DI AKHIR SPIN =====
+let thunderOn = true;
+let audioCtx = null;
+let thunderPlayedForThisSpin = false; // kunci biar cuma 1x per spin
+const thunderToggle = document.getElementById('thunderToggle');
+thunderToggle.onclick = () => {
+  thunderOn = !thunderOn;
+  thunderToggle.textContent = thunderOn ? "⛈️ THUNDER: ON" : "🔕 THUNDER: OFF";
+  thunderToggle.classList.toggle('off', !thunderOn);
+  if(thunderOn) playThunderOnce(); // test sound pas di klik ON, cuma buat ngetes
+};
+function playThunderOnce(){
+  if(!thunderOn) return;
+  // JANGAN main 2x kalau lagi bunyi
+  if(thunderPlayedForThisSpin) return;
+  thunderPlayedForThisSpin = true;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const duration = 1.8;
+    const sampleRate = audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, sampleRate * duration, sampleRate);
+    const data = buffer.getChannelData(0);
+    let last = 0;
+    for(let i=0;i<data.length;i++){
+      const white = Math.random()*2-1;
+      last = (last + 0.02 * white) / 1.02;
+      const t = i / sampleRate;
+      const env = Math.exp(-t*2.2) * (1 + 0.6*Math.sin(t*25)*Math.exp(-t*4));
+      data[i] = last * 3.5 * env;
+    }
+    const src = audioCtx.createBufferSource(); src.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=400; filter.Q.value=0.8;
+    const gain = audioCtx.createGain(); gain.gain.value=1.2;
+    const crackLen = 0.08;
+    const crackBuffer = audioCtx.createBuffer(1, sampleRate*crackLen, sampleRate);
+    const crackData = crackBuffer.getChannelData(0);
+    for(let i=0;i<crackData.length;i++){ crackData[i] = (Math.random()*2-1) * Math.exp(-i/(sampleRate*0.015)); }
+    const crackSrc = audioCtx.createBufferSource(); crackSrc.buffer = crackBuffer;
+    const crackGain = audioCtx.createGain(); crackGain.gain.value=0.7;
+    const crackFilter = audioCtx.createBiquadFilter(); crackFilter.type='highpass'; crackFilter.frequency.value=1200;
+    crackSrc.connect(crackFilter); crackFilter.connect(crackGain); crackGain.connect(audioCtx.destination);
+    crackSrc.start();
+    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    src.start();
+    setTimeout(()=>{
+      const src2 = audioCtx.createBufferSource(); src2.buffer = buffer;
+      const g2 = audioCtx.createGain(); g2.gain.value=0.45;
+      const f2 = audioCtx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=220;
+      src2.connect(f2); f2.connect(g2); g2.connect(audioCtx.destination); src2.start();
+    }, 300);
+    // reset kunci setelah 2 detik biar spin berikutnya bisa bunyi lagi 1x
+    setTimeout(()=>{ thunderPlayedForThisSpin = false; }, 2200);
+  }catch(e){ console.log("Thunder audio blocked", e); thunderPlayedForThisSpin = false; }
+}
+
+// ===== FLASH + THUNDER - HANYA DIPANGGIL 1x DI AKHIR =====
+function doFlashWithThunder(){
+  // FLASH + PETIR 1x - CUMA DIPANGGIL PAS ANGKA KELUAR
+  const fl = document.getElementById('flash');
+  fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+  playThunderOnce();
+  if(navigator.vibrate) navigator.vibrate(80);
+}
+
+// ===== START FLOW - TANPA PETIR, TANPA FLASH =====
+const startBtn = document.getElementById('startBtn');
+const nameInput = document.getElementById('playerName');
+startBtn.onclick = () => {
+  const name = nameInput.value.trim() || "Player";
+  playerNameGlobal = name;
+  document.getElementById('displayName').textContent = name;
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='block';
+  // NO FLASH, NO THUNDER HERE - biar tenang pas masuk
+  setTimeout(()=>{ speakText(`Welcome to my Ainun Maybe game, ${name}. Shake the tube and see what maybe says about you. Remember, this is only a game for entertainment.`); }, 400);
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') startBtn.click(); });
+
+// ===== DATA - ENGLISH =====
+const kerjaanList=[
+"Right now your work is entering a quiet evaluation phase. Your boss or your clients are actually watching how you solve problems that never appear in reports, like how you calm a tense situation, help a teammate, and stay calm when the workload grows. The result will not explode today, but in the next 2 to 4 weeks there will be good news in the form of a new offer, new trust, or a bigger responsibility. Do not give up halfway just because you feel unappreciated, because what you planted is already growing underground.",
+"You are at a point of boredom, not because you are not capable, but because your routine is no longer challenging. Your mind starts looking at other opportunities, and that is normal. But do not rush into a big decision just because of a moment of emotion. Your current place still holds opportunities you have not explored, especially from relationships with people you thought were ordinary. One honest conversation can open a new path you never imagined.",
+"An offer is coming from an unexpected direction, maybe from an old friend, a former coworker, or even someone you met only once. It looks small at first, but if you look deeper, its potential is big for the long term. The problem is you tend to reject it because you feel not ready or afraid to fail. Actually this chance comes because that person sees something in you that you yourself do not realize.",
+"This is a phase of re-learning. The skill that once made you great is no longer enough to compete. You feel left behind and start comparing yourself to others who seem to climb faster. Actually you only need to add one new relevant skill, for example how to present, how to manage time, or a technical skill that is needed in your field. Once you master it, your position will jump far and people will see you differently.",
+"Your hard work is finally being talked about by people. Someone mentions your name in a room you never entered, with a positive tone. This is very valuable social capital. Do not ruin it with gossip or arrogance. Stay as the person who can be relied on, because trust that has been built can be destroyed by one small mistake. This week, finishing one project until it is truly complete will be the strongest proof.",
+"There will be a small friction with a coworker, not because of enmity, but because of a different communication style. You feel you have been clear, he feels unappreciated. If left alone, this friction can grow big and disturb the team. The key is not who is right, but who is willing to lower their ego first. You who are more mature will look far more professional if you choose to solve it with a cool head.",
+"A project that was delayed, rejected, or considered a failure will come back to life in a new form. The person who rejected it before will return with a better offer. Do not bring old grudges, because if you still hold hurt feelings, you will miss a second chance that is actually far more profitable. This is your time to show that you have grown and you are no longer the same as before.",
+"You have been taking on too much work. Every request you help, every task you take, until you run out of energy and start hating the job you once loved. This is not a sign you are weak, this is a sign your boundaries have been crossed. People who respect you will understand that you are also human with limits. Keeping the quality of your work is far more important than looking like you can do everything.",
+"An opportunity to move, get promoted, or move to a new city is opening up. At first you hesitate because you are afraid to leave your comfort zone, leave friends, and start from zero again. But actually that fear is a sign that you are growing. That new place is not to make your life harder, but to make you find a stronger and braver version of yourself than you thought.",
+"Soon there will be news about a raise, a bonus, or a new position. This news does not come suddenly, but is the result of consistency you have built for months. Do not be surprised if the amount is not as big as your first expectation, because this is the first door. The important thing is you are already on the right track, and after this there will be a bigger increase if you stay consistent and do not stop here.",
+];
+const keuanganList=[
+"There is money coming from a direction you did not expect, maybe from a side job, a gift, or money you thought was lost. The amount may not be huge, but it is enough to make your breathing lighter and give you new hope. Do not spend it immediately on things that only give momentary pleasure. If you can hold yourself and save a part of it, this money will become a seed for bigger fortune next month.",
+"Your spending lately is starting to get out of control, not because you are wasteful, but because you are tired and using shopping as a way to feel better. Every promo notification makes you feel you must buy, even though you do not really need the item. If it continues, your savings will be drained and you will feel even more stressed. This is the time to pause and look again at what is truly important in your life.",
+"A debt or financial burden that has haunted you for a long time is finally finding a way out. Not because of a miracle, but because you start to be brave to face it and rearrange your priorities. There is a person who will help you, or there is a negotiation path you did not see before because you were too afraid to talk about it. Do not be ashamed to ask for relief, because many people want to help if you are honest about your condition.",
+"This week is not the right time to lend a large amount of money, even if the person asking is someone close. Your intention is good, but the money will be hard to return and will actually damage your relationship. Not because the person is bad, but because the situation is indeed difficult for everyone. If you still want to help, help in another way that does not involve money, like giving time, energy, or information that can help them.",
+"An investment or small business you started with doubt is finally showing results. At first you felt it was just a waste of time and money, but now the graph is slowly rising. Do not be tempted to take all the profit now, because this is only the early phase. If you are patient and keep taking care of it, in the next 3 to 6 months the result will be far bigger than you imagined when you first started.",
+"There will be a bonus, tip, or surprise money coming at the right time, exactly when you need it. This is a form of appreciation because you have worked honestly and without complaining. Use this money wisely, not only to satisfy momentary desires. Set aside a part for your parents or for someone who helped you in difficult times, because sharing will make your fortune flow smoother and your heart calmer.",
+"Be careful with offers that look too good to be true. It could be an investment with huge profit in a short time, a lottery prize, or a job offer with an unreasonable salary. The person offering may look convincing, but behind it there is a trap that will make you lose money and confidence. If something makes you feel you must decide quickly, that is a danger sign you should watch out for.",
+"Your business or side job is starting to break even. This is the most fragile point, because many people give up right before they succeed. You have already passed the hardest period, which is the early period full of doubt and loss. Now is the time to stay consistent, do not change strategy too often. Focus on one thing that is already working, and fix it little by little until it becomes stronger.",
+"The temptation to buy things because of prestige is very strong right now. You see your friend has a new item, and you feel left behind if you do not have it too. But that item will not make your life happier in the long term, it will only make your wallet thinner and your heart more anxious. True happiness is not from what you show off, but from the calm feeling because you have no debt haunting you.",
+"Your money flow is smooth right now, but it is exactly in this smooth moment that many people become careless and start wasting money. Do not become one of them. When fortune is smooth, it is the best time to build a strong foundation, like an emergency fund, education savings, or investment for the future. If your foundation is strong, when fortune is tight later you will not panic and can still live calmly.",
+];
+const temanList=[
+"An old friend who has not contacted you for a long time will suddenly appear with surprising news. It could be a job opportunity, a business invitation, or just wanting to cure missing you. Do not immediately suspect that they want something. Sometimes people only realize how valuable you are after not meeting for a long time. Give a chance to listen to their story, because who knows from a casual chat something big will be born.",
+"There is one friend around you who quietly drains your energy. Every time you meet them, you go home feeling tired, unappreciated, and guilty even though you did nothing wrong. You have kept this relationship for too long because you feel bad to step away. But keeping distance does not mean cutting ties, it is how you protect your mental health so you stay sane and do not keep feeling pressured.",
+"There will be a new friend entering your life in an unusual way, maybe through a hobby, work, or an accidental event. This person looks ordinary at first, but actually has a way of thinking similar to yours and can become a very valuable friend, even a business partner or life partner. Do not close yourself just because you were disappointed by an old friend who did not appreciate your sincerity.",
+"This week you should be more careful in telling stories. Not everyone who laughs with you can be trusted to keep your secret. There is information that if spread will embarrass you or harm your position. It does not mean you have to become a closed person, but choose wisely who deserves to hear your deepest story. A good friend is one who does not spread your story when angry or disappointed.",
+"One of your friends is going through a hard time, but they cannot say it clearly. They only need to be heard, not given long solutions. You may feel annoyed because they do not listen to your advice, but what they need is only your presence. Just sit with them, listen without judging, and say that you are there. That is already more than enough to make them feel not alone.",
+"There will be a small gathering that looks trivial, but actually brings a big impact. There you will meet someone you have not met for a long time, and from a light chat an idea or opportunity will emerge that you never thought of before. Do not reject an invitation to gather just because you feel lazy or tired. Sometimes fortune comes through friendship, not through working hard alone in your room.",
+"There is someone around you who feels jealous of your achievement, but they do not show it openly. They will act sweet in front of you, but behind you they talk differently. You may already feel something is strange, but you choose to ignore it. Do not be tempted to reply in the same way. Stay humble and let your work speak, because time will show who is sincere and who is not.",
+"Your relationship with an old friend who was distant will get better. One of you will be brave enough to apologize or just say hello first. Do not be too proud to reply to that greeting, because actually both of you miss each other and both feel lost. A friendship built for years is too precious to be destroyed just because of one small misunderstanding that can actually be solved with a chat.",
+"Soon you will become a place for many people to vent. Your friends feel comfortable telling you because you can listen without judging and give advice that makes sense. This is a gift, but it can also become a burden if you cannot keep boundaries. You do not have to solve all their problems. Just listen, give support, and remind them that they are not alone in facing this problem.",
+"Your small circle right now is the most precious treasure. The number may not be many, only 2 or 3 people, but they are people who are truly sincere and will not leave you when you fall. Do not sacrifice them for popularity or for new friends who are not proven. Take care of this relationship in simple ways, like asking how they are, remembering their birthday, or just sending their favorite food at an unexpected time.",
+];
+const kesehatanList=[
+"Your body has already given a clear signal that you lack sleep. You often yawn, have difficulty focusing, get angry easily, and feel tired even though you just woke up. This is not because you are lazy, but because your sleep quality is indeed bad due to staying up too late and playing with your phone before sleep. If left alone, your immune system will drop and you will get sick easily. Sleep is the cheapest medicine you often forget and only realize its importance when you are already sick.",
+"You have been drinking less water lately and drinking more coffee or sweet drinks. As a result you often feel dizzy, dry skin, and easily tired. Your body actually only needs water, not energy drinks. Start with a simple target, 8 glasses a day, and bring a water bottle everywhere so you do not forget. This small change will make your energy far more stable and your mind clearer.",
+"Your neck, shoulders, and back have started to protest because you sit too long and look down at your phone or laptop. You often feel sore, stiff, and sometimes tingling. This is a sign that your body needs to move. You do not need heavy exercise, just light stretching every 1 hour and a short walk. If you ignore this signal, the pain will get worse and disturb your daily activities.",
+"Your mood is unstable because you move too little. Light exercise for just 15 minutes can change your whole day for the better. You do not need to go to the gym or run far, just walk around your house, go up and down stairs, or follow a workout video on YouTube. After exercise, your brain will release happy hormones that make you calmer and more confident in facing problems.",
+"Your stomach is sensitive this week. You may often feel nauseous, bloated, or uncomfortable after eating spicy food, coffee, or food that is too sour. This is your body's way of asking to be given softer food and a more regular schedule. Do not skip meals and do not eat too much at one time. Choose warm food, easy to digest, and avoid food that is too oily for a while until your stomach feels comfortable again.",
+"There is a health complaint that you have ignored for a long time because you feel still young and still strong. It could be a tooth that aches, eyes that often blur, or headaches that often come back. Do not wait until it gets worse before going to the doctor. Early check-ups will save money, time, and your pain. Your body is your most precious asset, do not realize it only when it is too late and you have to spend much bigger costs.",
+"You are experiencing stress that you do not realize. You feel fine, but your body shows signs like difficulty sleeping, easily irritated, and frequent headaches. An evening walk or just sitting in a park while listening to music can be a very effective medicine. You do not need to always be productive, sometimes you just need to stop and breathe, letting your mind rest for a moment from all the pressure.",
+"Your eating pattern lately is dominated by instant noodles, fried food, and sweet drinks. You feel full, but actually your body lacks nutrition. As a result you get tired easily, get sick easily, and your skin looks dull. Start by adding one fruit and one vegetable every day. You do not need to change everything at once, just add the good, reduce the bad slowly, and your body will thank you.",
+"Your stress is already at a worrying level. You feel everything must be finished now, everyone must be satisfied, and you cannot fail. But you are a human, not a robot. You need rest, not only sleep, but rest from thoughts that keep spinning. Take one day off for yourself, without work, without notifications, only to do things you like and make you happy.",
+"Your health is improving and showing a positive trend. Your sleep pattern is starting to be regular, your energy is coming back, and your body feels lighter. Keep this good habit, do not return to the old pattern just because you feel already healthy. Health is a long-term investment, not a momentary project. If you are consistent, you will feel the benefits for years to come and your life will feel much lighter.",
+];
+const pasanganList=[
+"For you who are still single, there is someone who is secretly watching you from afar. They are not a stranger, but someone who is already around you, maybe a coworker, a community friend, or an old school friend. They often look at your stories, often find reasons to chat, but have not dared to express their feelings because they are afraid of being rejected. If you feel something is different about their attitude lately, it is not just your feeling, it is real and you can feel it.",
+"For you who are dating, your relationship is being tested by pride. Both of you are waiting for who will chat first, who will apologize first, and who will give in first. But the problem is actually small, only because communication was cut off and misunderstood. Do not let pride destroy a relationship you have built with difficulty. Contacting first does not mean losing, it means you are more mature and value this relationship more.",
+"For you who are in a long-distance relationship, distance indeed makes everything harder. You feel anxious, suspicious, and often overthink about what your partner is doing there. But your partner feels the same thing. The key to LDR is not only frequent communication, but quality communication. Do not only ask have you eaten, but also tell small things that make your day meaningful, so they still feel involved in your life even though distance separates you.",
+"For you who are married, routine has made your relationship feel flat. You are busy with work, children, and bills, until you forget that you both once fell in love and promised to always be together. Your partner does not need an expensive gift, they only need quality time together, without a phone, without disturbance. Once a week, take time for a simple date, like an evening walk or eating together calmly.",
+"There is a small misunderstanding that if left alone will become big. You feel your partner has changed, your partner feels you are not sensitive. Actually both of you are just tired and need to be understood. Do not delay solving this problem, because the longer it is delayed, the more prejudice piles up. Talk calmly, not when emotions are high, and listen until finished before replying with your opinion.",
+"Your partner lately needs praise and recognition. They have done many things for you, but you rarely say it. You think it is normal, but for them it is a form of love you never realized. One sincere compliment can change their whole day to be happier. Do not be stingy to praise, because praise is fuel for a healthy relationship and makes your partner feel appreciated.",
+"You start comparing your partner with others, whether in appearance, job, or attention. This comparison is very dangerous because it will make you feel dissatisfied and make your partner feel unappreciated. Remember that everyone has strengths and weaknesses. Your partner may not be perfect, but they are the person who chose to stay with you when others left. Appreciate that before you regret having wasted it.",
+"A small sincere gift will have a very big impact this week. It does not need to be expensive, it can be their favorite food, a small letter, or just a flower you picked on the road. What matters is the intention and attention you give. Your partner will feel very appreciated and will remember it for a long time. Sometimes the simplest things are the most memorable and hardest to forget.",
+"Your soulmate is actually not far. They are someone you meet often, but you never considered them as a partner because you are too focused on looking for a perfect criteria. Try to open your heart and look around you in a different way. Maybe the person who always makes you laugh, always there when you are in trouble, and always remembers small things about you, is the person you have been looking for and did not realize.",
+"Your relationship will rise to a more serious level. There will be talks about the future, about commitment, about marriage, or about plans to live together. This talk may make you nervous, but this is a sign that your relationship is healthy and growing. Do not avoid or joke when this topic appears. Face it honestly, say what you feel, and listen to what your partner expects from this relationship.",
+];
+const citaList=[
+"The dream you thought was too big and impossible, its road is already starting to open. Not because of a miracle, but because you have planted its seeds for a long time through hard work, learning, and prayers that never stopped. You only need to take one more step to see that door open wide. Do not stop at 90 percent, because many people fail not because they are not capable, but because they stop too fast before reaching the finish line.",
+"You often compare your progress with others who seem far more successful. You feel left behind, feel failed, and feel not talented. But everyone has their own timing. Some succeed at age 20, some only succeed at age 40, and that is okay. What matters is you keep walking, even if slowly, because people who stop will never arrive, but people who keep walking will definitely arrive in their time.",
+"You have waited too long for the perfect time to start. You wait for big capital, wait for complete equipment, wait for everyone to agree, until finally you never start at all. But the perfect time will never exist. What exists is only now, with all its imperfections. Start from a small step you can do today, even if the result is not perfect yet. A small step done today is far better than a big plan that is never executed.",
+"The dream you wrote 1 year ago in a diary or in your phone notes is starting to come true one by one, even though you do not realize it. You have been too focused on what has not been achieved, until you forgot to be grateful for what has been achieved. Try to open your old notes and see, how far you have walked. You are proof that dreams written clearly will find their way to become real.",
+"The failure you experienced yesterday is not the end of everything, but a bridge to your dream. Failure teaches you things that success cannot teach, like patience, humility, and how to rise again. If you never fail, you will never know how strong you are. Do not see failure as proof that you are not capable, but see it as proof that you are brave to try something that others do not dare to try.",
+"You have kept your dream to yourself for too long because you are afraid of being laughed at or considered too dreamy. But by telling your dream to the right person, you will get help, information, and support you never expected. The right person will help you, not laugh at you. Do not be afraid to dream big, because a small dream will not make you excited to wake up in the morning and fight every day.",
+"You try to chase too many dreams at once, until finally you are not focused and none of them are achieved. You want to be this, want to be that, want to have this, want to have that, until your energy is spent just thinking about everything. But a big dream must be broken into small focuses that can be finished one by one. Focus on one goal for 3 months, finish it, then move to the next goal with new energy.",
+"Learning 1 hour every day will change your life in 1 year. You may feel 1 hour is too small and will not matter, but if done every day for 365 days, it means 365 hours of learning. That is equivalent to 15 full days of learning without stopping. There is no person who learns for 365 hours and does not change. Small consistency done every day will beat big enthusiasm that is only done once in a while and then disappears.",
+"There are many voices around you that belittle your dream. They say you dream too much, are too old, too young, or have no talent. Do not listen to them, because they do not know your struggle, do not know your tears, and do not know how hard you try. They only see from outside and judge easily. You do not need to prove anything to them, just prove to yourself that you can and you deserve to achieve your dream.",
+"This year is your year. Everything you have fought for will start to show results. Not because of luck, but because you have planted patiently and taken care consistently. Do not waste this momentum with doubt or laziness. This is the time to work harder, pray more sincerely, and be brave to take opportunities that come. If you do not take them now, you will regret later because you wasted a chance that does not come twice.",
+];
+const titles=["Golden Crown","Flying Dragon","Blooming Lotus","Green Bamboo","Red Lantern","Jumping Koi","Calm Mountain","Full Moon","Rising Phoenix","Old Turtle","Drawn Sword","Sailing Boat","Golden Coin","Sakura Flower","Blessed Rain","Morning Sun","North Star","Calm River","Small Fire","Shady Forest"];
+const thais=["อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที","อาจจะ","บางที"];
+const intros=["This number carries a message that your life is at an important crossroads. Do not rush, read each part calmly, because there is a message that is special for you in one of its parts. Maybe.","The energy of this number is very strong and invites you to pause for a moment, look back, and be grateful for what you have passed. After that, you will see the road ahead more clearly. Maybe.","This number is a reminder that you are not alone. There are many people who support you, even though they do not always show it. Open your heart to receive help and love from around you. Maybe."];
+const quotes=["Your path is bright like the morning sun, do not be afraid to step. Maybe.","Water flows to low places, fortune flows to those who try. Maybe.","Slowly but surely, you will reach the peak. Maybe.","Flowers bloom because they are watered, love grows because of attention. Maybe.","Mountains do not move because of wind, you also do not waver because of people's words. Maybe.","A koi fish must jump the dragon gate to become a dragon. Maybe.","The moon always returns to full, soulmates will also return in time. Maybe.","Ash is a beginning, not an end. You will rise again. Maybe.","Old roads have smooth stones, listen to older people. Maybe.","The sky gives rain only to those who dare to open an umbrella. Maybe."];
+function getFortune(n){
+  const k = kerjaanList[(n*3+1)%10]; const u = keuanganList[(n*7+2)%10]; const t = temanList[(n*5+3)%10]; const s = kesehatanList[(n*11+1)%10]; const p = pasanganList[(n*13+4)%10]; const c = citaList[(n*17+2)%10];
+  let level="VERY GOOD 🌟"; let levelNum=85+(n%15);
+  if(n%4===0){level="GOOD 👍"; levelNum=70+(n%20);} if(n%7===0){level="BE CAREFUL ⚠️"; levelNum=55+(n%15);} if(n===8||n===88||n===99||n===1||n===18){level="BIG LUCK 🔥"; levelNum=98;}
+  return {n, title:titles[(n-1)%20], thai:thais[(n-1)%20] + " • MAYBE", intro:intros[(n-1)%3], level, levelNum, kerjaan:k, keuangan:u, teman:t, kesehatan:s, pasangan:p, cita:c, quote:quotes[(n-1)%10], scores:[{label:"Work",v:60+((n*3)%40)},{label:"Money",v:60+((n*7)%40)},{label:"Love",v:60+((n*11)%40)},{label:"Health",v:60+((n*5)%40)},{label:"Friends",v:60+((n*9)%40)},{label:"Dreams",v:60+((n*13)%40)}]};
+}
+const sticksEl=document.getElementById('sticks'); const cup=document.getElementById('cup'); const cupArea=document.getElementById('cupArea'); const result=document.getElementById('result'); const btn=document.getElementById('shakeBtn'); let filter='all';
+function createSticks(){ sticksEl.innerHTML=''; for(let i=0;i<20;i++){ const s=document.createElement('div'); s.className='stick'; const r=(i*9-60)+(Math.random()*6); s.style.left=(50+(Math.random()*40-20))+'%'; s.style.setProperty('--r',r+'deg'); s.style.transform=`rotate(${r}deg)`; sticksEl.appendChild(s);} }
+createSticks();
+function createDrawers(){ const d=document.getElementById('drawers'); for(let i=1;i<=100;i++){ const el=document.createElement('div'); el.className='drawer'; el.id='d-'+i; el.textContent=i; el.onclick=()=>{ showResult(getFortune(i)); highlight(i); }; d.appendChild(el);} }
+createDrawers();
+document.querySelectorAll('#filter button').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('#filter button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter=b.dataset.f; const cur=document.getElementById('resNum').textContent; if(result.classList.contains('show')) showResult(getFortune(parseInt(cur))); }});
+function highlight(n){ document.querySelectorAll('.drawer').forEach(e=>e.classList.remove('active')); const d=document.getElementById('d-'+n); if(d) d.classList.add('active'); }
+let isShaking=false;
+function shake(){
+  if(isShaking) return; isShaking=true;
+  result.classList.remove('show'); btn.disabled=true; btn.textContent='Shaking...'; cup.classList.add('shake');
+  // NO FLASH, NO THUNDER DURING SHAKE - biar tenang, cuma goyang
+  thunderPlayedForThisSpin = false; // reset kunci di awal spin
+  document.querySelectorAll('.drawer').forEach(e=>e.classList.remove('active'));
+  let count=0; const int=setInterval(()=>{ createSticks(); count++; if(count>12){ clearInterval(int); cup.classList.remove('shake'); doFall(); } },110);
+}
+function doFall(){
+  const sticks=document.querySelectorAll('.stick'); const luckyNum=Math.floor(Math.random()*100)+1; const lucky=getFortune(luckyNum); const fallStick=sticks[Math.floor(sticks.length/2)]; fallStick.classList.add('fall'); fallStick.style.background='#ffcc66'; fallStick.innerHTML=`<span style="position:absolute;top:10px;left:50%;transform:translateX(-50%) rotate(-90deg);font-size:10px;font-weight:800;color:#8a0000">${luckyNum}</span>`;
+  setTimeout(()=>{
+    showResult(lucky); highlight(luckyNum); isShaking=false; btn.disabled=false; btn.textContent='🔮 SHAKE AGAIN';
+    // === SATU-SATUNYA TEMPAT PETIR BUNYI: PAS SELESAI SPIN ===
+    doFlashWithThunder();
+  },800);
+}
+function showResult(f){
+  currentFortune=f;
+  document.getElementById('resNum').textContent=String(f.n).padStart(2,'0');
+  document.getElementById('resTitle').textContent=`No ${f.n} - ${f.title}`;
+  document.getElementById('resThai').textContent=f.thai;
+  document.getElementById('resLevel').textContent=f.level+' • '+f.levelNum+'%';
+  document.getElementById('resIntro').textContent=f.intro;
+  const allCats=[{key:'kerjaan', ico:'💼', label:'WORK', txt:f.kerjaan},{key:'keuangan', ico:'💰', label:'MONEY', txt:f.keuangan},{key:'teman', ico:'👯', label:'FRIENDSHIP', txt:f.teman},{key:'kesehatan', ico:'❤️', label:'HEALTH', txt:f.kesehatan},{key:'pasangan', ico:'💘', label:'LOVE', txt:f.pasangan},{key:'cita', ico:'🌟', label:'DREAMS', txt:f.cita}];
+  const show = filter==='all' ? allCats : allCats.filter(c=>c.key===filter);
+  document.getElementById('resCats').innerHTML = show.map(c=>`<div class="cat"><div class="cat-head"><span class="cat-ico">${c.ico}</span><b>${c.label}</b></div><p>${c.txt}</p></div>`).join('');
+  document.getElementById('resScore').innerHTML = f.scores.map(s=>`<div><small>${s.label}</small><strong>${s.v}%</strong><div class="bar"><i style="width:${s.v}%"></i></div></div>`).join('');
+  document.getElementById('resQuote').textContent=`"${f.quote}"`;
+  result.classList.add('show'); result.scrollIntoView({behavior:'smooth', block:'nearest'});
+  if(voiceOn){ setTimeout(()=>{ speakCurrent(); }, 900); }
+}
+function resetGame(){ speechSynthesis.cancel(); createSticks(); result.classList.remove('show'); btn.textContent='🔮 SHAKE NOW'; window.scrollTo({top:0,behavior:'smooth'}); }
+btn.addEventListener('click', shake); cupArea.addEventListener('click', shake);
+</script>
+</body>
+</html>
