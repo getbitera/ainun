@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AINUN - Guess Word</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Kanit:wght@800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:'Fredoka',sans-serif;display:flex;justify-content:center;padding:10px;min-height:100vh;
+  /* BACKGROUND LUAR KOTAK COKLAT - NGAMBIL DARI guessimage.jpg */
+  background-image:url('guessimage.jpg');
+  background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;
+}
+body::before{content:"";position:fixed;inset:0;background:rgba(255,243,214,.35);backdrop-filter:blur(2px);z-index:-1}
+.frame{width:100%;max-width:520px;background:#8B5A2B;padding:8px;border-radius:18px;box-shadow:0 0 0 4px #6B4226,0 10px 30px rgba(0,0,0,.4)}
+.box{background:linear-gradient(180deg,#FFF8E7,#FFF3D6);border-radius:14px;padding:12px;min-height:90vh;border:3px solid #E8D5A3}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0;background:#87CEEB}
+#splash img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#splash .overlay{position:relative;z-index:2;width:100%;padding:20px 20px 30px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45));text-align:center}
+#splash button{background:#FFC93C;color:#5A2E0E;border:4px solid #fff;border-radius:30px;padding:16px 44px;font-family:'Kanit';font-weight:800;font-size:22px;cursor:pointer;box-shadow:0 6px 0 #D99A00}
+#splash small{color:#fff;font-size:11px;display:block;margin-top:8px}
+
+/* NAME MODAL */
+#nameModal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+#nameModal .card{background:#FFF8E7;border:4px solid #8B5A2B;border-radius:20px;padding:22px;width:100%;max-width:380px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#nameModal h2{font-family:'Kanit';color:#5A2E0E;margin:0 0 6px;font-size:22px}
+#nameModal p{font-size:13px;color:#5A2E0E;margin:0 0 14px}
+#nameModal input{width:100%;border:3px solid #8B5A2B;border-radius:12px;padding:12px;font-family:'Fredoka';font-size:16px;text-align:center;outline:none;margin-bottom:12px}
+#nameModal button{background:#FFC93C;color:#5A2E0E;border:3px solid #8B5A2B;border-radius:30px;padding:12px 30px;font-family:'Kanit';font-weight:800;font-size:17px;cursor:pointer;width:100%}
+#nameModal .voice-btn{background:#fff;color:#5A2E0E;margin-top:8px;font-size:13px;padding:10px}
+
+.header{background:#8B5A2B;border:3px solid #6B4226;border-radius:14px;padding:10px;text-align:center;color:#fff;box-shadow:inset 0 0 0 2px #A97C50}
+.header b{font-family:'Kanit';font-size:22px}
+.header b span{color:#FFC93C}.header b span.tosca{color:#5EBBB5}
+.header small{font-size:11px;opacity:.9}
+.player{margin-top:6px;background:#FFC93C;color:#5A2E0E;display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.instr{background:#fff;border:2px solid #E8D5A3;border-radius:10px;padding:10px;font-size:12px;margin:12px 0;line-height:1.5;text-align:center;color:#5A2E0E}
+.level-banner{background:#fff;border:2px solid #E8D5A3;border-radius:14px;padding:12px;text-align:center;margin-bottom:12px;color:#5A2E0E}
+.level-banner b{font-family:'Kanit';font-size:20px}
+.progress-bar{height:10px;background:#FFF3D6;border:1px solid #E8D5A3;border-radius:20px;overflow:hidden;margin-top:8px}
+.progress-bar div{height:100%;background:#5EBBB5;width:0%;transition:.3s}
+.clue{background:#fff;border-radius:12px;padding:10px;margin-bottom:12px;border:2px solid #E8D5A3;box-shadow:0 3px 0 #E8D5A3}
+.clue-title{color:#5A2E0E;font-weight:700;font-size:14px;margin-bottom:8px}
+.pics{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pic{width:76px;height:76px;background:#FFF8E7;border-radius:12px;border:3px solid #8B5A2B;display:flex;align-items:center;justify-content:center;font-size:38px}
+.plus{color:#8B5A2B;font-weight:700;font-size:20px}.equal{color:#5A2E0E;font-weight:700;font-size:20px}
+.row{display:flex;gap:6px;margin-top:10px}.row input{flex:1;border:2.5px solid #8B5A2B;border-radius:10px;padding:10px;font-family:'Fredoka';font-size:15px}
+.row button{background:#FFC93C;color:#5A2E0E;border:2px solid #8B5A2B;border-radius:10px;padding:0 18px;font-family:'Kanit';font-weight:700;cursor:pointer}
+.feedback{font-size:13px;margin-top:6px;min-height:18px}.ok{color:#fff;background:#5EBBB5;padding:2px 8px;border-radius:10px}.bad{color:#fff;background:#FF6B6B;padding:2px 8px;border-radius:10px}
+.score{position:sticky;bottom:8px;background:#8B5A2B;color:#fff;border:2px solid #6B4226;border-radius:12px;padding:10px;text-align:center;font-weight:700;margin-top:10px}
+.nav{display:none;text-align:center;margin-top:16px}
+.nav button{background:#FFC93C;color:#5A2E0E;border:3px solid #fff;border-radius:30px;padding:14px 28px;font-family:'Kanit';font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 4px 0 #D99A00}
+.back-btn{background:#fff;color:#5A2E0E;border:2px solid #E8D5A3;border-radius:20px;padding:8px 16px;font-family:'Kanit';font-weight:700;cursor:pointer;margin-bottom:10px}
+.complete-msg{display:none;background:#D6F5F0;border:2px solid #5EBBB5;color:#0E5A56;border-radius:12px;padding:12px;text-align:center;font-weight:700;margin:12px 0}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <img src="guessimage.jpg" alt="AINUN Guess Word">
+  <div class="overlay">
+    <button onclick="openNameModal()">▶ START GAME</button>
+    <small>Welcome to My AINUN Guess Word</small>
+  </div>
+</div>
+
+<!-- MODAL ISI NAMA + SUARA AI -->
+<div id="nameModal">
+  <div class="card">
+    <h2>👋 Hi! Who's Playing?</h2>
+    <p>Enter your name so AINUN can greet you!</p>
+    <input id="playerName" placeholder="Type your name here..." maxlength="20" onkeydown="if(event.key==='Enter') startWithName()">
+    <button onclick="startWithName()">LET'S PLAY! 🎮</button>
+    <button class="voice-btn" onclick="speakAI('Hello! Welcome to Ainun Guess Word! Please type your name to start playing!')">🔊 Tap to hear AI Voice</button>
+  </div>
+</div>
+
+<div class="frame"><div class="box">
+<div class="header"><b>WELCOME TO MY <span>AINUN</span> <span class="tosca">GUESS WORD</span></b><br><small>⭐ Guess the word for the picture! ⭐</small><br><div class="player" id="playerDisplay">👤 Player: Guest</div></div>
+<div class="instr">💡 <b>HOW TO PLAY:</b> Guess the word from pictures!<br>Example: 🧬 + ☎️ + 👨 = <b>GENTLEMEN</b><br>Finish this level to unlock the next one!</div>
+<div id="topNav"></div>
+<div id="levelBanner"></div>
+<div id="list"></div>
+<div id="completeMsg" class="complete-msg">🎉 LEVEL COMPLETE! Great job!</div>
+<div id="nextNav" class="nav"><button id="nextBtn" onclick="goNext()">GO TO LEVEL 2 →</button></div>
+<div class="score">TOTAL SCORE: <span id="score">0</span> / 100 | YOU ARE ON: <span id="cur">LEVEL 1</span></div>
+</div></div>
+
+<script>
+// ===== AI VOICE =====
+function speakAI(text){
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = 1.0; u.pitch = 1.1; u.volume = 1;
+    // cari suara cewek yang bagus kalau ada
+    let voices = window.speechSynthesis.getVoices();
+    let female = voices.find(v=>v.name.toLowerCase().includes('female')||v.name.includes('Google US English')||v.name.includes('Samantha')||v.name.includes('Zira'));
+    if(female) u.voice = female;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function openNameModal(){
+  document.getElementById('splash').style.display='none';
+  document.getElementById('nameModal').style.display='flex';
+  // SUARA AI LANGSUNG BUNYI PAS START
+  speakAI("Hello! Welcome to Ainun Guess Word! Please type your name to start playing! I am so excited to play with you!");
+  setTimeout(()=>document.getElementById('playerName').focus(),300);
+}
+function startWithName(){
+  let name = document.getElementById('playerName').value.trim() || "Friend";
+  document.getElementById('playerDisplay').innerText = "👤 Player: " + name;
+  document.getElementById('nameModal').style.display='none';
+  // SUARA AI SAPA NAMA
+  speakAI(`Hi ${name}! Welcome to Ainun Guess Word! Let's start! Level One! Guess the word from the pictures! You can do it! Good luck!`);
+  window.scrollTo({top:0});
+}
+
+const Q = [
+["🧬","☎️","👨","gentlemen"],["🌐","📦","📞","computer"],["☀️","🌊","🤷","sunflower"],["💧","🍈","🔛","watermelon"],["⬇️","🧍","","understand"],
+["🐝","🍃","","believe"],["🧈","🪰","","butterfly"],["⭐","🐟","","starfish"],["🌙","💡","","moonlight"],["🔥","🪰","","firefly"],
+["❄️","👨","","snowman"],["🌧️","🎀","","rainbow"],["🌊","🐚","","seashell"],["⬛","📋","","blackboard"],["🦶","⚽","","football"],
+["🧺","🏀","","basketball"],["💥","🌽","","popcorn"],["🍵","🎂","","cupcake"],["🍳","🎂","","pancake"],["🦷","🪥","","toothbrush"],
+["💇","✂️","","haircut"],["☀️","👓","","sunglasses"],["🔑","⌨️","","keyboard"],["🔥","🧑‍🏭","","firework"],["🐱","🐟","","catfish"],
+["🐶","🏠","","doghouse"],["🐷","🏦","","piggybank"],["🦁","👑","","lionking"],["🐻","🍯","","honeybear"],["🐰","🕳️","","rabbithole"],
+["🐢","🐇","","tortoise"],["🦋","🦟","","butterfly"],["🍓","🍰","","strawberrycake"],["🍫","🥛","","chocolatemilk"],["🧀","🍔","","cheeseburger"],
+["🥜","🧈","","peanutbutter"],["🍯","🌙","","honeymoon"],["🍩","🍩","","donut"],["📱","💻","","smartphone"],["📷","👨","","cameraman"],
+["📚","📖","","bookstore"],["✏️","📦","","pencilbox"],["✈️","✉️","","airmail"],["🚀","🌙","","moonrocket"],["🚗","🚑","","carcrash"],
+["🏠","👨‍👩‍👦","","homefamily"],["🧑‍🏫","🏫","","teacher"],["👨‍⚕️","🏥","","doctor"],["🧑‍🍳","🍳","","chef"],["🧑‍🎤","🎤","","singer"],
+["👑","👨","","kingman"],["👸","👸","","princess"],["🧙","🧹","","witchbroom"],["🧛","🩸","","vampire"],["👻","🏠","","ghosthouse"],
+["🎃","👻","","halloween"],["🎄","🎁","","christmas"],["🎂","🕯️","","birthday"],["🎁","🎀","","gift"],["💌","💘","","loveletter"],
+["💔","🩹","","heartbreak"],["😭","😂","","laughter"],["🧠","💪","","brainpower"],["👁️","👀","","eyesight"],["👂","📞","","earphone"],
+["👃","💐","","noseflower"],["👄","💬","","mouthtalk"],["👋","✋","","highfive"],["🦵","🏃","","legrun"],["🦴","🐶","","dogbone"],
+["🌞","🏖️","","summerbeach"],["🌊","🏄","","surfing"],["⛰️","🧗","","mountainclimb"],["🏔️","🎿","","skiing"],["🌋","🔥","","volcano"],
+["🌪️","🌧️","","storm"],["⚡","🌩️","","thunder"],["🌈","🍯","","rainbowhoney"],["🌸","🌷","","flower"],["🌹","🥀","","rose"],
+["🍎","🍏","","apple"],["🍌","🍌","","banana"],["🥝","🍓","","kiwi"],["🍋","🍋","","lemon"],["🥕","🐰","","carrot"],
+["🥦","🥒","","veggie"],["🍕","🧀","","pizza"],["🍔","🍟","","burger"],["🍦","🍧","","icecream"],["🥤","🧊","","icedrink"],
+["☕","🍩","","coffeedonut"],["🍵","🍵","","tea"],["🎸","🎤","","guitar"],["🎹","🎼","","piano"],["🥁","🎺","","drum"],
+["🎻","🎼","","violin"],["🎬","🎥","","movie"],["🎮","🎲","","game"],["🃏","♠️","","poker"],["🕹️","👾","","arcade"]
+];
+const LEVELS = [
+{title:"LEVEL 1 - EASY", sub:"Start here! 10 Questions", from:0, to:10},
+{title:"LEVEL 2 - MEDIUM", sub:"Getting warmer - 20 Questions", from:10, to:30},
+{title:"LEVEL 3 - TRICKY", sub:"Think harder - 20 Questions", from:30, to:50},
+{title:"LEVEL 4 - HARD", sub:"Only smart ones pass - 20 Questions", from:50, to:70},
+{title:"LEVEL 5 - LEGEND", sub:"Final Boss - 30 Questions", from:70, to:100}
+];
+let currentLevel=0, totalScore=0, solved=new Set(), playerName="Friend";
+function renderLevel(idx){
+  currentLevel=idx; let lv=LEVELS[idx];
+  document.getElementById('cur').innerText=lv.title;
+  document.getElementById('levelBanner').innerHTML=`<div class="level-banner"><b>${lv.title}</b><br><span>${lv.sub}</span><div class="progress-bar"><div id="bar" style="width:${getLevelProgress(idx)}%"></div></div><div style="font-size:12px;margin-top:4px">Progress: ${getLevelSolved(idx)} / ${lv.to-lv.from} solved</div></div>`;
+  document.getElementById('topNav').innerHTML=idx>0?`<button class="back-btn" onclick="goBack()">← BACK TO LEVEL ${idx}</button>`:'';
+  let html=""; for(let i=lv.from;i<lv.to;i++){ let q=Q[i]; let isDone=solved.has(i); let pics=`<div class="pic">${q[0]}</div><div class="plus">+</div><div class="pic">${q[1]}</div>`; if(q[2]) pics+=`<div class="plus">+</div><div class="pic">${q[2]}</div>`; pics+=`<div class="equal">= ?</div>`; html+=`<div class="clue"><div class="clue-title">${lv.title} - Question ${i-lv.from+1} / ${lv.to-lv.from}</div><div class="pics">${pics}</div><div class="row"><input id="in${i}" placeholder="Type your answer..." ${isDone?'disabled value="'+q[3].toUpperCase()+'"':''}><button onclick="check(${i},'${q[3]}')" ${isDone?'disabled':''}>CHECK</button></div><div class="feedback" id="fb${i}">${isDone?'<span class=ok>✔ CORRECT!</span>':''}</div></div>`; }
+  document.getElementById('list').innerHTML=html; updateNav(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function getLevelSolved(idx){ let lv=LEVELS[idx],c=0; for(let i=lv.from;i<lv.to;i++) if(solved.has(i)) c++; return c; }
+function getLevelProgress(idx){ let lv=LEVELS[idx]; return Math.round(getLevelSolved(idx)/(lv.to-lv.from)*100); }
+function updateNav(){
+  let lv=LEVELS[currentLevel]; let done=getLevelSolved(currentLevel)===(lv.to-lv.from);
+  let completeMsg=document.getElementById('completeMsg'); let nextNav=document.getElementById('nextNav'); let nextBtn=document.getElementById('nextBtn');
+  if(done){ completeMsg.style.display='block'; if(currentLevel<LEVELS.length-1){ nextNav.style.display='block'; nextBtn.innerText=`GO TO LEVEL ${currentLevel+2} →`; nextBtn.onclick=goNext; } else { nextNav.style.display='block'; nextBtn.innerText=`🎉 YOU FINISHED ALL LEVELS! PLAY AGAIN ↻`; nextBtn.onclick=()=>{solved.clear();totalScore=0;document.getElementById('score').innerText=0;renderLevel(0);} } }
+  else { completeMsg.style.display='none'; nextNav.style.display='none'; }
+  let bar=document.getElementById('bar'); if(bar) bar.style.width=getLevelProgress(currentLevel)+'%';
+}
+function check(n,ans){ const inp=document.getElementById('in'+n); const fb=document.getElementById('fb'+n); const v=inp.value.trim().toLowerCase().replace(/\s/g,''); if(!v){fb.innerHTML='<span class=bad>Please type an answer!</span>';return;} if(v===ans){ if(!solved.has(n)){solved.add(n);totalScore++;document.getElementById('score').innerText=totalScore; speakAI("Correct! Great job!"); } fb.innerHTML='<span class=ok>✔ CORRECT!</span>'; inp.disabled=true; renderLevel(currentLevel); if(getLevelSolved(currentLevel)===(LEVELS[currentLevel].to-LEVELS[currentLevel].from)){ speakAI(`Amazing! Level complete! Let's go to level ${currentLevel+2}!`); setTimeout(()=>alert('🎉 LEVEL COMPLETE! Click GO TO LEVEL '+(currentLevel+2)+'!'),200);} } else { fb.innerHTML='<span class=bad>✘ Wrong, try again!</span>'; speakAI("Oops! Try again!"); } }
+function goNext(){ if(currentLevel<LEVELS.length-1){ renderLevel(currentLevel+1); speakAI(`Welcome to Level ${currentLevel+1}! Let's go!`); } }
+function goBack(){ if(currentLevel>0) renderLevel(currentLevel-1); }
+renderLevel(0);
+</script>
+</body>
+</html>
