@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOWLING LUXURY - Fixed Layout</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;font-family:Poppins,sans-serif;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.top{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#000;border-bottom:2px solid #ffcc66;flex-shrink:0}
+.top h1{font-size:16px;background:linear-gradient(180deg,#fff8d0,#ffcc66);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.btn{border:none;padding:6px 12px;border-radius:20px;font-weight:800;cursor:pointer;font-size:11px}
+.btn-gold{background:linear-gradient(180deg,#fff8d0,#ffcc66);color:#000}
+.vs-bar{display:flex;gap:6px;padding:6px 8px;background:#111;flex-shrink:0}
+.vs-card{flex:1;background:#1a1a1a;border:1px solid #444;border-radius:10px;padding:5px;text-align:center}
+.vs-card.you{border-color:#ffcc66;background:#2a1a00}
+.vs-card.ai{border-color:#ff3b3b;background:#2a0000}
+.vs-card b{font-size:15px;display:block}
+.vs-card span{font-size:9px;color:#aaa}
+.vs-vs{font-weight:900;color:#ffcc66;display:flex;align-items:center}
+.hud{display:flex;gap:5px;padding:5px 8px;background:#111;overflow-x:auto;white-space:nowrap;flex-shrink:0;scrollbar-width:none}
+.hud::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;background:#222;border:1px solid #ffcc66;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.pill b{color:#ffcc66}
+.pill.you{background:linear-gradient(180deg,#fff8d0,#ffcc66);color:#000;border:none}
+.pill.you b{color:#000}
+.pill.ai{background:#3a0000;border-color:#ff3b3b}
+#game{flex:1;position:relative;background:#000;min-height:0}
+canvas{width:100%;height:100%;display:block}
+.controls{height:215px;flex-shrink:0;padding:8px 10px 8px;background:#000;border-top:2px solid #ffcc66;display:flex;flex-direction:column}
+.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.slider-row label{font-size:10px;font-weight:800;color:#ffcc66;min-width:55px}
+.slider-row input{flex:1;accent-color:#ffcc66;height:14px}
+.slider-row span{font-size:10px;font-weight:800;min-width:100px;text-align:right}
+.btn-row{display:flex;gap:6px;margin-bottom:5px}
+.bbtn{flex:1;padding:10px;border-radius:12px;border:1px solid #ffcc66;background:#1a1a1a;color:#ffcc66;font-weight:800;cursor:pointer;font-size:13px}
+.throw{flex:1.5;background:linear-gradient(180deg,#fff8d0,#ffcc66);color:#000;border:none;font-weight:900;font-size:14px}
+.throw:disabled{opacity:.5}
+.curve-row{display:flex;gap:5px;margin-bottom:5px}
+.curve{flex:1;padding:6px;border-radius:20px;background:#1a1a1a;border:1px solid #444;color:#ccc;font-size:10px;font-weight:700;cursor:pointer}
+.curve.active{background:#ffcc66;color:#000}
+.scorecard{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding-bottom:2px;flex-shrink:0;scrollbar-width:none}
+.scorecard::-webkit-scrollbar{display:none}
+.frame{flex-shrink:0;min-width:52px;background:#1a1a1a;border:1px solid #444;border-radius:8px;padding:5px;text-align:center}
+.frame.you{border-color:#ffcc66}
+.frame.ai{border-color:#ff3b3b}
+.frame b{font-size:14px;color:#ffcc66;display:block}
+.frame.ai b{color:#ff8888}
+.frame small{font-size:8px;color:#888;display:block}
+.frame span{font-size:9px}
+.overlay{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:100;text-align:center;overflow-y:auto}
+.overlay.hidden{display:none!important}
+.hero-box{width:160px;height:160px;border-radius:50%;background:linear-gradient(180deg,#fff8d0,#ffcc66,#b8860b);display:flex;align-items:center;justify-content:center;font-size:80px;border:4px solid #fff}
+.input-name{width:100%;max-width:400px;padding:12px;border:2px solid #ffcc66;border-radius:14px;font-size:15px;outline:none;background:#111;color:#fff;font-weight:700;text-align:center;margin-top:12px}
+.big-btn{width:100%;max-width:400px;border:none;padding:14px;border-radius:30px;font-weight:900;font-size:16px;cursor:pointer;background:linear-gradient(180deg,#fff8d0,#ffcc66);color:#000;margin-top:10px}
+.announce{position:fixed;top:85px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#fff8d0,#ffcc66);color:#000;padding:8px 16px;border-radius:30px;font-weight:900;z-index:200;max-width:90%;text-align:center;font-size:13px}
+.hidden{display:none!important}
+.diff-row{display:flex;gap:6px;width:100%;max-width:400px;margin-top:10px}
+.diff{flex:1;padding:8px 6px;border-radius:12px;background:#1a1a1a;border:1px solid #444;font-size:10px;font-weight:700;cursor:pointer}
+.diff.active{border-color:#ffcc66;background:#ffcc66;color:#000}
+.diff.master{background:linear-gradient(135deg,#b50000,#5a0a0a);color:#ffcc66;border-color:#ffcc66}
+.diff.master.active{background:linear-gradient(#ffcc66,#ff9900);color:#000}
+.ai-thinking{position:fixed;top:120px;left:50%;transform:translateX(-50%);background:#b50000;color:#fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:800;z-index:90}
+</style>
+</head>
+<body>
+<div class="top"><h1>BOWLING LUXURY</h1><button class="btn btn-gold" onclick="showPlay()">🏠 Home</button></div>
+
+<div class="vs-bar">
+  <div class="vs-card you" id="cardYou"><span>🎳 YOU</span><b id="vsYouScore">0</b><span id="vsYouName">You • F1</span></div>
+  <div class="vs-vs">VS</div>
+  <div class="vs-card ai" id="cardAI"><span>💖 AINUN</span><b id="vsAIScore">0</b><span id="vsAIName">Ainun • F1</span></div>
+</div>
+
+<div class="hud">
+  <div class="pill you" id="pillTurn">🎯 YOUR TURN</div>
+  <div class="pill">F:<b id="hFrame">1/10</b></div>
+  <div class="pill">T:<b id="hThrow">1/2</b></div>
+  <div class="pill">Pins:<b id="hPins">10</b></div>
+  <div class="pill">You🔥<b id="hStrikes">0</b></div>
+  <div class="pill ai">Ainun🔥<b id="hAIStrikes">0</b></div>
+  <div class="pill">Luck:<b id="hLuck">-</b></div>
+</div>
+
+<div id="game"><canvas id="c"></canvas></div>
+
+<div class="controls">
+  <div class="slider-row"><label>💪 POWER</label><input type="range" id="powerSlider" min="10" max="100" value="55"><span id="powerText">55% GOOD</span></div>
+  <div class="slider-row"><label>🎯 AIM</label><input type="range" id="aimSlider" min="0" max="100" value="50"><span id="aimText">CENTER</span></div>
+  <div class="slider-row"><label>🌀 SPIN</label><input type="range" id="spinSlider" min="0" max="100" value="50"><span id="spinText">STRAIGHT</span></div>
+  <div class="btn-row">
+    <button class="bbtn" onclick="moveAim(-8)">◀ LEFT</button>
+    <button class="bbtn throw" id="throwBtn" onclick="throwBall()">🎳 THROW!</button>
+    <button class="bbtn" onclick="moveAim(8)">RIGHT ▶</button>
+  </div>
+  <div class="curve-row">
+    <button class="curve active" data-curve="0" onclick="setCurve(0)">➡️ Straight</button>
+    <button class="curve" data-curve="-1" onclick="setCurve(-1)">↩️ Hook Left</button>
+    <button class="curve" data-curve="1" onclick="setCurve(1)">↪️ Hook Right</button>
+  </div>
+  <div class="scorecard" id="scorecard"></div>
+</div>
+
+<div class="overlay" id="playScreen">
+  <div class="hero-box">🎳</div>
+  <h1 style="font-size:30px;background:linear-gradient(180deg,#fff8d0,#ffcc66);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:10px">BOWLING LUXURY</h1>
+  <p style="font-size:10px;color:#ffcc66;letter-spacing:2px">★ YOU VS AINUN ★</p>
+  <input class="input-name" id="playerNameInput" placeholder="Enter your name...">
+  <div style="font-size:10px;font-weight:800;color:#ffcc66;margin-top:10px">💖 CHOOSE AINUN DIFFICULTY</div>
+  <div class="diff-row">
+    <div class="diff" data-diff="easy" onclick="setDiff('easy')">😊 EASY<br><small>Often Miss</small></div>
+    <div class="diff" data-diff="hard" onclick="setDiff('hard')">😤 HARD<br><small>Often Strike</small></div>
+    <div class="diff master active" data-diff="ainun" onclick="setDiff('ainun')">👑 AINUN<br><small>Almost Perfect</small></div>
+  </div>
+  <button class="big-btn" onclick="startFromPlay()">▶️ START VS AINUN</button>
+  <p style="font-size:10px;color:#888;margin-top:8px">Medium POWER sometimes STRIKE, sometimes not!<br>Off AIM = GUTTER / SPLIT!</p>
+</div>
+
+<div class="overlay hidden" id="overScreen">
+  <div class="hero-box" id="overHero">🏆</div>
+  <h2 id="overTitle" style="font-size:26px;color:#ffcc66;margin-top:10px">GAME OVER!</h2>
+  <p id="overDesc" style="color:#ccc;margin:8px 0;font-size:13px">Score</p>
+  <button class="big-btn" onclick="newGame()">🔄 REMATCH VS AINUN</button>
+  <button class="big-btn" style="background:#fff" onclick="showPlay()">🏠 HOME</button>
+</div>
+
+<div id="announceBox" class="announce hidden"></div>
+<div id="aiThinking" class="ai-thinking hidden">💖 Ainun is thinking...</div>
+
+<script>
+let playerName='You', curve=0, power=55, aim=50, spin=50, aiDifficulty='ainun';
+let aiName='Ainun';
+let game, pins, ball, isThrowing=false, currentTurn='you';
+const canvas=document.getElementById('c'); const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){ W=canvas.width=canvas.offsetWidth*2; H=canvas.height=canvas.offsetHeight*2; }
+window.addEventListener('resize', resize); resize();
+function speak(t){ try{ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(t); u.lang='en-US'; speechSynthesis.speak(u);}catch(e){} }
+function showAnnounce(t, ms=2200){ let b=document.getElementById('announceBox'); b.textContent=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'), ms); }
+function setDiff(d){ aiDifficulty=d; document.querySelectorAll('.diff').forEach(el=>el.classList.toggle('active', el.dataset.diff===d)); }
+function setCurve(c){ curve=c; document.querySelectorAll('.curve').forEach(el=>el.classList.toggle('active', parseInt(el.dataset.curve)===c)); }
+function moveAim(d){ if(currentTurn!=='you') return; aim=Math.max(0, Math.min(100, aim+d)); document.getElementById('aimSlider').value=aim; updateSliders(); }
+function showPlay(){ document.getElementById('playScreen').classList.remove('hidden'); document.getElementById('overScreen').classList.add('hidden'); }
+function startFromPlay(){
+  let n=document.getElementById('playerNameInput').value.trim();
+  if(!n){ alert('Please enter your name first!'); return; }
+  playerName=n; document.getElementById('playScreen').classList.add('hidden'); newGame();
+  speak(`Welcome ${playerName}! Versus Ainun!`);
+  showAnnounce(`Welcome ${playerName}! You VS Ainun!`);
+}
+document.getElementById('powerSlider').addEventListener('input', e=>{ power=parseInt(e.target.value); updateSliders(); });
+document.getElementById('aimSlider').addEventListener('input', e=>{ aim=parseInt(e.target.value); updateSliders(); });
+document.getElementById('spinSlider').addEventListener('input', e=>{ spin=parseInt(e.target.value); updateSliders(); });
+function updateSliders(){
+  document.getElementById('powerText').textContent = power<25 ? power+'% WEAK' : power<40 ? power+'% LIGHT' : power<=60 ? power+'% MEDIUM' : power<=80 ? power+'% STRONG' : power+'% TOO STRONG';
+  document.getElementById('aimText').textContent = aim<20 ? 'FAR LEFT GUTTER' : aim<35 ? 'LEFT EDGE' : aim<45 ? 'SLIGHT LEFT' : aim<=55 ? 'CENTER POCKET' : aim<=65 ? 'SLIGHT RIGHT' : aim<=80 ? 'RIGHT EDGE' : 'FAR RIGHT GUTTER';
+  document.getElementById('spinText').textContent = spin<30 ? 'STRONG LEFT' : spin<45 ? 'LEFT SPIN' : spin<=55 ? 'STRAIGHT' : spin<=70 ? 'RIGHT SPIN' : 'STRONG RIGHT';
+}
+function newGame(){
+  game={youScore:0, aiScore:0, frame:1, throwNum:1, youStrikes:0, aiStrikes:0, youFrames:[], aiFrames:[], youStreak:0, aiStreak:0};
+  isThrowing=false; currentTurn='you';
+  document.getElementById('overScreen').classList.add('hidden');
+  document.getElementById('throwBtn').disabled=false;
+  document.getElementById('throwBtn').textContent='🎳 THROW!';
+  resetPins(); updateHUD(); renderScorecard();
+}
+function resetPins(){
+  pins=[];
+  let rows=[[0],[-1,1],[-2,0,2],[-3,-1,1,3]];
+  let baseY=H*0.18;
+  rows.forEach((row, ri)=>{ row.forEach(off=>{ pins.push({x:W/2 + off*38, y:baseY + ri*40, alive:true, fallen:false}); }); });
+  ball={x:W/2, y:H-100, r:32};
+}
+function updateHUD(){
+  document.getElementById('hFrame').textContent=game.frame+'/10';
+  document.getElementById('hThrow').textContent=game.throwNum+'/2';
+  document.getElementById('hPins').textContent=pins.filter(p=>p.alive).length;
+  document.getElementById('hStrikes').textContent=game.youStrikes;
+  document.getElementById('hAIStrikes').textContent=game.aiStrikes;
+  document.getElementById('vsYouScore').textContent=game.youScore;
+  document.getElementById('vsAIScore').textContent=game.aiScore;
+  document.getElementById('vsYouName').textContent=playerName+' • F'+game.frame;
+  document.getElementById('vsAIName').textContent='Ainun • F'+game.frame;
+  document.getElementById('pillTurn').textContent = currentTurn==='you' ? '🎯 '+playerName : '💖 AINUN TURN';
+  document.getElementById('throwBtn').disabled = currentTurn==='ai' || isThrowing;
+  document.getElementById('throwBtn').textContent = currentTurn==='ai' ? '💖 AINUN PLAYING...' : (isThrowing ? 'Rolling...' : '🎳 THROW!');
+}
+function renderScorecard(){
+  let el=document.getElementById('scorecard');
+  let all=[];
+  for(let i=0;i<Math.max(game.youFrames.length, game.aiFrames.length); i++){
+    if(game.youFrames[i]) all.push('<div class="frame you"><small>YOU '+(i+1)+'</small><b>'+game.youFrames[i].pins+'</b><span>'+game.youFrames[i].label+'</span></div>');
+    if(game.aiFrames[i]) all.push('<div class="frame ai"><small>AINUN '+(i+1)+'</small><b>'+game.aiFrames[i].pins+'</b><span>'+game.aiFrames[i].label+'</span></div>');
+  }
+  el.innerHTML = all.join('') || '<div style="font-size:10px;color:#666;padding:5px">No score yet - Start throwing!</div>';
+}
+function calculateResult(usePower, useAim, useSpin, useCurve, isAI){
+  let powerScore;
+  if(usePower<20) powerScore=15; else if(usePower<35) powerScore=45; else if(usePower<=60) powerScore=100 - Math.abs(usePower-55)*1.5; else if(usePower<=80) powerScore=75 - (usePower-60)*1; else powerScore=35;
+  let aimError = Math.abs(useAim - 50);
+  let aimScore;
+  if(aimError<=3) aimScore=100; else if(aimError<=8) aimScore=90; else if(aimError<=15) aimScore=70; else if(aimError<=25) aimScore=40; else if(aimError<=35) aimScore=15; else aimScore=0;
+  let spinScore=100;
+  let spinEffect = (useSpin-50)/50;
+  if(useCurve===0 && Math.abs(spinEffect)>0.4) spinScore=60;
+  if(useCurve===-1 && spinEffect>0.3) spinScore=50;
+  if(useCurve===1 && spinEffect<-0.3) spinScore=50;
+  let luckRange = !isAI ? 30 : aiDifficulty==='ainun' ? 15 : aiDifficulty==='hard' ? 22 : 40;
+  let luck = (Math.random()*luckRange*2 - luckRange);
+  let luckText = luck>15 ? 'LUCKY! 🍀' : luck>8 ? 'Lucky!' : luck<-15 ? 'UNLUCKY! 😭' : luck<-8 ? 'Low Luck' : 'Normal';
+  document.getElementById('hLuck').textContent=luckText;
+  let total = (powerScore*0.4 + aimScore*0.4 + spinScore*0.2) + luck;
+  total = Math.max(0, Math.min(100, total));
+  let aliveCount = pins.filter(p=>p.alive).length;
+  let pinsHit=0, resultType='';
+  if(aimScore===0){ pinsHit=0; resultType='GUTTER'; }
+  else if(total>=92){ pinsHit = Math.random()<0.85 ? aliveCount : aliveCount-1; resultType = pinsHit===aliveCount ? 'STRIKE?' : 'ALMOST'; }
+  else if(total>=78){ pinsHit = 7 + Math.floor(Math.random()* (aliveCount-6)); if(pinsHit>aliveCount) pinsHit=aliveCount; resultType='GREAT!'; }
+  else if(total>=60){ pinsHit = 4 + Math.floor(Math.random()*4); resultType='OK'; }
+  else if(total>=40){ pinsHit = 2 + Math.floor(Math.random()*3); resultType='BAD'; }
+  else if(total>=20){ pinsHit = Math.random()<0.5 ? 1 : 2; resultType='TERRIBLE'; }
+  else { pinsHit = Math.random()<0.5 ? 0 : 1; resultType='GUTTER'; }
+  if(game.throwNum===2 && aliveCount<=3 && total>60){ if(Math.random()<0.6) pinsHit=aliveCount; }
+  pinsHit = Math.max(0, Math.min(aliveCount, pinsHit));
+  return {pinsHit, total, powerScore, aimScore, spinScore, luck, luckText, resultType};
+}
+function throwBall(){ if(isThrowing || currentTurn!=='you') return; doThrow(power, aim, spin, curve, false); }
+function aiThrow(){
+  if(isThrowing || currentTurn!=='ai') return;
+  document.getElementById('aiThinking').classList.remove('hidden');
+  let aiPower, aiAim, aiSpin, aiCurve;
+  if(aiDifficulty==='easy'){ aiPower = 30 + Math.random()*50; aiAim = 30 + Math.random()*40; aiSpin = 20 + Math.random()*60; aiCurve = Math.random()<0.5 ? 0 : (Math.random()<0.5 ? -1 : 1); }
+  else if(aiDifficulty==='hard'){ aiPower = 50 + Math.random()*10; aiAim = 46 + Math.random()*8; aiSpin = 45 + Math.random()*10; aiCurve = 0; }
+  else { aiPower = 52 + Math.random()*6; aiAim = 48 + Math.random()*5; aiSpin = 48 + Math.random()*4; aiCurve = 0; if(Math.random()<0.1){ aiAim = 35 + Math.random()*30; aiPower = 40 + Math.random()*30; } }
+  document.getElementById('powerSlider').value=Math.round(aiPower); document.getElementById('aimSlider').value=Math.round(aiAim); document.getElementById('spinSlider').value=Math.round(aiSpin);
+  power=aiPower; aim=aiAim; spin=aiSpin;
+  setTimeout(()=>{ document.getElementById('aiThinking').classList.add('hidden'); doThrow(aiPower, aiAim, aiSpin, aiCurve, true); }, 900);
+}
+function doThrow(usePower, useAim, useSpin, useCurve, isAI){
+  isThrowing=true; updateHUD();
+  let aimX = W*0.2 + (useAim/100)*W*0.6;
+  let spinCurve = (useSpin-50)/50 * 120;
+  let targetX = W/2 + (aimX - W/2)*0.35 + useCurve*60 + spinCurve;
+  let steps=0, startX=aimX, startY=H-100;
+  ball.x=startX; ball.y=startY;
+  let totalSteps = Math.max(30, 70 - usePower*0.35);
+  let anim=setInterval(()=>{
+    steps++; let t=steps/totalSteps;
+    let curveOffset = (useCurve*40 + spinCurve*0.6) * Math.pow(t,2);
+    ball.x = startX + (targetX - startX)*t + curveOffset*Math.sin(t*Math.PI*0.5);
+    ball.y = startY + (H*0.22 - startY)*t;
+    if(steps>=totalSteps){ clearInterval(anim); hitPins(usePower, useAim, useSpin, useCurve, isAI); }
+    draw();
+  }, 16);
+}
+function hitPins(usePower, useAim, useSpin, useCurve, isAI){
+  let res = calculateResult(usePower, useAim, useSpin, useCurve, isAI);
+  let alive = pins.filter(p=>p.alive); alive.sort(()=>Math.random()-0.5);
+  for(let i=0;i<res.pinsHit;i++){ alive[i].alive=false; alive[i].fallen=true; }
+  let pinsLeft = pins.filter(p=>p.alive).length;
+  let isStrike = res.pinsHit===10 && game.throwNum===1 && pinsLeft===0;
+  let isSpare = pinsLeft===0 && game.throwNum===2;
+  let who = isAI ? 'Ainun' : playerName;
+  let whoShort = isAI ? '💖 AINUN' : '🎳 YOU';
+  if(isStrike){
+    if(isAI){ game.aiScore+=20; game.aiStrikes++; game.aiStreak++; game.youStreak=0; } else { game.youScore+=20; game.youStrikes++; game.youStreak++; game.aiStreak=0; }
+    let streakMsg = (isAI?game.aiStreak:game.youStreak)>=2 ? ` 🔥 ${isAI?game.aiStreak:game.youStreak} STRIKES IN A ROW!` : '';
+    speak(`${who} Strike!${streakMsg}`); showAnnounce(`${whoShort} STRIKE!${streakMsg} ${res.luckText}`);
+  } else if(isSpare){
+    if(isAI) game.aiScore+=15; else game.youScore+=15;
+    if(isAI) game.aiStreak=0; else game.youStreak=0;
+    speak(`${who} Spare!`); showAnnounce(`${whoShort} SPARE! ${res.luckText}`);
+  } else if(res.pinsHit===0){
+    if(isAI) game.aiStreak=0; else game.youStreak=0;
+    let msg = useAim<20 || useAim>80 ? `${who} GUTTER! Aim too far!` : usePower<25 ? `${who} GUTTER! Too weak!` : `${who} GUTTER! Unlucky!`;
+    speak(msg); showAnnounce(`😢 ${msg}`);
+  } else {
+    if(isAI) game.aiScore+=res.pinsHit; else game.youScore+=res.pinsHit;
+    if(isAI) game.aiStreak=0; else game.youStreak=0;
+    speak(`${who} ${res.pinsHit} pins!`); showAnnounce(`${whoShort} ${res.pinsHit} pins! ${res.resultType}`);
+  }
+  updateHUD();
+  setTimeout(()=>{
+    if(isStrike){ if(isAI) game.aiFrames.push({pins:10, label:'STRIKE'}); else game.youFrames.push({pins:10, label:'STRIKE'}); endTurn(); }
+    else if(game.throwNum===1){
+      game.throwNum=2; isThrowing=false; ball={x:W/2, y:H-100, r:32}; updateHUD();
+      if(isAI) setTimeout(()=>{ if(currentTurn==='ai') aiThrow(); }, 700);
+    } else {
+      if(isAI) game.aiFrames.push({pins:res.pinsHit, label: pinsLeft===0?'SPARE':res.pinsHit+' pins'}); else game.youFrames.push({pins:res.pinsHit, label: pinsLeft===0?'SPARE':res.pinsHit+' pins'}); endTurn();
+    }
+    updateHUD(); renderScorecard();
+  }, 1000);
+}
+function endTurn(){
+  if(currentTurn==='you'){
+    currentTurn='ai'; game.throwNum=1; isThrowing=false; resetPins(); ball={x:W/2, y:H-100, r:32}; updateHUD(); showAnnounce(`💖 Now Ainun turn!`); setTimeout(()=>{ aiThrow(); }, 1000);
+  } else {
+    currentTurn='you'; game.throwNum=1; game.frame++; isThrowing=false;
+    if(game.frame>10){ finishGame(); return; }
+    resetPins(); ball={x:W/2, y:H-100, r:32}; document.getElementById('powerSlider').value=power; document.getElementById('aimSlider').value=aim; document.getElementById('spinSlider').value=spin; updateHUD(); renderScorecard(); showAnnounce(`🎳 Your turn! Frame ${game.frame}`);
+  }
+}
+function finishGame(){
+  let youWin = game.youScore > game.aiScore; let tie = game.youScore===game.aiScore;
+  let title = tie ? `DRAW! ${game.youScore}-${game.aiScore}` : youWin ? `YOU WIN! ${game.youScore}-${game.aiScore}` : `AINUN WINS! ${game.aiScore}-${game.youScore}`;
+  let desc = tie ? `${playerName}, draw with Ainun!` : youWin ? `Congrats ${playerName}! You beat Ainun! Strikes: ${game.youStrikes} vs ${game.aiStrikes}` : `Oh no ${playerName}, Ainun wins! Strikes: ${game.youStrikes} vs ${game.aiStrikes}`;
+  document.getElementById('overHero').textContent = youWin ? '🏆' : tie ? '🤝' : '💖';
+  document.getElementById('overTitle').textContent=title; document.getElementById('overDesc').textContent=desc; document.getElementById('overScreen').classList.remove('hidden');
+  speak(tie ? `Draw!` : youWin ? `Congratulations ${playerName}! You beat Ainun!` : `Oh no ${playerName}, Ainun wins.`);
+  showAnnounce(title);
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = currentTurn==='ai' ? '#2a0000' : '#1a0033'; ctx.fillRect(0,0,W,H);
+  let laneW=W*0.72, laneX=(W-laneW)/2;
+  let grad=ctx.createLinearGradient(laneX,0,laneX+laneW,0); grad.addColorStop(0,'#2a0055'); grad.addColorStop(0.5,'#ff00aa'); grad.addColorStop(1,'#2a0055');
+  ctx.fillStyle=grad; ctx.fillRect(laneX,0,laneW,H);
+  ctx.strokeStyle='rgba(255,204,102,.3)'; ctx.lineWidth=2; for(let i=1;i<7;i++){ let x=laneX+laneW*i/7; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  ctx.fillStyle='#111'; ctx.fillRect(laneX-24,0,24,H); ctx.fillRect(laneX+laneW,0,24,H);
+  ctx.fillStyle='#000'; ctx.fillRect(laneX,0,laneW,H*0.08);
+  ctx.fillStyle='#ffcc66'; ctx.font='bold 20px Poppins'; ctx.textAlign='center'; ctx.fillText(currentTurn==='ai' ? '💖 AINUN TURN' : '★ LUXURY LANES ★', W/2, H*0.05);
+  let pocketX = W/2 + 15; ctx.fillStyle='rgba(255,255,0,.8)'; ctx.beginPath(); ctx.arc(pocketX, H*0.18, 10,0,Math.PI*2); ctx.fill();
+  pins.forEach(p=>{
+    if(p.alive){ ctx.save(); ctx.translate(p.x,p.y); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(0,0,14,22,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#ff0000'; ctx.fillRect(-14,-6,28,5); ctx.restore(); }
+    else if(p.fallen){ ctx.save(); ctx.translate(p.x+20,p.y+20); ctx.rotate(1); ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(0,0,22,10,0,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+  });
+  if(!isThrowing && currentTurn==='you'){
+    let aimX = W*0.2 + (aim/100)*W*0.6; let spinCurve = (spin-50)/50 * 120;
+    ctx.strokeStyle = aim<20 || aim>80 ? 'rgba(255,0,0,.8)' : 'rgba(255,204,102,.8)'; ctx.lineWidth=3; ctx.setLineDash([10,8]);
+    ctx.beginPath(); ctx.moveTo(aimX, H-80); ctx.lineTo(aimX + curve*60 + spinCurve*0.6, H*0.25); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffcc66'; ctx.beginPath(); ctx.arc(aimX, H-80, 8,0,Math.PI*2); ctx.fill();
+  }
+  ctx.save(); ctx.translate(ball.x, ball.y);
+  let ballColor = currentTurn==='ai' ? '#ff3b3b' : '#ffcc66';
+  let gradB=ctx.createRadialGradient(-10,-10,5,0,0,ball.r); gradB.addColorStop(0,'#fff'); gradB.addColorStop(0.3, ballColor); gradB.addColorStop(1,'#000');
+  ctx.fillStyle=gradB; ctx.beginPath(); ctx.arc(0,0,ball.r,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+function loop(){ requestAnimationFrame(loop); draw(); }
+loop(); newGame(); updateSliders();
+</script>
+</body>
+</html>

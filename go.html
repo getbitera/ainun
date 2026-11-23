@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AINUN GO - My Ainun Maybe Game</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100vh}
+.top{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#7a0f0f,#1d0606);border-bottom:2px solid #ffcc66;position:sticky;top:0;z-index:10}
+.top h1{font-size:18px;color:#ffcc66}
+.top h1 span{font-size:10px;color:#fff;display:block;letter-spacing:2px}
+.btn{border:none;padding:9px 16px;border-radius:20px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-gold{background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a}
+.btn-dark{background:#2a0a0a;color:#ffcc66;border:1px solid #ffcc66}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.status{background:#fff;color:#2a1405;padding:12px 14px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.status b{color:#b50000;font-size:15px}
+.status small{display:block;font-size:11px;color:#888}
+.turn-dot{width:36px;height:36px;border-radius:50%;background:#fff;border:2px solid #ffcc66;display:flex;align-items:center;justify-content:center;font-size:22px}
+.board-wrap{background:#e8b64c;padding:12px;border-radius:14px;border:3px solid #ffcc66;box-shadow:0 15px 30px rgba(0,0,0,.5);position:relative}
+.board{width:100%;aspect-ratio:1;position:relative;background:#f0c75e;border-radius:4px}
+.stone{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);z-index:2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.stone.black{background:radial-gradient(circle at 35% 30%, #444, #000);color:#fff;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+.stone.white{background:radial-gradient(circle at 35% 30%, #fff, #ddd);color:#000;box-shadow:0 2px 4px rgba(0,0,0,.4);border:1px solid #aaa}
+.stone.last{box-shadow:0 0 0 3px #ff0000, 0 2px 4px rgba(0,0,0,.5)}
+.click-area{position:absolute;border-radius:50%;cursor:pointer;z-index:1}
+.click-area:hover{background:rgba(255,0,0,.2)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.card{background:#fff;color:#2a1405;padding:12px;border-radius:14px;margin-top:12px}
+.card h3{font-size:12px;color:#8a0000;margin-bottom:8px}
+.mode-row{display:flex;gap:8px;margin-bottom:12px}
+.mode{flex:1;padding:10px;border-radius:14px;text-align:center;cursor:pointer;background:#2a0a0a;border:1px solid #3a1010;font-weight:700;font-size:12px}
+.mode.active{background:#ffcc66;color:#5a0a0a}
+.diff-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.diff{flex:1;min-width:70px;padding:10px 6px;border-radius:12px;text-align:center;cursor:pointer;background:#2a0a0a;border:1px solid #3a1010;font-size:11px;font-weight:700}
+.diff.active{border-color:#ffcc66;background:#fff;color:#b50000}
+.diff small{display:block;font-size:9px;font-weight:500;color:#888}
+.diff.master{background:linear-gradient(135deg,#b50000,#5a0a0a);color:#ffcc66;border-color:#ffcc66}
+.diff.master.active{background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a}
+.size-row{display:flex;gap:8px;margin-bottom:12px}
+.size{flex:1;padding:10px;border-radius:12px;text-align:center;cursor:pointer;background:#2a0a0a;border:1px solid #3a1010;font-size:12px;font-weight:700}
+.size.active{background:#ffcc66;color:#5a0a0a}
+
+/* ===== SPLASH SCREEN - BARU ===== */
+.splash{position:fixed;inset:0;background:#160807;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;z-index:100;overflow:hidden}
+.splash.hidden{display:none!important}
+.splash-img-wrap{width:100%;max-width:520px;flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7a0f0f,#160807)}
+.splash-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.splash-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:120px;background:linear-gradient(180deg,#7a0f0f,#160807)}
+.splash-fallback span{font-size:18px;color:#ffcc66;font-weight:900;letter-spacing:3px;margin-top:10px}
+.splash-bottom{width:100%;max-width:520px;padding:18px 16px 24px;background:linear-gradient(180deg,#160807,#000);text-align:center;flex-shrink:0;border-top:2px solid #ffcc66}
+.splash-bottom h2{font-size:32px;color:#ffcc66;line-height:.9}
+.splash-bottom h2 span{color:#fff;font-size:13px;display:block;margin-top:4px;letter-spacing:4px}
+.splash-bottom p{font-size:11px;color:#ccc;margin-top:6px}
+.splash-btn{width:100%;border:none;padding:18px;border-radius:30px;font-weight:900;font-size:20px;cursor:pointer;background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a;box-shadow:0 6px 0 #8a0000;margin-top:14px;animation:pulse 1.5s infinite}
+.splash-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #8a0000}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+.overlay{position:fixed;inset:0;background:#160807;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;z-index:30;overflow-y:auto}
+.overlay.hidden{display:none!important}
+.hero{width:100%;max-width:520px;position:relative}
+.hero img{width:100%;height:320px;object-fit:cover;display:block}
+.hero:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,#160807 100%)}
+.hero-text{position:absolute;bottom:12px;left:16px;right:16px;z-index:2}
+.hero-text h2{font-size:34px;color:#ffcc66;line-height:.9}
+.hero-text h2 span{color:#fff;font-size:15px;display:block;margin-top:4px;letter-spacing:3px}
+.hero-text p{font-size:12px;color:#ffcc;margin-top:6px}
+.play-body{width:100%;max-width:520px;padding:16px}
+.input-name{width:100%;padding:14px 16px;border:2px solid #ffcc66;border-radius:14px;font-size:16px;outline:none;background:#fff;color:#2a1405;font-family:Poppins;font-weight:700;text-align:center}
+.big-btn{width:100%;border:none;padding:16px;border-radius:30px;font-weight:900;font-size:18px;cursor:pointer;background:linear-gradient(#ffcc66,#ff9900);color:#5a0a0a;box-shadow:0 6px 0 #8a0000;margin-top:12px}
+.big-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #8a0000}
+.voice-row{display:flex;gap:8px;align-items:center;background:#2a0a0a;border:1px solid #ffcc66;padding:10px 12px;border-radius:12px;margin-top:12px;font-size:12px}
+.switch{width:44px;height:24px;appearance:none;background:#555;border-radius:20px;position:relative;cursor:pointer;flex-shrink:0}
+.switch:checked{background:#ffcc66}
+.switch:before{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
+.switch:checked:before{left:23px}
+.hidden{display:none!important}
+.announce{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#ffcc66;color:#5a0a0a;padding:8px 16px;border-radius:20px;font-weight:900;font-size:13px;z-index:40;box-shadow:0 6px 20px rgba(0,0,0,.5);max-width:92%;text-align:center}
+.player-card{display:flex;gap:10px;margin-top:12px}
+.player-card div{flex:1;background:#fff;color:#2a1405;padding:10px;border-radius:12px;text-align:center}
+.player-card b{font-size:13px;color:#b50000;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-card small{font-size:10px;color:#888}
+.thinking{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#000;color:#ffcc66;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;z-index:40;border:1px solid #ffcc66}
+.score-bar{display:flex;height:10px;border-radius:10px;overflow:hidden;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="top">
+  <button class="btn btn-gold" onclick="newGame()">🔄 New</button>
+</div>
+
+<div class="wrap">
+  <div class="mode-row">
+    <div class="mode" id="mode2p" onclick="setMode('2p')">👥 2 Players</div>
+    <div class="mode active" id="modeAI" onclick="setMode('ai')">🤖 Vs Ainun AI</div>
+  </div>
+  <div style="font-size:11px;font-weight:800;color:#ffcc66;margin-bottom:6px">🎯 DIFFICULTY - AI LEVEL</div>
+  <div class="diff-row">
+    <div class="diff" data-diff="easy" onclick="setDiff('easy')">😊 EASY<small>Random</small></div>
+    <div class="diff" data-diff="medium" onclick="setDiff('medium')">😐 MEDIUM<small>Capture + Area</small></div>
+    <div class="diff" data-diff="hard" onclick="setDiff('hard')">😤 HARD<small>Smart + Defense</small></div>
+    <div class="diff master active" data-diff="master" onclick="setDiff('master')">👑 AINUN<small>Smart Search</small></div>
+  </div>
+  <div style="font-size:11px;font-weight:800;color:#ffcc66;margin-bottom:6px">📐 BOARD SIZE</div>
+  <div class="size-row">
+    <div class="size active" data-size="9" onclick="setSize(9)">9 x 9<br><small>Fast</small></div>
+    <div class="size" data-size="13" onclick="setSize(13)">13 x 13<br><small>Medium</small></div>
+    <div class="size" data-size="19" onclick="setSize(19)">19 x 19<br><small>Pro - Real Go</small></div>
+  </div>
+  <div class="player-card">
+    <div><small>⚫ BLACK</small><b id="blackName">You</b><small id="blackScore">0 captured • 0 area</small></div>
+    <div><small>⚪ WHITE</small><b id="whiteName">Ainun AI</b><small id="whiteScore">0 captured • 0 area</small></div>
+  </div>
+  <div class="status" style="margin-top:12px">
+    <div><b id="turnText">Black to move</b><small id="statusText">Black moves first in Go</small></div>
+    <div class="turn-dot" id="turnDot">⚫</div>
+  </div>
+  <div class="board-wrap"><div class="board" id="board"></div></div>
+  <div class="score-bar"><div id="scoreBlack" style="background:#000;width:50%"></div><div id="scoreWhite" style="background:#fff;flex:1"></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:#aaa;margin-top:4px"><span>Black</span><span id="scoreText">Equal</span><span>White + Komi 5.5</span></div>
+  <div class="controls">
+    <button class="btn btn-dark" onclick="passMove()">⏭️ Pass</button>
+    <button class="btn btn-dark" onclick="suggestMove()">💡 Hint (AI)</button>
+    <button class="btn btn-dark" onclick="undoMove()">↩️ Undo</button>
+    <button class="btn btn-gold" onclick="finishGame()">🏁 Finish & Count</button>
+    <button class="btn btn-dark" onclick="showPlayScreen()">🏠 Home</button>
+    <button class="btn btn-dark" onclick="forceAIMove()">🚨 Force Ainun Move</button>
+  </div>
+  <div class="card">
+    <h3>HOW TO PLAY GO</h3>
+    <div style="font-size:11px;line-height:1.7">- Black moves first. Click intersection to place stone.<br>- Surround enemy stones to capture them (no liberties = captured).<br>- Don't place stone with no liberties (suicide) - not allowed.<br>- 2 Pass in a row = game ends, count area.<br>- White gets +5.5 Komi.</div>
+  </div>
+  <div class="card">
+    <h3>MOVE HISTORY (<span id="moveCount">0</span>)</h3>
+    <div id="moveList" style="font-size:11px;max-height:80px;overflow-y:auto">No moves yet</div>
+  </div>
+</div>
+
+<!-- ===== SPLASH / FLASH SCREEN - BARU, PALING DEPAN ===== -->
+<div class="splash" id="splashScreen">
+  <div class="splash-img-wrap">
+    <!-- SUMBER GAMBAR DARI myainungo.jpg -->
+    <img src="myainungo.jpg" alt="Ainun Go" onerror="this.style.display='none';document.getElementById('splashFallback').style.display='flex'">
+    <div class="splash-fallback" id="splashFallback" style="display:none">⚫⚪<span>AINUN GO</span></div>
+  </div>
+  <div class="splash-bottom">
+    <h2>AINUN GO<span>MY AINUN </span></h2>
+    <!-- TOMBOL START DI BAWAH GAMBAR - KLIK = MASUK GAME -->
+    <button class="splash-btn" onclick="startSplash()">▶️ START</button>
+    <p style="font-size:10px;color:#888;margin-top:8px">Tap START to play</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="playScreen">
+  <div class="hero">
+    <img src="myainungo.jpg" onerror="this.style.display='none'" alt="My Ainun Go">
+    <div class="hero-text">
+      <h2>AINUN GO<span>MY AINUN MAYBE</span></h2>
+      <p>GO • BADUK • 围棋 • Can you beat Ainun?</p>
+    </div>
+  </div>
+  <div class="play-body">
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-size:13px;color:#ffcc66;font-weight:800">👋 WELCOME TO AINUN GO</div>
+      <div style="font-size:11px;color:#ccc;margin-top:4px">Enter name, choose difficulty, then START. AI will speak!</div>
+    </div>
+    <input class="input-name" id="playerNameInput" placeholder="Enter your name..." maxlength="20">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-dark" style="flex:1;padding:12px" onclick="setPlayMode('2p')" id="playMode2p">👥 2 Players</button>
+      <button class="btn btn-gold" style="flex:1;padding:12px" onclick="setPlayMode('ai')" id="playModeAI">🤖 Vs Ainun</button>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:#ffcc66;margin:14px 0 6px">🎯 CHOOSE DIFFICULTY</div>
+    <div class="diff-row" style="margin:0">
+      <div class="diff" data-play-diff="easy" onclick="setPlayDiff('easy')">😊 EASY</div>
+      <div class="diff" data-play-diff="medium" onclick="setPlayDiff('medium')">😐 MEDIUM</div>
+      <div class="diff" data-play-diff="hard" onclick="setPlayDiff('hard')">😤 HARD</div>
+      <div class="diff master active" data-play-diff="master" onclick="setPlayDiff('master')">👑 AINUN</div>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:#ffcc66;margin:14px 0 6px">📐 BOARD SIZE</div>
+    <div class="size-row" style="margin:0">
+      <div class="size active" data-play-size="9" onclick="setPlaySize(9)">9x9 Fast</div>
+      <div class="size" data-play-size="13" onclick="setPlaySize(13)">13x13</div>
+      <div class="size" data-play-size="19" onclick="setPlaySize(19)">19x19 Pro</div>
+    </div>
+    <div style="background:#2a0a0a;border:1px solid #ffcc66;padding:10px;border-radius:12px;font-size:11px;line-height:1.6;margin-top:12px">
+      <b style="color:#ffcc66">👑 AINUN = HARDEST:</b><br>
+      - Smart search - tries best moves<br>
+      - Capture first, defend, take corners & sides<br>
+      - Knows Go strategy: surround, don't suicide<br>
+      - Almost impossible to beat on 19x19!
+    </div>
+    <div class="voice-row"><input type="checkbox" class="switch" id="voiceToggle" checked><span>🔊 <b>AI Voice</b> - Announce captures, pass, win & lose</span></div>
+    <div class="voice-row"><input type="checkbox" class="switch" id="soundToggle" checked><span>🎵 <b>Sound Effects</b></span></div>
+    <button class="big-btn" onclick="startFromPlay()">▶️ START GAME</button>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-dark" style="flex:1" onclick="testVoice()">🎤 Test Voice</button>
+      <button class="btn btn-dark" style="flex:1" onclick="speak('Hello! I am Ainun. I am very hard to beat. Good luck!')">💬 Say Hello</button>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:center;margin-top:14px">⚠️ This is only game - For fun only!<br>An original fan game inspired by the game of Go. Not affiliated with DeepMind or Google.</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overScreen" style="justify-content:center;padding:20px">
+  <img src="myainungo.jpg" onerror="this.style.display='none'" style="width:200px;height:200px;object-fit:cover;border-radius:50%;border:4px solid #ffcc66">
+  <div style="font-size:50px;margin-top:12px" id="overEmoji">🏆</div>
+  <h2 id="overTitle" style="font-size:30px;color:#ffcc66;text-align:center">BLACK WINS!</h2>
+  <p id="overDesc" style="text-align:center;color:#ccc">Score</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:400px">
+    <button class="big-btn" style="flex:1" onclick="newGame()">🔄 PLAY AGAIN</button>
+    <button class="big-btn" style="flex:1;background:#fff" onclick="showPlayScreen()">🏠 HOME</button>
+  </div>
+</div>
+
+<div id="announceBox" class="announce hidden"></div>
+<div id="thinkingBox" class="thinking hidden">💖 Ainun is thinking...</div>
+
+<script>
+let voiceEnabled=true, soundEnabled=true, playerName='You', playMode='ai', difficulty='master', boardSize=9, mode='ai';
+let voices=[];
+function loadVoices(){ try{ voices=speechSynthesis.getVoices(); }catch(e){} }
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=loadVoices; loadVoices(); }
+function speak(text, rate=1){ if(!voiceEnabled) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate; speechSynthesis.speak(u); }catch(e){} }
+function showAnnounce(text, ms=2200){ const b=document.getElementById('announceBox'); b.textContent=text; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'), ms); }
+function playSound(type){ if(!soundEnabled) return; try{ const ctxA=new (window.AudioContext||window.webkitAudioContext)(); const o=ctxA.createOscillator(); const g=ctxA.createGain(); o.connect(g); g.connect(ctxA.destination); o.frequency.value= type==='capture'?220: type==='win'?880: type==='place'?520:440; o.type='sine'; g.gain.value=0.12; o.start(); o.stop(ctxA.currentTime+0.15);}catch(e){} }
+function testVoice(){ speak('Hello! I am Ainun. I am very hard to beat. Good luck!'); }
+
+// ===== SPLASH LOGIC - BARU =====
+function startSplash(){
+  // Klik START di splash -> sembunyikan splash, tampilkan Play Screen (isi nama)
+  document.getElementById('splashScreen').classList.add('hidden');
+  document.getElementById('playScreen').classList.remove('hidden');
+  speak('Welcome to Ainun Go! Please enter your name to start.');
+}
+function showSplash(){
+  // Buat balik ke splash dari Home
+  document.getElementById('splashScreen').classList.remove('hidden');
+  document.getElementById('playScreen').classList.add('hidden');
+  document.getElementById('overScreen').classList.add('hidden');
+}
+
+function setPlayMode(m){ playMode=m; mode=m; document.getElementById('playMode2p').style.background=m==='2p'?'linear-gradient(#ffcc66,#ff9900)':'#2a0a0a'; document.getElementById('playModeAI').style.background=m==='ai'?'linear-gradient(#ffcc66,#ff9900)':'#2a0a0a'; setMode(m,true); }
+function setPlayDiff(d){ difficulty=d; document.querySelectorAll('[data-play-diff]').forEach(el=>el.classList.toggle('active', el.dataset.playDiff===d)); }
+function setPlaySize(s){ boardSize=s; document.querySelectorAll('[data-play-size]').forEach(el=>el.classList.toggle('active', parseInt(el.dataset.playSize)===s)); }
+function setDiff(d){ difficulty=d; document.querySelectorAll('[data-diff]').forEach(el=>el.classList.toggle('active', el.dataset.diff===d)); setPlayDiff(d); }
+function setSize(s){ boardSize=s; document.querySelectorAll('[data-size]').forEach(el=>el.classList.toggle('active', parseInt(el.dataset.size)===s)); setPlaySize(s); if(document.getElementById('playScreen').classList.contains('hidden') && document.getElementById('splashScreen').classList.contains('hidden')) newGame(); }
+function setMode(m, fromPlay=false){ mode=m; playMode=m; document.getElementById('mode2p').classList.toggle('active', m==='2p'); document.getElementById('modeAI').classList.toggle('active', m==='ai'); if(document.getElementById('playScreen').classList.contains('hidden') && document.getElementById('splashScreen').classList.contains('hidden')){ document.getElementById('whiteName').textContent= m==='ai'? 'Ainun AI' : 'Player 2'; newGame(); } }
+function showPlayScreen(){ document.getElementById('splashScreen').classList.add('hidden'); document.getElementById('playScreen').classList.remove('hidden'); document.getElementById('overScreen').classList.add('hidden'); speak('Welcome back to Ainun Go!'); }
+function startFromPlay(){
+  let name=document.getElementById('playerNameInput').value.trim();
+  if(!name){ alert('Please enter your name first!'); document.getElementById('playerNameInput').focus(); return; }
+  playerName=name; voiceEnabled=document.getElementById('voiceToggle').checked; soundEnabled=document.getElementById('soundToggle').checked;
+  document.getElementById('blackName').textContent=playerName;
+  document.getElementById('whiteName').textContent= playMode==='ai'? 'Ainun AI' : 'Player 2';
+  document.getElementById('playScreen').classList.add('hidden'); newGame();
+  speak(`Welcome ${playerName}! You chose ${difficulty} difficulty. Ainun is very hard! Black moves first.`);
+  showAnnounce(`Welcome ${playerName}! Difficulty: ${difficulty.toUpperCase()}`);
+}
+
+let board, turn, capturedBlack, capturedWhite, lastMove, passes, gameOver, moveHistory, boardHistory;
+function newGame(){
+  board = Array(boardSize).fill().map(()=>Array(boardSize).fill(null));
+  turn='B'; moveHistory=[]; capturedBlack=0; capturedWhite=0; lastMove=null; passes=0; gameOver=false; boardHistory=[];
+  boardHistory.push(JSON.stringify(board));
+  document.getElementById('overScreen').classList.add('hidden');
+  document.getElementById('thinkingBox').classList.add('hidden');
+  updateStatus('Black to move', `${playerName} (Black) moves first`);
+  render();
+}
+function inBoard(r,c){ return r>=0 && r<boardSize && c>=0 && c<boardSize; }
+function getGroup(b, r,c){
+  let color=b[r][c]; if(!color) return {stones:[], liberties:new Set()};
+  let stack=[[r,c]]; let stones=[]; let liberties=new Set(); let seen=new Set();
+  while(stack.length){
+    let [cr,cc]=stack.pop(); let key=cr+','+cc; if(seen.has(key)) continue; seen.add(key); stones.push([cr,cc]);
+    for(let [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      let nr=cr+dr, nc=cc+dc; if(!inBoard(nr,nc)) continue;
+      if(!b[nr][nc]) liberties.add(nr+','+nc);
+      else if(b[nr][nc]===color && !seen.has(nr+','+nc)) stack.push([nr,nc]);
+    }
+  }
+  return {stones, liberties};
+}
+function tryPlace(b, r,c, color, historyToCheck){
+  if(b[r][c]) return null;
+  let nb=b.map(row=>row.slice()); nb[r][c]=color;
+  let enemy = color==='B'?'W':'B';
+  let captured=[];
+  for(let [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    let nr=r+dr, nc=c+dc;
+    if(inBoard(nr,nc) && nb[nr][nc]===enemy){
+      let g=getGroup(nb,nr,nc);
+      if(g.liberties.size===0){ captured.push(...g.stones); }
+    }
+  }
+  captured.forEach(([cr,cc])=> nb[cr][cc]=null);
+  let myGroup=getGroup(nb,r,c);
+  if(myGroup.liberties.size===0 && captured.length===0) return null;
+  let boardStr=JSON.stringify(nb);
+  if(historyToCheck && historyToCheck.length>=2){
+    let prev = historyToCheck[historyToCheck.length-2];
+    if(boardStr===prev) return null;
+  }
+  return {board:nb, captured: captured.length};
+}
+function countScore(){
+  let visited=new Set(); let blackArea=0, whiteArea=0; let blackStones=0, whiteStones=0;
+  for(let r=0;r<boardSize;r++) for(let c=0;c<boardSize;c++){ if(board[r][c]==='B') blackStones++; if(board[r][c]==='W') whiteStones++; }
+  for(let r=0;r<boardSize;r++) for(let c=0;c<boardSize;c++){
+    if(board[r][c] || visited.has(r+','+c)) continue;
+    let stack=[[r,c]]; let area=[]; let borders=new Set(); let seen2=new Set();
+    while(stack.length){
+      let [cr,cc]=stack.pop(); let key=cr+','+cc; if(seen2.has(key)) continue; seen2.add(key); visited.add(key); area.push([cr,cc]);
+      for(let [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        let nr=cr+dr, nc=cc+dc; if(!inBoard(nr,nc)) continue;
+        if(!board[nr][nc] && !seen2.has(nr+','+nc)) stack.push([nr,nc]);
+        if(board[nr][nc]) borders.add(board[nr][nc]);
+      }
+    }
+    if(borders.size===1){ if(borders.has('B')) blackArea+=area.length; if(borders.has('W')) whiteArea+=area.length; }
+  }
+  let blackScore = blackStones + blackArea + capturedWhite;
+  let whiteScore = whiteStones + whiteArea + capturedBlack + 5.5;
+  return {black: blackScore, white: whiteScore, blackStones, whiteStones, blackArea, whiteArea};
+}
+function render(){
+  const el=document.getElementById('board'); el.innerHTML='';
+  let size=boardSize; let cell = 100/(size-1);
+  let svg = document.createElement('div');
+  svg.style.position='absolute'; svg.style.inset='0';
+  svg.style.backgroundImage = `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`;
+  svg.style.backgroundSize = `${cell}% ${cell}%`;
+  svg.style.backgroundPosition = `center`; svg.style.margin = `${cell/2}%`; svg.style.width = `calc(100% - ${cell}%)`; svg.style.height = `calc(100% - ${cell}%)`;
+  el.appendChild(svg);
+  let stars = size===9? [[2,2],[2,6],[6,2],[6,6],[4,4]] : size===13? [[3,3],[3,9],[9,3],[9,9],[6,6]] : [[3,3],[3,9],[3,15],[9,3],[9,9],[9,15],[15,3],[15,9],[15,15]];
+  stars.forEach(([r,c])=>{
+    let dot=document.createElement('div'); dot.style.position='absolute'; dot.style.width='8px'; dot.style.height='8px'; dot.style.background='#000'; dot.style.borderRadius='50%'; dot.style.left=`${c*cell}%`; dot.style.top=`${r*cell}%`; dot.style.transform='translate(-50%,-50%)'; el.appendChild(dot);
+  });
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++){
+    let click=document.createElement('div'); click.className='click-area'; click.style.left=`${c*cell}%`; click.style.top=`${r*cell}%`; click.style.width=`${cell}%`; click.style.height=`${cell}%`; click.style.transform='translate(-50%,-50%)'; click.onclick=()=>onCell(r,c); el.appendChild(click);
+    let p=board[r][c];
+    if(p){ let s=document.createElement('div'); s.className='stone '+(p==='B'?'black':'white'); s.style.left=`${c*cell}%`; s.style.top=`${r*cell}%`; s.style.width=`${cell*0.92}%`; s.style.height=`${cell*0.92}%`; if(lastMove && lastMove[0]===r && lastMove[1]===c) s.classList.add('last'); el.appendChild(s); }
+  }
+  let sc=countScore();
+  document.getElementById('blackScore').textContent=`${capturedWhite} captured • ${sc.blackArea} area`;
+  document.getElementById('whiteScore').textContent=`${capturedBlack} captured • ${sc.whiteArea} area`;
+  let total=sc.black+sc.white; let blackPct = total? (sc.black/total*100) : 50;
+  document.getElementById('scoreBlack').style.width=blackPct+'%';
+  document.getElementById('scoreText').textContent=`Black ${sc.black.toFixed(1)} - White ${sc.white.toFixed(1)}`;
+  document.getElementById('moveCount').textContent=moveHistory.length;
+  document.getElementById('moveList').innerHTML= moveHistory.length? moveHistory.map((m,i)=>`${i+1}. ${m}`).join(' • ') : 'No moves yet';
+  document.getElementById('turnDot').textContent= turn==='B'? '⚫':'⚪';
+}
+function onCell(r,c){
+  if(gameOver) return;
+  if(!document.getElementById('overScreen').classList.contains('hidden')) return;
+  if(!document.getElementById('playScreen').classList.contains('hidden')) return;
+  if(!document.getElementById('splashScreen').classList.contains('hidden')) return;
+  if(mode==='ai' && turn==='W') return;
+  doMove(r,c);
+}
+function doMove(r,c){
+  if(gameOver) return;
+  let color=turn;
+  let res=tryPlace(board, r,c, color, boardHistory);
+  if(!res){ speak('Illegal move! No liberties or Ko rule.'); showAnnounce('❌ Illegal move!'); return; }
+  board=res.board; boardHistory.push(JSON.stringify(board));
+  let moverName = color==='B'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
+  let moverColor = color==='B'? 'Black' : 'White';
+  if(res.captured>0){
+    if(color==='B') capturedWhite+=res.captured; else capturedBlack+=res.captured;
+    playSound('capture'); speak(`${moverName}, ${moverColor} captured ${res.captured} stones!`); showAnnounce(`💥 ${moverColor} captured ${res.captured} stones!`);
+  } else playSound('place');
+  let col='ABCDEFGHJKLMNOPQRST'[c];
+  moveHistory.push(`${moverColor} ${col}${boardSize-r}`);
+  lastMove=[r,c]; passes=0;
+  turn = turn==='B'?'W':'B';
+  let nextName = turn==='B'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
+  updateStatus(`${turn==='B'?'Black':'White'} to move - ${nextName}`, `Captured: Black ${capturedWhite} • White ${capturedBlack}`);
+  render();
+  if(mode==='ai' && turn==='W' && !gameOver){
+    document.getElementById('thinkingBox').classList.remove('hidden');
+    setTimeout(()=>{ document.getElementById('thinkingBox').classList.add('hidden'); aiMove(); }, difficulty==='master'? 500 : 300);
+  }
+}
+function passMove(){
+  if(gameOver) return;
+  if(mode==='ai' && turn==='W') return;
+  let passer = turn==='B'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
+  speak(`${passer} passed.`); showAnnounce(`${passer} passed ⏭️`);
+  moveHistory.push(`${turn==='B'?'Black':'White'} Pass`);
+  passes++;
+  if(passes>=2){ finishGame(); return; }
+  turn = turn==='B'?'W':'B';
+  updateStatus(`${turn==='B'?'Black':'White'} to move`, 'Previous player passed');
+  render();
+  if(mode==='ai' && turn==='W'){
+    document.getElementById('thinkingBox').classList.remove('hidden');
+    setTimeout(()=>{ document.getElementById('thinkingBox').classList.add('hidden'); aiMove(); }, 300);
+  }
+}
+function undoMove(){ alert('Undo in Go is complex (Ko rule). Use New Game to restart. Tip: Use Hint if stuck!'); }
+function finishGame(){
+  gameOver=true;
+  let sc=countScore();
+  let winner = sc.black>sc.white? 'Black' : 'White';
+  let winnerName = winner==='Black'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
+  playSound('win');
+  let desc = `Black ${sc.black.toFixed(1)} (Stones ${sc.blackStones} + Area ${sc.blackArea} + Captured ${capturedWhite}) • White ${sc.white.toFixed(1)} (Stones ${sc.whiteStones} + Area ${sc.whiteArea} + Captured ${capturedBlack} + Komi 5.5)`;
+  let title = winner==='Black'? 'BLACK WINS!' : 'WHITE WINS!';
+  let voiceMsg;
+  if(mode==='ai'){
+    if(winner==='Black'){ voiceMsg=`Congratulations ${playerName}! You win! You beat Ainun ${difficulty}!`; desc = `Congratulations ${playerName}! You beat Ainun ${difficulty.toUpperCase()}! ` + desc; }
+    else { voiceMsg=`Oh no ${playerName}, you lose. Ainun ${difficulty} wins. Try again!`; desc = `Oh no ${playerName}, Ainun wins. ` + desc; }
+  } else { voiceMsg=`Game over! ${winnerName} wins!`; desc = `${winnerName} wins! ` + desc; }
+  document.getElementById('overEmoji').textContent='🏆';
+  document.getElementById('overTitle').textContent=title;
+  document.getElementById('overDesc').textContent=desc;
+  document.getElementById('overScreen').classList.remove('hidden');
+  speak(voiceMsg, 0.95); showAnnounce(title);
+}
+function updateStatus(t,s){ document.getElementById('turnText').textContent=t; document.getElementById('statusText').textContent=s; }
+function evaluateMove(b, r,c, color, hist){
+  let res=tryPlace(b, r,c, color, hist);
+  if(!res) return -9999;
+  let score=0; score += res.captured*20;
+  let center = boardSize/2; let dist = Math.abs(r-center)+Math.abs(c-center); score += (boardSize-dist)*0.5;
+  if((r===0||r===boardSize-1) && (c===0||c===boardSize-1)) score+=8;
+  if(r===0||r===boardSize-1||c===0||c===boardSize-1) score+=3;
+  let g=getGroup(res.board, r,c); score += g.liberties.size*2;
+  if(g.liberties.size===1) score-=10;
+  return score;
+}
+function aiMove(){
+  if(gameOver) return;
+  document.getElementById('thinkingBox').classList.add('hidden');
+  let color='W';
+  let candidates=[];
+  for(let r=0;r<boardSize;r++) for(let c=0;c<boardSize;c++){
+    if(board[r][c]) continue;
+    let sc=evaluateMove(board,r,c,color, boardHistory);
+    if(sc>-9999) candidates.push({r,c,score:sc});
+  }
+  if(candidates.length===0){ passMove(); return; }
+  let chosen=null;
+  if(difficulty==='easy'){ chosen=candidates[Math.floor(Math.random()*candidates.length)]; }
+  else if(difficulty==='medium'){ candidates.sort((a,b)=>b.score-a.score); let top=candidates.slice(0, Math.min(5, candidates.length)); chosen=top[Math.floor(Math.random()*top.length)]; }
+  else if(difficulty==='hard'){ candidates.sort((a,b)=>b.score-a.score); chosen=candidates[0]; if(Math.random()<0.2 && candidates[1]) chosen=candidates[1]; }
+  else {
+    candidates.sort((a,b)=>b.score-a.score);
+    let top=candidates.slice(0, Math.min(5, candidates.length));
+    let best=null, bestScore=-Infinity;
+    for(let cand of top){
+      let res=tryPlace(board,cand.r,cand.c,color, boardHistory);
+      if(!res) continue;
+      let g=getGroup(res.board, cand.r, cand.c);
+      let score = cand.score + g.liberties.size*3 + Math.random()*4;
+      if(score>bestScore){ bestScore=score; best=cand; }
+    }
+    chosen=best || top[0];
+  }
+  if(!chosen){ passMove(); return; }
+  doMove(chosen.r, chosen.c);
+}
+function forceAIMove(){
+  if(gameOver) return;
+  if(mode==='ai' && turn==='W'){ aiMove(); return; }
+  alert('Bukan giliran Ainun sekarang. Giliran: ' + (turn==='B'?'Black':'White'));
+}
+function suggestMove(){
+  let color=turn; let best=null, bestScore=-Infinity;
+  for(let r=0;r<boardSize;r++) for(let c=0;c<boardSize;c++){
+    if(board[r][c]) continue;
+    let sc=evaluateMove(board,r,c,color, boardHistory);
+    if(sc>bestScore){ bestScore=sc; best={r,c}; }
+  }
+  if(best){ let col='ABCDEFGHJKLMNOPQRST'[best.c]; speak(`Hint: Play at ${col}${boardSize-best.r}.`); showAnnounce(`💡 Hint: ${col}${boardSize-best.r} is best!`); }
+}
+setPlayMode('ai'); setPlayDiff('master'); setPlaySize(9);
+newGame();
+document.getElementById('playerNameInput').addEventListener('keypress', e=>{ if(e.key==='Enter') startFromPlay(); });
+// Splash tampil duluan, Play Screen disembunyikan dulu
+document.getElementById('playScreen').classList.add('hidden');
+</script>
+</body>
+</html>
