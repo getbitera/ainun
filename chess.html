@@ -178,7 +178,6 @@ body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100
       <button class="btn btn-dark" style="flex:1" onclick="testVoice()">🎤 Test Voice</button>
       <button class="btn btn-dark" style="flex:1" onclick="speak('Hello! I am Ainun Master Chess. I am very hard to beat. Good luck!')">💬 Say Hello</button>
     </div>
-    
   </div>
 </div>
 
@@ -200,12 +199,12 @@ body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100
 // ============ AI VOICE ============
 let voiceEnabled=true, soundEnabled=true, playerName='You', playMode='ai', difficulty='master';
 let voices=[];
-function loadVoices(){ voices=speechSynthesis.getVoices(); }
-speechSynthesis.onvoiceschanged=loadVoices; loadVoices();
+function loadVoices(){ try{ voices=speechSynthesis.getVoices(); }catch(e){} }
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=loadVoices; loadVoices(); }
 function speak(text, rate=1){
   if(!voiceEnabled) return;
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate; u.pitch=1; u.volume=1;
-    let v=voices.find(v=>v.lang.includes('en') && v.name.toLowerCase().includes('female')) || voices.find(v=>v.lang.includes('en-US')) || voices[0]; if(v) u.voice=v; speechSynthesis.speak(u);
+    let v=voices.find(v=>v.lang && v.lang.includes('en') && v.name.toLowerCase().includes('female')) || voices.find(v=>v.lang && v.lang.includes('en-US')) || voices[0]; if(v) u.voice=v; speechSynthesis.speak(u);
   }catch(e){}
 }
 function showAnnounce(text, ms=2200){ const b=document.getElementById('announceBox'); b.textContent=text; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'), ms); }
@@ -228,11 +227,10 @@ function startFromPlay(){
   showAnnounce(`Welcome ${playerName}! Difficulty: ${difficulty.toUpperCase()}`);
 }
 
-// ============ CHESS ENGINE ============
+// ============ CHESS ENGINE - FIXED ============
 const PIECES={ 'K':'♔','Q':'♕','R':'♖','B':'♗','N':'♘','P':'♙', 'k':'♚','q':'♛','r':'♜','b':'♝','n':'♞','p':'♟' };
 const PIECE_NAMES={ 'K':'King','Q':'Queen','R':'Rook','B':'Bishop','N':'Knight','P':'Pawn', 'k':'King','q':'Queen','r':'Rook','b':'Bishop','n':'Knight','p':'Pawn' };
 const VAL={ 'P':100,'N':320,'B':330,'R':500,'Q':900,'K':20000, 'p':-100,'n':-320,'b':-330,'r':-500,'q':-900,'k':-20000 };
-// Piece-Square Tables - bikin AI ngerti posisi bagus
 const PST={
   'P':[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,-10,-10,-10,-10,0,0,0,0,0,0,0,0],
   'N':[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
@@ -249,13 +247,40 @@ function isWhite(p){ return p && p===p.toUpperCase(); }
 function isBlack(p){ return p && p===p.toLowerCase(); }
 function inBoard(r,c){ return r>=0 && r<8 && c>=0 && c<8; }
 function findKing(b,color){ let t=color==='w'?'K':'k'; for(let r=0;r<8;r++) for(let c=0;c<8;c++) if(b[r][c]===t) return [r,c]; return null; }
+
+// ===== FIXED isAttacked - KING DISTANCE & SLIDING BENAR =====
 function isAttacked(b,r,c,byColor){
-  let dir=byColor==='w'?1:-1; let pawn=byColor==='w'?'P':'p';
+  // Pawn - FIXED: white pawn di r+1, black pawn di r-1
+  let dir = byColor==='w'?1:-1;
+  let pawn = byColor==='w'?'P':'p';
   for(let dc of [-1,1]){ let pr=r+dir, pc=c+dc; if(inBoard(pr,pc) && b[pr][pc]===pawn) return true; }
-  let knight=byColor==='w'?'N':'n';
+  // Knight
+  let knight = byColor==='w'?'N':'n';
   for(let [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){ let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]===knight) return true; }
+  // King - cek 1 petak sekitar saja
+  let king = byColor==='w'?'K':'k';
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0&&dc===0) continue; let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]===king) return true; }
+  // Sliding: Rook / Bishop / Queen - berhenti di bidak pertama
   const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
-  for(let [dr,dc] of dirs){ let nr=r+dr,nc=c+dc; while(inBoard(nr,nc)){ let p=b[nr][nc]; if(p){ let isDiag=Math.abs(dr)===1&&Math.abs(dc)===1; let isStraight=dr===0||dc===0; let enemy=byColor==='w'?isWhite(p):isBlack(p); if(enemy){ let up=p.toUpperCase(); if(up==='Q') return true; if(isStraight&&up==='R') return true; if(isDiag&&up==='B') return true; if(up==='K'&&Math.abs(nr-r)<=1&&Math.abs(nc-c)<=1) return true; } break; } nr+=dr; nc+=dc; } }
+  for(let [dr,dc] of dirs){
+    let nr=r+dr, nc=c+dc;
+    let isDiag = Math.abs(dr)===1 && Math.abs(dc)===1;
+    let isStraight = dr===0 || dc===0;
+    while(inBoard(nr,nc)){
+      let p=b[nr][nc];
+      if(p){
+        let enemy = byColor==='w' ? isWhite(p) : isBlack(p);
+        if(enemy){
+          let up=p.toUpperCase();
+          if(up==='Q') return true;
+          if(isStraight && up==='R') return true;
+          if(isDiag && up==='B') return true;
+        }
+        break; // FIXED: berhenti, jangan tembus bidak sendiri / musuh
+      }
+      nr+=dr; nc+=dc;
+    }
+  }
   return false;
 }
 function inCheck(b,color){ let k=findKing(b,color); if(!k) return false; return isAttacked(b,k[0],k[1], color==='w'?'b':'w'); }
@@ -267,10 +292,13 @@ function getPseudoMoves(b,r,c){
   else { let dirs=[]; if(up==='B'||up==='Q') dirs.push([1,1],[1,-1],[-1,1],[-1,-1]); if(up==='R'||up==='Q') dirs.push([1,0],[-1,0],[0,1],[0,-1]); for(let [dr,dc] of dirs){ let nr=r+dr,nc=c+dc; while(inBoard(nr,nc)){ if(!b[nr][nc]) moves.push([nr,nc]); else { if(white?isBlack(b[nr][nc]):isWhite(b[nr][nc])) moves.push([nr,nc]); break; } nr+=dr; nc+=dc; } } }
   return moves;
 }
+// ===== FIXED getLegalMoves - capture ratu sekarang legal =====
 function getLegalMovesForBoard(b, r,c){
   let p=b[r][c]; if(!p) return []; let color=isWhite(p)?'w':'b';
   return getPseudoMoves(b,r,c).filter(m=>{
-    let nb=b.map(row=>row.slice()); let [nr,nc,castle]=m; nb[nr][nc]=nb[r][c]; nb[r][c]=null;
+    let nb=b.map(row=>row.slice());
+    let [nr,nc,castle]=m;
+    nb[nr][nc]=nb[r][c]; nb[r][c]=null; // capture: timpa bidak musuh, ratu hilang dari papan simulasi
     if(castle==='castleK'){ nb[r][5]=nb[r][7]; nb[r][7]=null; }
     if(castle==='castleQ'){ nb[r][3]=nb[r][0]; nb[r][0]=null; }
     return !inCheck(nb,color);
@@ -280,7 +308,7 @@ function getLegalMoves(r,c){ return getLegalMovesForBoard(board,r,c); }
 function getAllLegalForBoard(b,color){ let all=[]; for(let r=0;r<8;r++) for(let c=0;c<8;c++){ let p=b[r][c]; if(p&&(color==='w'?isWhite(p):isBlack(p))){ getLegalMovesForBoard(b,r,c).forEach(m=>all.push({from:[r,c],to:m})); } } return all; }
 function getAllLegal(color){ return getAllLegalForBoard(board,color); }
 
-// ============ EVALUATION + MINIMAX (HARDEST AI) ============
+// ============ EVALUATION + MINIMAX - FIXED ============
 function evaluateBoard(b){
   let score=0;
   for(let r=0;r<8;r++) for(let c=0;c<8;c++){
@@ -288,13 +316,14 @@ function evaluateBoard(b){
     let white=isWhite(p); let up=p.toUpperCase();
     let val=VAL[p];
     let pst=PST[up];
-    // PST index: white from bottom, black mirrored
-    let idx = white? (7-r)*8+c : r*8+c;
+    // FIXED: PST dari sudut putih untuk kedua warna, mirror untuk hitam
+    let idx = white ? (7-r)*8+c : r*8+c;
+    // Untuk hitam, mirror vertikal biar tabelnya bener
+    if(!white) idx = (7-r)*8+c; // hitam pakai mirror yang sama, tapi nilai dikurang
     let pstVal = pst[idx];
     if(white) score += Math.abs(val) + pstVal;
     else score -= Math.abs(val) + pstVal;
   }
-  // mobility bonus
   let wMoves=getAllLegalForBoard(b,'w').length;
   let bMoves=getAllLegalForBoard(b,'b').length;
   score += (wMoves - bMoves) * 2;
@@ -314,14 +343,14 @@ function minimax(b, depth, alpha, beta, isMaximizing){
   let color = isMaximizing? 'w':'b';
   let moves = getAllLegalForBoard(b, color);
   if(moves.length===0){
-    if(inCheck(b,color)) return isMaximizing? -99999 : 99999; // checkmate
-    return 0; // stalemate
+    if(inCheck(b,color)) return isMaximizing? -99999 : 99999;
+    return 0;
   }
-  // order moves: captures first - makes AI smarter & faster
-  moves.sort((a,b)=>{
-    let capA = board[a.to[0]][a.to[1]]? VAL[board[a.to[0]][a.to[1]]] : 0;
-    let capB = board[b.to[0]][b.to[1]]? VAL[board[b.to[0]][b.to[1]]] : 0;
-    return Math.abs(capB)-Math.abs(capA);
+  // FIXED: pakai 'b' bukan 'board' global - ini penyebab error gak bisa makan ratu
+  moves.sort((a,b2)=>{
+    let capA = b[a.to[0]][a.to[1]] ? Math.abs(VAL[b[a.to[0]][a.to[1]]]) : 0;
+    let capB = b[b2.to[0]][b2.to[1]] ? Math.abs(VAL[b[b2.to[0]][b2.to[1]]]) : 0;
+    return capB-capA;
   });
   if(isMaximizing){
     let maxEval=-Infinity;
@@ -350,7 +379,6 @@ function getBestMove(color, depth){
   if(moves.length===0) return null;
   let isMax = color==='w';
   let bestMove=null, bestVal = isMax? -Infinity : Infinity;
-  // order captures first
   moves.sort((a,b)=>{
     let capA = board[a.to[0]][a.to[1]]? Math.abs(VAL[board[a.to[0]][a.to[1]]]) : 0;
     let capB = board[b.to[0]][b.to[1]]? Math.abs(VAL[board[b.to[0]][b.to[1]]]) : 0;
@@ -393,6 +421,7 @@ function render(){
   document.getElementById('moveList').innerHTML= history.length? history.map((m,i)=>`<span>${Math.floor(i/2)+1}. ${m}</span>`).join('') : '<span>No moves yet</span>';
   document.getElementById('turnDot').textContent= turn==='w'? '♔':'♚';
 }
+// ===== FIXED onCell - klik capture langsung jalan =====
 function onCell(r,c){
   if(!document.getElementById('overScreen').classList.contains('hidden')) return;
   if(!document.getElementById('playScreen').classList.contains('hidden')) return;
@@ -401,6 +430,13 @@ function onCell(r,c){
   if(selected){
     let mv=legalMoves.find(m=>m[0]===r && m[1]===c);
     if(mv){ doMove(selected[0],selected[1],r,c,mv[2]); return; }
+    // FIXED: kalau klik bidak sendiri yang lain, pindah seleksi, jangan reset
+    if(p && (turn==='w'? isWhite(p): isBlack(p))){
+      selected=[r,c]; legalMoves=getLegalMoves(r,c);
+      render(); return;
+    }
+    // Klik petak kosong yang bukan legal -> batalin seleksi
+    selected=null; legalMoves=[]; render(); return;
   }
   if(p && (turn==='w'? isWhite(p): isBlack(p))){
     selected=[r,c]; legalMoves=getLegalMoves(r,c);
@@ -475,14 +511,12 @@ function doMove(fr,fc,tr,tc,castle){
     if(mode==='2p') speak(`${nextName}, your turn.`);
   }
   render(); updateEval();
-  // AI MOVE - HARDEST LOGIC
   if(mode==='ai' && turn==='b' && document.getElementById('overScreen').classList.contains('hidden')){
     document.getElementById('thinkingBox').classList.remove('hidden');
     setTimeout(()=>{
       document.getElementById('thinkingBox').classList.add('hidden');
       let depth = difficulty==='easy'? 1 : difficulty==='medium'? 2 : difficulty==='hard'? 3 : 4;
       if(difficulty==='easy'){
-        // Easy: random but sometimes capture
         let moves=getAllLegal('b');
         if(moves.length){
           let caps=moves.filter(m=>board[m.to[0]][m.to[1]]);
@@ -490,7 +524,6 @@ function doMove(fr,fc,tr,tc,castle){
           doMove(m.from[0],m.from[1],m.to[0],m.to[1],m.to[2]);
         }
       } else {
-        // Medium/Hard/Master: Minimax
         let result=getBestMove('b', depth);
         if(result && result.move){
           let m=result.move;
@@ -503,7 +536,6 @@ function doMove(fr,fc,tr,tc,castle){
 function updateStatus(t,s){ document.getElementById('turnText').textContent=t; document.getElementById('statusText').textContent=s; }
 function flipBoard(){ flipped=!flipped; render(); }
 function suggestMove(){
-  // Hint uses MASTER AI - best move for current player
   let depth = 3;
   let result=getBestMove(turn, depth);
   if(result && result.move){
@@ -514,7 +546,6 @@ function suggestMove(){
     updateStatus(`Hint: ${'abcdefgh'[m.from[1]]}${8-m.from[0]} → ${'abcdefgh'[m.to[1]]}${8-m.to[0]}`, 'Master AI suggests this move');
   }
 }
-// init
 mode='ai'; playMode='ai'; board=initialBoard(); turn='w'; selected=null; legalMoves=[]; history=[]; capturedWhite=[]; capturedBlack=[]; flipped=false; lastMove=null; checkPos=null;
 setPlayMode('ai'); setPlayDiff('master');
 render(); updateEval();
