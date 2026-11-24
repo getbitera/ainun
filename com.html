@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>my Ainun COMPATIBLE CARDS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;600;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Poppins,sans-serif;color:#3a2a2e;min-height:100vh;background:#f7ecec;overflow-x:hidden}
+body:before{content:'';position:fixed;inset:0;background:radial-gradient(600px 400px at 10% 0%, #e8c4c4 0%, transparent 60%),radial-gradient(500px 400px at 90% 20%, #d8a7a7 0%, transparent 60%),radial-gradient(600px 500px at 50% 100%, #c9a0a0 0%, transparent 60%),linear-gradient(180deg,#f9efef,#f3e0e0);z-index:-2}
+body:after{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(183,110,121,.12) 1px, transparent 1px);background-size:22px 22px;z-index:-1;opacity:.6}
+.top{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);border-bottom:1px solid #e8c4c4;position:sticky;top:0;z-index:10}
+.top h1{font-family:Playfair Display,serif;font-size:18px;color:#8a4a52;line-height:1}
+.top h1 span{font-family:Poppins;font-size:8px;letter-spacing:3px;color:#b76e79;display:block;font-weight:800}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.card{background:rgba(255,255,255,.92);padding:18px;border-radius:24px;box-shadow:0 15px 40px rgba(183,110,121,.15);margin-top:12px;border:1px solid #fff}
+.btn{border:none;padding:11px 16px;border-radius:999px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-dusty{background:#b76e79;color:#fff;box-shadow:0 6px 20px rgba(183,110,121,.35)}
+.btn-dark{background:#3a2a2e;color:#fff}
+.btn-white{background:#fff;color:#b76e79;border:1px solid #e8c4c4}
+.btn-ghost{background:#fff;color:#8a4a52;border:1px solid #e8c4c4}
+.input{width:100%;padding:14px;border-radius:16px;border:2px solid #d8a7a7;font-family:Poppins;font-weight:700;text-align:center;font-size:14px;outline:none;background:#fff;margin-top:8px}
+.input:focus{border-color:#b76e79}
+.hidden{display:none!important}
+.progress{height:8px;background:#fff;border-radius:20px;overflow:hidden;margin:12px 0 6px;box-shadow:inset 0 0 0 1px #e8c4c4}
+.progress div{height:100%;background:linear-gradient(90deg,#d8a7a7,#b76e79,#8a4a52);transition:width .4s}
+.opt{padding:16px;border-radius:18px;border:2px solid #f0dede;margin-top:11px;cursor:pointer;display:flex;gap:12px;align-items:center;background:#fffdfd;transition:.15s}
+.opt:active{transform:scale(.98)}
+.opt:hover{border-color:#b76e79;background:#fdf2f2}
+.opt span{font-size:26px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#f7ecec;border-radius:14px;flex-shrink:0}
+.opt b{font-size:14px;display:block;line-height:1.35;color:#3a2a2e}
+.opt small{font-size:11px;color:#9a7a7a;line-height:1.4}
+.big-btn{width:100%;border:none;padding:16px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer;background:#3a2a2e;color:#fff;margin-top:12px}
+.overlay{position:fixed;inset:0;background:linear-gradient(180deg,#f9efef 0%, #e8c4c4 45%, #d8a7a7 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;overflow-y:auto;padding:0}
+.hero-img{width:100%;max-width:520px;height:360px;object-fit:cover;display:block}
+.hero-wrap{width:100%;max-width:520px;position:relative;background:#d8a7a7}
+.hero-wrap:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%, #f9efef 100%)}
+.score-dot{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;margin:2px}
+.score-dot.match{background:#d4edda;color:#155724}
+.score-dot.nomatch{background:#f8d7da;color:#721c24}
+.voice-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.voice-bar button{border:1px solid #d8a7a7;background:#fff;color:#8a4a52;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer}
+.voice-bar button.active{background:#b76e79;color:#fff;border-color:#b76e79}
+.voice-pill{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#3a2a2e;color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="top"><h1>ARE WE COMPATIBLE?<span>100 QUESTIONS • 20 PER GAME • MY AINUN</span></h1><button class="btn btn-white" onclick="restart()">↻ New Game</button></div>
+
+<div id="voiceEnableBanner" style="max-width:520px;margin:12px auto 0;padding:0 14px">
+  <button onclick="enableVoice()" style="width:100%;border:none;background:#3a2a2e;color:#fff;padding:14px;border-radius:999px;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.2)">🔊 TAP TO ENABLE AI VOICE - Welcome to My Ainun</button>
+  <p style="font-size:11px;color:#8a7a7a;text-align:center;margin-top:6px">Tap once, AI will speak welcome, questions & results automatically.</p>
+</div>
+
+<div class="wrap">
+  <div id="gameArea">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#8a4a52"><span id="qCount">QUESTION 1 / 20</span><span id="scoreLabel">✅ 0 MATCH • ❌ 0</span></div>
+    <div class="progress"><div id="prog" style="width:5%"></div></div>
+    <div class="voice-bar">
+      <button id="voiceToggle" class="active" onclick="toggleVoice()">🔊 AI VOICE: ON</button>
+      <button onclick="speakCurrent()">▶️ Replay Question</button>
+      <button onclick="stopVoice()">⏹ Stop</button>
+      <button onclick="speakWelcome()">👋 Say Welcome Again</button>
+    </div>
+    <div style="text-align:center;margin-top:8px" id="historyDots"></div>
+
+    <div class="card" id="pickCard">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span id="phaseTag" style="background:#f7ecec;color:#b76e79;padding:6px 11px;border-radius:999px;font-size:10px;font-weight:800">🎲 PLAYER 1 TURN</span>
+        <span id="turnName" style="font-size:11px;color:#aaa;font-weight:800">YOU</span>
+      </div>
+      <div style="font-size:12px;color:#b76e79;font-weight:800;letter-spacing:1px;margin-top:12px" id="phaseTitle">YOUR TURN - DON'T LET THEM PEEK!</div>
+      <div id="qText" style="font-family:Playfair Display,serif;font-size:22px;line-height:1.3;font-weight:900;color:#3a2a2e;margin-top:6px">Loading...</div>
+      <p id="qHint" style="font-size:12px;color:#9a7a7a;line-height:1.6;margin-top:8px"></p>
+      <div id="options"></div>
+      <p style="font-size:11px;color:#aaa;text-align:center;margin-top:10px" id="pickHint">Pick honestly. Your partner will answer next without seeing yours.</p>
+    </div>
+
+    <div class="card hidden" id="revealCard" style="text-align:center">
+      <div id="revealEmoji" style="font-size:64px">✅</div>
+      <div id="revealTitle" style="font-family:Playfair Display,serif;font-size:26px;font-weight:900;margin-top:6px">MATCH!</div>
+      <p id="revealDesc" style="font-size:12px;color:#666;line-height:1.7;margin-top:6px"></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;text-align:left">
+        <div style="background:#fdf2f2;padding:12px;border-radius:16px"><div style="font-size:10px;font-weight:800;color:#b76e79" id="p1NameLabel">PLAYER 1</div><div style="font-size:13px;font-weight:800;margin-top:4px" id="p1Answer"></div></div>
+        <div style="background:#fdf2f2;padding:12px;border-radius:16px"><div style="font-size:10px;font-weight:800;color:#b76e79" id="p2NameLabel">PLAYER 2</div><div style="font-size:13px;font-weight:800;margin-top:4px" id="p2Answer"></div></div>
+      </div>
+      <button class="btn btn-dusty" style="width:100%;margin-top:14px;padding:14px;font-size:14px" onclick="nextQuestion()">Next Question ➡️</button>
+      <button class="btn btn-white" style="width:100%;margin-top:8px" onclick="speakReveal()">🔊 Hear This Result Again</button>
+    </div>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:#b76e79;font-weight:800;letter-spacing:2px">YOUR COMPATIBILITY</div>
+      <div style="font-size:72px;font-weight:900;font-family:Playfair Display,serif;color:#b76e79;line-height:1;margin:8px 0" id="finalPct">0%</div>
+      <div id="finalEmoji" style="font-size:48px">💖</div>
+      <div id="finalTitle" style="font-size:22px;font-weight:900;font-family:Playfair Display,serif;margin-top:6px"></div>
+      <p id="finalDesc" style="font-size:12px;color:#666;line-height:1.7;margin-top:8px"></p>
+      <div style="background:#fdf2f2;padding:12px;border-radius:16px;margin-top:12px;text-align:left">
+        <div style="font-size:11px;font-weight:800;color:#8a4a52">📊 BREAKDOWN</div>
+        <div style="font-size:12px;color:#444;line-height:1.7;margin-top:4px" id="finalBreakdown"></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:10px" id="finalDots"></div>
+      <button class="btn btn-dusty" style="width:100%;margin-top:12px;padding:14px" onclick="speakResult()">🔊 Hear My Final Result (AI)</button>
+    </div>
+    <div class="card">
+      <h3 style="font-size:12px;color:#8a4a52">💡 WHAT THIS MEANS</h3>
+      <p id="finalTips" style="font-size:12px;color:#444;line-height:1.7;margin-top:6px"></p>
+      <h3 style="font-size:12px;color:#b76e79;margin-top:12px">🔥 YOUR STRONGEST MATCHES</h3>
+      <p id="finalStrong" style="font-size:12px;color:#444;line-height:1.7;margin-top:6px"></p>
+      <h3 style="font-size:12px;color:#8a4a52;margin-top:12px">🤔 WHERE YOU DIFFER</h3>
+      <p id="finalDiff" style="font-size:12px;color:#444;line-height:1.7;margin-top:6px"></p>
+    </div>
+    <div class="card" style="background:#3a2a2e;color:#fff">
+      <h3 style="font-size:12px;color:#e8c4c4">📱 CAPTION FOR STORY</h3>
+      <p id="captionText" style="font-size:12px;line-height:1.7;margin-top:6px;background:#ffffff15;padding:12px;border-radius:14px"></p>
+      <button class="btn btn-dusty" style="width:100%;margin-top:10px" onclick="copyCaption()">📋 Copy Caption</button>
+    </div>
+    <button class="big-btn" onclick="restart()">🔀 Play Again - 20 New Random Questions</button>
+  </div>
+</div>
+
+<div class="overlay" id="homeScreen">
+  <div class="hero-wrap"><img class="hero-img" src="myainuncom.jpg" alt="My Ainun" onerror="this.style.display='none'; this.parentElement.style.height='200px'"></div>
+  <div style="width:100%;max-width:520px;padding:0 20px 22px;margin-top:-60px;position:relative;z-index:2;text-align:center">
+    <span style="display:inline-block;background:#fff;color:#b76e79;padding:7px 13px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:2px;box-shadow:0 8px 20px rgba(0,0,0,.08)">MY AINUN • ARE WE COMPATIBLE?</span>
+    <h2 style="font-family:Playfair Display,serif;font-size:38px;line-height:.95;color:#3a2a2e;margin-top:12px">Are We<br><span style="color:#b76e79;font-style:italic">Compatible?</span></h2>
+    <p style="font-size:13px;color:#6a4a4a;margin-top:12px;line-height:1.6">20 questions. 2 people.<br>Answer separately. If you pick the same = ✅ MATCH.<br>How many % are you really compatible?</p>
+    <button onclick="enableVoice()" style="border:none;background:#fff;color:#b76e79;padding:12px 16px;border-radius:999px;font-weight:900;font-size:12px;cursor:pointer;margin-top:10px;box-shadow:0 8px 20px rgba(0,0,0,.1)">🔊 TAP TO ENABLE AI VOICE FIRST</button>
+    <div style="text-align:left;margin-top:14px">
+      <input class="input" id="name1" placeholder="Your name...">
+      <input class="input" id="name2" placeholder="Your partner's name...">
+      <button class="big-btn" onclick="startGame()">▶️ START TEST - 20 QUESTIONS</button>
+      <p style="font-size:11px;color:#8a7a7a;text-align:center;margin-top:10px">100 questions in total. Every play = 20 random new ones.</p>
+    </div>
+  </div>
+</div>
+
+<div class="voice-pill hidden" id="speakingPill"><span>🔊</span><span id="speakingText">AI Speaking...</span></div>
+
+<script>
+const ALL=[
+ {q:'If we go on a date, would you rather go by...', hint:'Pick the one you would actually choose.', a:{t:'Car', d:'AC, music, comfortable', e:'🚗'}, b:{t:'Motorbike', d:'Wind, close, adventurous', e:'🏍️'}},
+ {q:'Perfect weekend together is...', hint:'', a:{t:'Stay at home', d:'Movie, snacks, lazy', e:'🏠'}, b:{t:'Go out', d:'Explore, cafe, walk', e:'🌇'}},
+ {q:'When we fight, you prefer...', hint:'', a:{t:'Talk it out now', d:'Fix it immediately', e:'💬'}, b:{t:'Cool down first', d:'Need space, then talk', e:'🧊'}},
+ {q:'You show love more by...', hint:'', a:{t:'Words', d:'Saying I love you, compliments', e:'💌'}, b:{t:'Actions', d:'Helping, doing things', e:'🫶'}},
+ {q:'Pick a movie night:', hint:'', a:{t:'Romance', d:'Sweet, emotional', e:'💖'}, b:{t:'Horror', d:'Scary, adrenaline', e:'👻'}},
+ {q:'Your ideal breakfast with me:', hint:'', a:{t:'Cook together', d:'Homemade, slow morning', e:'🍳'}, b:{t:'Cafe hopping', d:'Aesthetic, try new place', e:'☕'}},
+ {q:'If we had a free day, you want...', hint:'', a:{t:'Quality time just us', d:'No phones, just us', e:'⏰'}, b:{t:'Hang with friends', d:'Group, fun, loud', e:'👯'}},
+ {q:'When I am sad, you think I need...', hint:'', a:{t:'Hug', d:'Physical comfort', e:'🤗'}, b:{t:'Space + talk', d:'Listen, then advice', e:'🗣️'}},
+ {q:'Your dream vacation:', hint:'', a:{t:'Beach', d:'Sun, sea, chill', e:'🏖️'}, b:{t:'Mountains', d:'Cool, hiking, view', e:'⛰️'}},
+ {q:'Money for us is for...', hint:'', a:{t:'Saving for future', d:'House, marriage, safe', e:'💰'}, b:{t:'Enjoy now', d:'Travel, food, experience', e:'✈️'}},
+ {q:'You prefer to be contacted by...', hint:'', a:{t:'Chat all day', d:'Small updates, stickers', e:'💬'}, b:{t:'Call at night', d:'One long deep call', e:'📞'}},
+ {q:'Pick a pet for us:', hint:'', a:{t:'Cat', d:'Chill, cute, independent', e:'🐱'}, b:{t:'Dog', d:'Loyal, playful, clingy', e:'🐶'}},
+ {q:'On anniversary, you want...', hint:'', a:{t:'Fancy dinner', d:'Nice restaurant', e:'🍽️'}, b:{t:'Simple surprise', d:'Homemade, heartfelt', e:'🎁'}},
+ {q:'If we get married, live...', hint:'', a:{t:'Own house', d:'Just the two of us', e:'🏡'}, b:{t:'Near parents', d:'Close to family', e:'👨‍👩‍👧'}},
+ {q:'You get jealous when...', hint:'', a:{t:'I talk to others too much', d:'Need attention', e:'😤'}, b:{t:'I am too busy for you', d:'Need time', e:'⏳'}},
+ {q:'Your love language is more...', hint:'', a:{t:'Physical touch', d:'Hug, hold hands', e:'🤝'}, b:{t:'Quality time', d:'Be together, no phone', e:'⏰'}},
+ {q:'Pick a late night activity:', hint:'', a:{t:'Deep talk', d:'Talk till 3 AM', e:'🌙'}, b:{t:'Game / Netflix', d:'Chill, laugh', e:'🎮'}},
+ {q:'If I am angry, you would...', hint:'', a:{t:'Apologize first', d:'Say sorry, calm me', e:'🙏'}, b:{t:'Give me space', d:'Let me cool down', e:'🫧'}},
+ {q:'Your ideal proposal:', hint:'', a:{t:'Public & grand', d:'Big moment, everyone sees', e:'🎉'}, b:{t:'Private & intimate', d:'Just us, emotional', e:'💍'}},
+ {q:'When we are old, you imagine...', hint:'', a:{t:'Travel together', d:'Explore the world', e:'🌍'}, b:{t:'Garden at home', d:'Quiet, peaceful', e:'🌿'}},
+ {q:'Pick a food date:', hint:'', a:{t:'Street food', d:'Cheap, tasty, fun', e:'🍢'}, b:{t:'Fine dining', d:'Fancy, romantic', e:'🍷'}},
+ {q:'You prefer partner who is...', hint:'', a:{t:'Funny', d:'Makes you laugh', e:'😂'}, b:{t:'Calm & mature', d:'Makes you feel safe', e:'🧘'}},
+ {q:'If we have kids, you want...', hint:'', a:{t:'2 kids', d:'Small family', e:'👶'}, b:{t:'3+ kids', d:'Big, noisy, fun', e:'👨‍👩‍👧‍👦'}},
+ {q:'Your mood booster is...', hint:'', a:{t:'Food', d:'Boba, snacks, ice cream', e:'🧋'}, b:{t:'Hug', d:'Cuddle, touch', e:'🤗'}},
+ {q:'Pick a gift from me:', hint:'', a:{t:'Something useful', d:'Practical, everyday', e:'🎁'}, b:{t:'Something romantic', d:'Letter, flowers, memory', e:'🌹'}},
+ {q:'When we are LDR, you need...', hint:'', a:{t:'Daily video call', d:'See face every day', e:'📹'}, b:{t:'Good morning text', d:'Sweet words every day', e:'🌅'}},
+ {q:'Your biggest fear in love:', hint:'', a:{t:'Being cheated on', d:'Betrayal', e:'💔'}, b:{t:'Being left', d:'Abandoned', e:'😢'}},
+ {q:'Pick a song for us:', hint:'', a:{t:'Slow romantic', d:'Ballad, emotional', e:'🎵'}, b:{t:'Upbeat pop', d:'Happy, dance', e:'🎶'}},
+ {q:'If I am sick, you would...', hint:'', a:{t:'Come take care of me', d:'Cook, medicine, stay', e:'🍲'}, b:{t:'Order food + check in', d:'Care from distance', e:'🛵'}},
+ {q:'Your ideal first date:', hint:'', a:{t:'Coffee', d:'Simple, talk', e:'☕'}, b:{t:'Walk / park', d:'Relaxed, nature', e:'🌳'}},
+ {q:'You like to be praised for...', hint:'', a:{t:'Looks', d:'You look good today', e:'😍'}, b:{t:'Effort', d:'You work so hard', e:'💪'}},
+ {q:'Pick a social style:', hint:'', a:{t:'Introvert at home', d:'Just us, quiet', e:'🏠'}, b:{t:'Extrovert outside', d:'Friends, party', e:'🎉'}},
+ {q:'If we have 1 billion, first...', hint:'', a:{t:'Buy house', d:'Safe, invest', e:'🏡'}, b:{t:'Travel world', d:'Experience first', e:'✈️'}},
+ {q:'You prefer to solve problems by...', hint:'', a:{t:'Logic', d:'Think, plan', e:'🧠'}, b:{t:'Feeling', d:'Heart, intuition', e:'❤️'}},
+ {q:'Pick a birthday for me:', hint:'', a:{t:'Surprise party', d:'Friends, cake, fun', e:'🎂'}, b:{t:'Just us two', d:'Intimate, quiet', e:'🕯️'}},
+ {q:'Your phone habit with me:', hint:'', a:{t:'Reply fast', d:'Always online', e:'⚡'}, b:{t:'Reply slow but quality', d:'Deep, not frequent', e:'🐢'}},
+ {q:'If we argue in public, you...', hint:'', a:{t:'Stay calm, talk later', d:'Keep it private', e:'🤫'}, b:{t:'Solve it right there', d:'Do not delay', e:'💬'}},
+ {q:'Pick a couple hobby:', hint:'', a:{t:'Cooking', d:'Kitchen together', e:'🍳'}, b:{t:'Sports / gym', d:'Active together', e:'🏋️'}},
+ {q:'You trust more...', hint:'', a:{t:'Words', d:'What they say', e:'💬'}, b:{t:'Actions', d:'What they do', e:'🫶'}},
+ {q:'Ideal sleep:', hint:'', a:{t:'Cuddle to sleep', d:'Hug all night', e:'🫂'}, b:{t:'Own space', d:'Comfortable, free', e:'🛏️'}},
+ {q:'Pick a rainy day:', hint:'', a:{t:'Stay in bed', d:'Netflix, blanket', e:'🛋️'}, b:{t:'Go out in rain', d:'Adventure, wet', e:'🌧️'}},
+ {q:'You get happy when I...', hint:'', a:{t:'Give surprise', d:'Unexpected gift', e:'🎁'}, b:{t:'Give time', d:'Spend time with me', e:'⏰'}},
+ {q:'Your ideal job for us:', hint:'', a:{t:'Same city', d:'Close, together', e:'🏙️'}, b:{t:'Can be LDR', d:'Career first', e:'✈️'}},
+ {q:'Pick a way to say sorry:', hint:'', a:{t:'Say it directly', d:'I am sorry', e:'🙏'}, b:{t:'Show it', d:'Gift, help, action', e:'💐'}},
+ {q:'If we have a fight, who should...', hint:'', a:{t:'Apologize first', d:'Even if not wrong', e:'🕊️'}, b:{t:'Wait for other', d:'Let them realize', e:'⏳'}},
+ {q:'Your favorite photo of us:', hint:'', a:{t:'Candid', d:'Natural, laughing', e:'📸'}, b:{t:'Posed', d:'Aesthetic, pretty', e:'✨'}},
+ {q:'Pick a morning:', hint:'', a:{t:'Early & productive', d:'Morning person', e:'🌅'}, b:{t:'Late & chill', d:'Night owl', e:'🦉'}},
+ {q:'You want kids to be...', hint:'', a:{t:'Free & creative', d:'Let them explore', e:'🎨'}, b:{t:'Disciplined', d:'Rules, structure', e:'📏'}},
+ {q:'Your ideal home:', hint:'', a:{t:'Minimalist', d:'Clean, simple', e:'🤍'}, b:{t:'Cozy & colorful', d:'Warm, many things', e:'🌈'}},
+ {q:'Pick a text from me:', hint:'', a:{t:'"I miss you"', d:'Sweet, short', e:'💌'}, b:{t:'"I bought you food"', d:'Care, practical', e:'🍔'}},
+ {q:'If we go to concert, you want...', hint:'', a:{t:'Front row, loud', d:'Energy, jump', e:'🎤'}, b:{t:'Back row, chill', d:'Enjoy, watch', e:'🎧'}},
+ {q:'You prefer partner who...', hint:'', a:{t:'Leads', d:'Decisive, protect', e:'🦁'}, b:{t:'Supports', d:'Gentle, listen', e:'🕊️'}},
+ {q:'Pick a season for wedding:', hint:'', a:{t:'Summer', d:'Bright, outdoor', e:'☀️'}, b:{t:'Winter', d:'Cozy, elegant', e:'❄️'}},
+ {q:'Your biggest green flag:', hint:'', a:{t:'Good communication', d:'Talk, honest', e:'💬'}, b:{t:'Consistent', d:'Always there', e:'🔒'}},
+ {q:'Pick a date outfit:', hint:'', a:{t:'Casual', d:'Jeans, comfy', e:'👖'}, b:{t:'Fancy', d:'Dress up, elegant', e:'👗'}},
+ {q:'If I am stressed, you...', hint:'', a:{t:'Listen', d:'Let me vent', e:'👂'}, b:{t:'Fix it', d:'Help solve', e:'🔧'}},
+ {q:'Your love in public:', hint:'', a:{t:'Hold hands', d:'Show it', e:'🤝'}, b:{t:'Private', d:'Keep it for us', e:'🤫'}},
+ {q:'Pick a holiday:', hint:'', a:{t:'Christmas / Lebaran with family', d:'Family time', e:'🎄'}, b:{t:'Just us vacation', d:'Couple time', e:'🏖️'}},
+ {q:'You want to be remembered as...', hint:'', a:{t:'Fun partner', d:'Laugh, happy', e:'😂'}, b:{t:'Loving partner', d:'Care, safe', e:'❤️'}},
+ {q:'If we have a baby, name style:', hint:'', a:{t:'Modern', d:'Unique, trendy', e:'✨'}, b:{t:'Classic', d:'Timeless, simple', e:'📖'}},
+ {q:'Pick a way to spend 1M:', hint:'', a:{t:'Food trip', d:'Eat everywhere', e:'🍜'}, b:{t:'Shopping', d:'Buy things', e:'🛍️'}},
+ {q:'Your ideal phone wallpaper:', hint:'', a:{t:'Photo of us', d:'Couple photo', e:'💑'}, b:{t:'Aesthetic', d:'Pretty, minimal', e:'🌸'}},
+ {q:'If I forget anniversary, you...', hint:'', a:{t:'Upset', d:'It matters', e:'😤'}, b:{t:'Forgive', d:'It is okay, remind me', e:'😊'}},
+ {q:'Pick a couple goal:', hint:'', a:{t:'Build business together', d:'Work, money', e:'💼'}, b:{t:'Build family together', d:'Home, kids', e:'🏡'}},
+ {q:'You like surprises that are...', hint:'', a:{t:'Big', d:'Party, grand', e:'🎉'}, b:{t:'Small', d:'Note, snack', e:'🎀'}},
+ {q:'If we watch news, you...', hint:'', a:{t:'Discuss it', d:'Talk, debate', e:'🗣️'}, b:{t:'Ignore it', d:'Focus on us', e:'💑'}},
+ {q:'Pick a bedtime:', hint:'', a:{t:'Early', d:'10 PM, healthy', e:'🌙'}, b:{t:'Late', d:'1 AM, talk', e:'🦉'}},
+ {q:'Your ideal honeymoon:', hint:'', a:{t:'Bali', d:'Beach, chill', e:'🏖️'}, b:{t:'Japan / Korea', d:'Explore, food', e:'🗾'}},
+ {q:'If I am jealous, you...', hint:'', a:{t:'Reassure me', d:'Say you love only me', e:'💬'}, b:{t:'Give space', d:'Let me calm', e:'🧊'}},
+ {q:'Pick a love song style:', hint:'', a:{t:'Indie / acoustic', d:'Soft, mellow', e:'🎸'}, b:{t:'R&B / pop', d:'Catchy, romantic', e:'🎤'}},
+ {q:'You prefer to travel by...', hint:'', a:{t:'Plane', d:'Fast, comfortable', e:'✈️'}, b:{t:'Road trip', d:'Slow, adventure', e:'🚗'}},
+ {q:'If we have a dog, you want...', hint:'', a:{t:'Small dog', d:'Cute, inside', e:'🐶'}, b:{t:'Big dog', d:'Protect, loyal', e:'🦮'}},
+ {q:'Your ideal compliment:', hint:'', a:{t:'"You are beautiful / handsome"', d:'Looks', e:'😍'}, b:{t:'"You are smart"', d:'Mind', e:'🧠'}},
+ {q:'Pick a way to celebrate win:', hint:'', a:{t:'Eat out', d:'Food, treat', e:'🍽️'}, b:{t:'Stay home celebrate', d:'Hug, chill', e:'🏠'}},
+ {q:'If we are in a group, you...', hint:'', a:{t:'Stay close to me', d:'Clingy', e:'🤗'}, b:{t:'Mingle with others', d:'Social', e:'👯'}},
+ {q:'Your ideal wedding:', hint:'', a:{t:'Big wedding', d:'Many people', e:'💒'}, b:{t:'Small wedding', d:'Close family only', e:'💍'}},
+ {q:'Pick a way to handle stress:', hint:'', a:{t:'Talk to partner', d:'Vent', e:'💬'}, b:{t:'Alone time', d:'Music, walk', e:'🎧'}},
+ {q:'If I give you flowers, you want...', hint:'', a:{t:'Real flowers', d:'Fresh, romantic', e:'🌹'}, b:{t:'Money / food instead', d:'Practical', e:'💸'}},
+ {q:'Your favorite memory style:', hint:'', a:{t:'Photos', d:'Save moments', e:'📸'}, b:{t:'Memory in heart', d:'Feel it', e:'❤️'}},
+ {q:'Pick a Sunday:', hint:'', a:{t:'Church / family', d:'Family, calm', e:'⛪'}, b:{t:'Brunch date', d:'Just us', e:'🥞'}},
+ {q:'If we have a disagreement about money, you...', hint:'', a:{t:'Save more', d:'Be safe', e:'💰'}, b:{t:'Spend for happiness', d:'Enjoy', e:'🎉'}},
+ {q:'Your ideal partner energy:', hint:'', a:{t:'Calm', d:'Peaceful', e:'🧘'}, b:{t:'Energetic', d:'Fun, hype', e:'⚡'}},
+ {q:'Pick a gift for me:', hint:'', a:{t:'Watch / jewelry', d:'Keep forever', e:'⌚'}, b:{t:'Experience', d:'Trip, date', e:'🎟️'}},
+ {q:'If I am busy, you...', hint:'', a:{t:'Wait patiently', d:'Understand', e:'⏳'}, b:{t:'Remind me you miss me', d:'Need attention', e:'💌'}},
+ {q:'Your ideal first kiss:', hint:'', a:{t:'Romantic sunset', d:'Movie-like', e:'🌇'}, b:{t:'Spontaneous', d:'Unexpected, fun', e:'😘'}},
+ {q:'Pick a way to say I love you:', hint:'', a:{t:'Say it', d:'Words', e:'💬'}, b:{t:'Show it', d:'Hug, help', e:'🤗'}},
+ {q:'If we move, you want...', hint:'', a:{t:'City', d:'Busy, modern', e:'🏙️'}, b:{t:'Village / quiet', d:'Nature, calm', e:'🌾'}},
+ {q:'Your favorite couple content:', hint:'', a:{t:'Vlog', d:'Daily life', e:'🎥'}, b:{t:'Photos', d:'Aesthetic', e:'📸'}},
+ {q:'Pick a fear:', hint:'', a:{t:'Losing each other', d:'Break up', e:'💔'}, b:{t:'Growing apart', d:'Become strangers', e:'😶'}},
+ {q:'If we have a baby, who wakes up at night?', hint:'', a:{t:'Take turns', d:'Fair, 50/50', e:'⚖️'}, b:{t:'Whoever is free', d:'Flexible', e:'🤷'}},
+ {q:'Your ideal date budget:', hint:'', a:{t:'Cheap but fun', d:'Street food, walk', e:'💸'}, b:{t:'Expensive but special', d:'Fancy', e:'💎'}},
+ {q:'Pick a superpower for us:', hint:'', a:{t:'Read minds', d:'Know what I think', e:'🧠'}, b:{t:'Teleport', d:'Meet anytime', e:'🌀'}},
+ {q:'If I am crying, you...', hint:'', a:{t:'Hug me tight', d:'Hold me', e:'🫂'}, b:{t:'Ask what happened', d:'Talk', e:'💬'}},
+ {q:'Your ideal anniversary gift:', hint:'', a:{t:'Letter', d:'Handwritten', e:'💌'}, b:{t:'Jewelry', d:'Keep it', e:'💍'}},
+ {q:'Pick a couple name:', hint:'', a:{t:'Cute', d:'Babe, sayang', e:'🥰'}, b:{t:'Funny', d:'Weird nickname', e:'😂'}},
+ {q:'If we are famous, you want...', hint:'', a:{t:'Share our love', d:'Post us', e:'📱'}, b:{t:'Keep private', d:'Lowkey', e:'🤫'}},
+ {q:'Your ideal workout together:', hint:'', a:{t:'Gym', d:'Strong together', e:'🏋️'}, b:{t:'Jogging / yoga', d:'Chill, outdoor', e:'🧘'}},
+ {q:'Pick a movie for first date:', hint:'', a:{t:'Comedy', d:'Laugh', e:'😂'}, b:{t:'Romance', d:'Sweet', e:'💖'}},
+ {q:'If we have a house, style:', hint:'', a:{t:'Modern', d:'Clean, white', e:'🤍'}, b:{t:'Warm / wooden', d:'Cozy', e:'🪵'}},
+];
+let selected=[], idx=0, phase=1, ans1=null, ans2=null, matches=0, name1='You', name2='Partner', resultsLog=[];
+let voiceOn=true, voiceEnabled=false, lastRevealText='', lastFinalText='';
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ let j; if(window.crypto && window.crypto.getRandomValues){ let arr=new Uint32Array(1); window.crypto.getRandomValues(arr); j=arr[0]%(i+1); } else j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// ===== AI VOICE ENGINE =====
+function speak(text, onEnd){
+  if(!voiceOn) return;
+  try{
+    speechSynthesis.cancel();
+    let u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US'; u.rate=1.0; u.pitch=1.05; u.volume=1;
+    let voices=speechSynthesis.getVoices();
+    let female=voices.find(v=>v.name.toLowerCase().includes('samantha')||v.name.toLowerCase().includes('female')||v.name.includes('Google US English')||v.name.includes('Zira'));
+    if(female) u.voice=female;
+    document.getElementById('speakingPill').classList.remove('hidden');
+    document.getElementById('speakingText').textContent='AI Speaking...';
+    u.onend=()=>{ document.getElementById('speakingPill').classList.add('hidden'); if(onEnd) onEnd(); };
+    u.onerror=()=>{ document.getElementById('speakingPill').classList.add('hidden'); };
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopVoice(){ try{speechSynthesis.cancel(); document.getElementById('speakingPill').classList.add('hidden');}catch(e){} }
+function enableVoice(){
+  voiceEnabled=true; voiceOn=true;
+  document.getElementById('voiceToggle').textContent='🔊 AI VOICE: ON';
+  document.getElementById('voiceToggle').classList.add('active');
+  document.getElementById('voiceEnableBanner').style.display='none';
+  speakWelcome();
+}
+function toggleVoice(){
+  voiceOn=!voiceOn;
+  if(!voiceOn) stopVoice();
+  document.getElementById('voiceToggle').textContent=voiceOn?'🔊 AI VOICE: ON':'🔇 AI VOICE: OFF';
+  document.getElementById('voiceToggle').classList.toggle('active', voiceOn);
+  if(voiceOn && !voiceEnabled){ voiceEnabled=true; speakWelcome(); }
+  else if(voiceOn){ speak('AI voice is back on.'); }
+}
+function speakWelcome(){
+  let names = (name1!=='You' && name2!=='Partner') ? `${name1} and ${name2},` : '';
+  speak(`Welcome to My Ainun Are We Compatible. Hi ${names} Welcome to your compatibility test. I am your AI guide. We have one hundred questions, but you will play twenty random ones. Answer separately, do not peek. If you pick the same answer, you get a match. Let's find out how compatible you really are. Good luck.`);
+}
+function speakCurrent(){
+  let q=selected[idx]; if(!q) return;
+  let turnName = phase===1 ? name1 : name2;
+  speak(`Question ${idx+1} for ${turnName}. ${q.q} Option one: ${q.a.t}. Option two: ${q.b.t}. Pick honestly, ${turnName}.`);
+}
+function speakReveal(){ if(lastRevealText) speak(lastRevealText); }
+function speakResult(){ if(lastFinalText) speak(lastFinalText); }
+
+function startGame(){
+ name1=document.getElementById('name1').value.trim()||'You';
+ name2=document.getElementById('name2').value.trim()||'Partner';
+ selected=shuffle([...ALL]).slice(0,20);
+ idx=0; phase=1; matches=0; resultsLog=[];
+ document.getElementById('homeScreen').classList.add('hidden');
+ renderQuestion();
+ setTimeout(()=>{ speak(`Hi ${name1} and ${name2}, welcome to My Ainun Are We Compatible. Let's start. Question one is for ${name1}. Do not let ${name2} peek.`); }, 400);
+}
+function renderQuestion(){
+ let q=selected[idx];
+ document.getElementById('gameArea').classList.remove('hidden');
+ document.getElementById('resultArea').classList.add('hidden');
+ document.getElementById('pickCard').classList.remove('hidden');
+ document.getElementById('revealCard').classList.add('hidden');
+ document.getElementById('qCount').textContent=`QUESTION ${idx+1} / 20`;
+ document.getElementById('prog').style.width=(idx/20*100)+'%';
+ document.getElementById('scoreLabel').textContent=`✅ ${matches} MATCH • ❌ ${idx - matches + (phase===1?0:0)}`;
+ let turnName = phase===1 ? name1 : name2;
+ document.getElementById('phaseTag').textContent = phase===1 ? `🎲 ${name1.toUpperCase()} TURN` : `🎲 ${name2.toUpperCase()} TURN`;
+ document.getElementById('turnName').textContent = turnName;
+ document.getElementById('phaseTitle').textContent = phase===1 ? `${name1}, YOUR TURN - DON'T LET ${name2.toUpperCase()} PEEK!` : `${name2}, YOUR TURN - ${name1.toUpperCase()} TURN AWAY!`;
+ document.getElementById('qText').textContent=q.q;
+ document.getElementById('qHint').textContent=q.hint||'';
+ document.getElementById('pickHint').textContent = phase===1 ? `Pick honestly. ${name2} will answer next without seeing yours.` : `Pick honestly. We will reveal if you match!`;
+ let opts=shuffle([{key:'A',...q.a},{key:'B',...q.b}]);
+ document.getElementById('options').innerHTML=opts.map(o=>`<div class="opt" onclick="pick('${o.key}','${o.t}')"><span>${o.e}</span><div><b>${o.t}</b><small>${o.d}</small></div></div>`).join('');
+ updateDots();
+ // Auto speak question when it appears, with small delay so UI updates first
+ setTimeout(()=>{ speakCurrent(); }, 350);
+}
+function pick(key, label){
+ if(phase===1){ ans1={key,label}; phase=2; renderQuestion(); }
+ else { ans2={key,label}; showReveal(); }
+}
+function showReveal(){
+ let q=selected[idx];
+ let isMatch = ans1.key===ans2.key;
+ if(isMatch) matches++;
+ document.getElementById('pickCard').classList.add('hidden');
+ document.getElementById('revealCard').classList.remove('hidden');
+ document.getElementById('revealEmoji').textContent=isMatch?'✅':'❌';
+ document.getElementById('revealTitle').textContent=isMatch?'MATCH!':'NOT MATCH';
+ document.getElementById('revealTitle').style.color=isMatch?'#00a86b':'#d64550';
+ document.getElementById('revealDesc').textContent=isMatch?`You both picked the same! That's a sign you really think alike on this one.`:`You picked different! That's okay - differences make you learn each other.`;
+ document.getElementById('p1NameLabel').textContent=name1.toUpperCase();
+ document.getElementById('p2NameLabel').textContent=name2.toUpperCase();
+ document.getElementById('p1Answer').textContent=ans1.label;
+ document.getElementById('p2Answer').textContent=ans2.label;
+ document.getElementById('scoreLabel').textContent=`✅ ${matches} MATCH • ❌ ${idx+1 - matches}`;
+ resultsLog.push({q:q.q, match:isMatch, a1:ans1.label, a2:ans2.label});
+ updateDots();
+ lastRevealText = isMatch
+   ? `Match! Amazing. ${name1} picked ${ans1.label}, and ${name2} also picked ${ans2.label}. You think alike. You now have ${matches} matches.`
+   : `Not match. ${name1} picked ${ans1.label}, but ${name2} picked ${ans2.label}. That's okay, differences make you learn each other. You now have ${matches} matches.`;
+ speak(lastRevealText);
+}
+function updateDots(){
+ let html='';
+ resultsLog.forEach(r=>{ html+=`<span class="score-dot ${r.match?'match':'nomatch'}">${r.match?'✓':'✕'}</span>` });
+ if(idx<20 && resultsLog.length<idx+1){ html+=`<span style="font-size:11px;color:#aaa"> • Q${idx+1} in progress</span>` }
+ document.getElementById('historyDots').innerHTML=html;
+ document.getElementById('finalDots').innerHTML=html;
+}
+function nextQuestion(){
+ idx++; phase=1; ans1=null; ans2=null;
+ if(idx>=20) showResult(); else renderQuestion();
+}
+function showResult(){
+ document.getElementById('gameArea').classList.add('hidden');
+ document.getElementById('resultArea').classList.remove('hidden');
+ let pct=Math.round(matches/20*100);
+ document.getElementById('finalPct').textContent=pct+'%';
+ let emoji, title, desc, tips;
+ if(pct>=85){ emoji='💍💖'; title='SOULMATES!'; desc=`${pct}% - You are literally thinking the same! You finish each other's sentences. This is rare.`; tips='You are already super in sync. Keep it: keep choosing each other every day, even on boring days.'; }
+ else if(pct>=70){ emoji='💖'; title='SUPER COMPATIBLE!'; desc=`${pct}% - You match on most things. Differences are small and easy to talk through.`; tips='You have a strong base. When you disagree, talk, do not assume. You already understand each other well.'; }
+ else if(pct>=50){ emoji='💕'; title='GOOD MATCH!'; desc=`${pct}% - You are compatible with healthy differences. You are not clones, you complete each other.`; tips='Differences are your strength. Learn to love the part of them that is different from you.'; }
+ else if(pct>=30){ emoji='💛'; title='OPPOSITES ATTRACT!'; desc=`${pct}% - You are quite different, but that is why you are interesting to each other.`; tips='You need more deep talks. Ask each other WHY you chose that answer. You will understand each other more.'; }
+ else { emoji='💫'; title='STILL LEARNING EACH OTHER'; desc=`${pct}% - You are very different! That means there is still so much to discover about each other.`; tips='Do not worry. Low score does not mean not compatible. It means you need more dates, more talks, more questions like this.'; }
+ document.getElementById('finalEmoji').textContent=emoji;
+ document.getElementById('finalTitle').textContent=title;
+ document.getElementById('finalDesc').textContent=desc;
+ document.getElementById('finalTips').textContent=tips;
+ let strong=resultsLog.filter(r=>r.match).slice(0,3).map(r=>`✅ ${r.q} → both: ${r.a1}`).join('\n');
+ let diff=resultsLog.filter(r=>!r.match).slice(0,3).map(r=>`❌ ${r.q} → ${name1}: ${r.a1} vs ${name2}: ${r.a2}`).join('\n');
+ document.getElementById('finalStrong').textContent= strong || 'No matches yet - try again!';
+ document.getElementById('finalDiff').textContent= diff || 'You matched on everything! Soulmates!';
+ document.getElementById('finalBreakdown').textContent=`${name1} & ${name2} answered 20 random questions. ${matches} MATCH, ${20-matches} DIFFERENT.`;
+ document.getElementById('captionText').textContent=`We got ${pct}% compatible! ${emoji} ${title} - We answered 20 questions, ${matches} MATCH! Try with your partner! - ${name1} & ${name2} | ARE WE COMPATIBLE?`;
+ window.scrollTo({top:0,behavior:'smooth'});
+ updateDots();
+ lastFinalText = `And your final result is... ${pct} percent compatible! ${title}. ${desc} ${tips} You got ${matches} matches out of 20 questions. Thank you for playing My Ainun Are We Compatible.`;
+ setTimeout(()=>{ speak(lastFinalText); }, 600);
+}
+function copyCaption(){ navigator.clipboard.writeText(document.getElementById('captionText').textContent); alert('Caption copied!'); }
+function restart(){ location.reload(); }
+window.addEventListener('load', ()=>{
+  shuffle(ALL);
+  if('speechSynthesis' in window){ speechSynthesis.getVoices(); }
+});
+</script>
+</body>
+</html>

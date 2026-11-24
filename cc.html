@@ -1,0 +1,447 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COUPLE CARDS - 100 Questions</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;600;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Poppins,sans-serif;color:#3a2a2e;min-height:100vh;background:#f7ecec;overflow-x:hidden}
+body:before{content:'';position:fixed;inset:0;background:radial-gradient(600px 400px at 10% 0%, #e8c4c4 0%, transparent 60%),radial-gradient(500px 400px at 90% 20%, #d8a7a7 0%, transparent 60%),radial-gradient(600px 500px at 50% 100%, #c9a0a0 0%, transparent 60%),linear-gradient(180deg,#f9efef,#f3e0e0);z-index:-2}
+body:after{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(183,110,121,.12) 1px, transparent 1px);background-size:22px 22px;z-index:-1;opacity:.6}
+.top{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);border-bottom:1px solid #e8c4c4;position:sticky;top:0;z-index:10}
+.top h1{font-family:Playfair Display,serif;font-size:18px;color:#8a4a52;line-height:1}
+.top h1 span{font-family:Poppins;font-size:8px;letter-spacing:3px;color:#b76e79;display:block;font-weight:800}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.card{background:rgba(255,255,255,.92);padding:18px;border-radius:24px;box-shadow:0 15px 40px rgba(183,110,121,.15);margin-top:12px;border:1px solid #fff}
+.btn{border:none;padding:11px 16px;border-radius:999px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-dusty{background:#b76e79;color:#fff;box-shadow:0 6px 20px rgba(183,110,121,.35)}
+.btn-dark{background:#3a2a2e;color:#fff}
+.btn-white{background:#fff;color:#b76e79;border:1px solid #e8c4c4}
+.btn-ghost{background:#fff;color:#8a4a52;border:1px solid #e8c4c4}
+.input{width:100%;padding:14px;border-radius:16px;border:2px solid #d8a7a7;font-family:Poppins;font-weight:700;text-align:center;font-size:14px;outline:none;background:#fff;margin-top:8px}
+.input:focus{border-color:#b76e79}
+.chip{display:inline-block;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;background:#fff;border:1.5px solid #e8c4c4;color:#8a4a52;margin:4px 2px}
+.chip.active{background:#b76e79;color:#fff;border-color:#b76e79}
+.hidden{display:none!important}
+.progress{height:8px;background:#fff;border-radius:20px;overflow:hidden;margin:12px 0 6px;box-shadow:inset 0 0 0 1px #e8c4c4}
+.progress div{height:100%;background:linear-gradient(90deg,#d8a7a7,#b76e79,#8a4a52);transition:width .4s}
+.deck{perspective:1200px;margin-top:14px}
+.flip{position:relative;width:100%;min-height:380px;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.8,.2,1);cursor:pointer}
+.flip.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:28px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;backface-visibility:hidden;overflow:hidden}
+.face-back{background:linear-gradient(135deg,#b76e79,#8a4a52);color:#fff;text-align:center;box-shadow:0 20px 40px rgba(183,110,121,.4)}
+.face-front{background:#fff;transform:rotateY(180deg);box-shadow:0 20px 40px rgba(183,110,121,.2);border:1px solid #f0dede}
+.big-btn{width:100%;border:none;padding:16px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer;background:#3a2a2e;color:#fff;margin-top:12px}
+.overlay{position:fixed;inset:0;background:linear-gradient(180deg,#f9efef 0%, #e8c4c4 45%, #d8a7a7 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;overflow-y:auto;padding:0}
+.hero-img{width:100%;max-width:520px;height:360px;object-fit:cover;display:block}
+.hero-wrap{width:100%;max-width:520px;position:relative;background:#d8a7a7}
+.hero-wrap:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%, #f9efef 100%)}
+.voice-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.voice-bar button{border:1px solid #d8a7a7;background:#fff;color:#8a4a52;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer}
+.voice-bar button.active{background:#b76e79;color:#fff;border-color:#b76e79}
+.voice-pill{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#3a2a2e;color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;font-weight:800;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="top"><h1>COUPLE CARDS<span>100 QUESTIONS • SHUFFLED EVERY REFRESH • MY AINUN</span></h1><button class="btn btn-white" onclick="restart()">↻ Shuffle & Restart</button></div>
+
+<!-- AI VOICE ENABLE - TAP ONCE TO ACTIVATE -->
+<div id="voiceEnableBanner" style="max-width:520px;margin:12px auto 0;padding:0 14px">
+  <button onclick="enableVoice()" style="width:100%;border:none;background:#3a2a2e;color:#fff;padding:14px;border-radius:999px;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.2)">🔊 TAP TO ENABLE AI VOICE - Welcome to My Ainun Card Couple</button>
+  <p style="font-size:11px;color:#8a7a7a;text-align:center;margin-top:6px">Tap once, AI will speak welcome, questions & results automatically.</p>
+</div>
+
+<div class="wrap">
+  <div id="gameArea">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#8a4a52"><span id="qCount">CARD 1 / 100</span><span id="turnLabel">Turn: You</span></div>
+    <div class="progress"><div id="prog" style="width:1%"></div></div>
+
+    <div class="voice-bar">
+      <button id="voiceToggle" class="active" onclick="toggleVoice()">🔊 AI VOICE: ON</button>
+      <button onclick="speakCurrent()">▶️ Replay Question</button>
+      <button onclick="stopVoice()">⏹ Stop</button>
+      <button onclick="speakWelcome()">👋 Say Welcome Again</button>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:8px" id="filterBar">
+      <span class="chip active" onclick="setFilter('ALL',this)">🎲 ALL 100</span>
+      <span class="chip" onclick="setFilter('PAST',this)">💔 PAST</span>
+      <span class="chip" onclick="setFilter('FUTURE',this)">🔮 FUTURE</span>
+      <span class="chip" onclick="setFilter('DEEP',this)">🫣 DEEP</span>
+      <span class="chip" onclick="setFilter('SPICY',this)">🌶️ SPICY</span>
+      <span class="chip" onclick="setFilter('FUN',this)">😂 FUN</span>
+      <span class="chip" onclick="setFilter('LOVE',this)">💖 LOVE</span>
+    </div>
+    <p style="font-size:11px;color:#a08080;text-align:center;margin-top:6px">🔀 Questions are reshuffled on every refresh. You will never get the same order twice.</p>
+
+    <div class="deck">
+      <div class="flip" id="flipCard" onclick="flipCard()">
+        <div class="face face-back">
+          <div>
+            <div style="font-size:11px;letter-spacing:3px;opacity:.8;font-weight:800" id="backCat">COUPLE CARDS</div>
+            <div style="font-size:70px;margin:18px 0">💌</div>
+            <div style="font-family:Playfair Display,serif;font-size:26px;line-height:1.1">Tap to<br>Reveal<br><span style="font-style:italic;color:#f7dada">Question</span></div>
+            <p style="font-size:12px;opacity:.9;line-height:1.6;margin-top:12px">Answer honestly, or just skip.<br>Your game, your rules.</p>
+          </div>
+          <div style="background:rgba(255,255,255,.15);padding:10px;border-radius:14px;font-size:11px">👆 TAP CARD TO OPEN</div>
+        </div>
+        <div class="face face-front">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span id="qCat" style="background:#f7ecec;color:#b76e79;padding:6px 11px;border-radius:999px;font-size:10px;font-weight:800">💔 PAST</span><span style="font-size:11px;color:#aaa;font-weight:800" id="qNum">Q 1</span></div>
+            <div style="font-size:12px;color:#b76e79;font-weight:800;letter-spacing:2px;margin-top:14px" id="qFor">FOR YOU</div>
+            <div id="qText" style="font-family:Playfair Display,serif;font-size:23px;line-height:1.3;font-weight:900;color:#3a2a2e;margin-top:6px">Loading...</div>
+            <p id="qHint" style="font-size:12px;color:#9a7a7a;line-height:1.6;margin-top:10px"></p>
+          </div>
+          <div>
+            <div style="background:#fdf2f2;padding:11px;border-radius:14px;font-size:11px;color:#8a4a52;line-height:1.6" id="qExtra"></div>
+            <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">Take your time, then Next whenever you're ready.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <button class="btn btn-white" onclick="prevCard()">⬅️ Prev</button>
+      <button class="btn btn-dusty" onclick="nextCard()">Next ➡️</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <button class="btn btn-ghost" onclick="shuffleDeck()">🔀 Shuffle Now</button>
+      <button class="btn btn-ghost" onclick="showDare()">🎲 Feeling Spicy? Dare!</button>
+    </div>
+
+    <div class="card" id="dareBox" style="display:none;background:#3a2a2e;color:#fff">
+      <div style="font-size:11px;color:#e8c4c4;font-weight:800;letter-spacing:2px">🎲 YOUR DARE</div>
+      <div id="dareText" style="font-size:15px;font-weight:800;line-height:1.5;margin-top:6px"></div>
+      <button class="btn btn-dusty" style="margin-top:10px" onclick="speakDare()">🔊 Hear Dare Again</button>
+      <button class="btn btn-white" style="margin-top:6px" onclick="document.getElementById('dareBox').style.display='none'">Okay, Do It!</button>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:12px;color:#8a4a52">❤️ ANSWERED</h3>
+      <p style="font-size:12px;color:#666;line-height:1.6;margin-top:6px">You have answered <b id="answeredCount">0</b> questions. The more you answer, the more you know each other.</p>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-white" style="flex:1" onclick="copySummary()">📋 Copy Recap</button><button class="btn btn-dark" style="flex:1" onclick="speakCurrent()">🔊 Read Question (AI)</button></div>
+      <button class="btn btn-dusty" style="width:100%;margin-top:10px;padding:14px" onclick="finishAndSpeakResult()">🏁 Finish Game & Hear Result (AI)</button>
+    </div>
+
+    <!-- RESULT CARD - AI WILL SPEAK THIS -->
+    <div class="card hidden" id="resultCard" style="text-align:center;border:2px solid #b76e79">
+      <div style="font-size:48px">💖</div>
+      <div style="font-size:11px;color:#b76e79;font-weight:800;letter-spacing:2px">YOUR RESULT</div>
+      <div id="resultText" style="font-size:15px;font-weight:800;line-height:1.6;margin-top:8px;color:#3a2a2e"></div>
+      <p id="resultSub" style="font-size:12px;color:#666;line-height:1.7;margin-top:8px"></p>
+      <button class="btn btn-dusty" style="margin-top:12px" onclick="speakResult()">🔊 Hear Result Again</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="homeScreen">
+  <div class="hero-wrap"><img class="hero-img" src="myainuncc.jpg" alt="My Ainun" onerror="this.style.display='none'; this.parentElement.style.height='200px'"></div>
+  <div style="width:100%;max-width:520px;padding:0 20px 22px;margin-top:-60px;position:relative;z-index:2;text-align:center">
+    <span style="display:inline-block;background:#fff;color:#b76e79;padding:7px 13px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:2px;box-shadow:0 8px 20px rgba(0,0,0,.08)">MY AINUN • COUPLE CARDS</span>
+    <h2 style="font-family:Playfair Display,serif;font-size:38px;line-height:.95;color:#3a2a2e;margin-top:12px">Couple<br><span style="color:#b76e79;font-style:italic">Cards Game</span></h2>
+    <p style="font-size:12px;color:#6a4a4a;margin-top:8px;line-height:1.6">AI Voice will welcome you, read every question,<br>and speak your result at the end.</p>
+    <button onclick="enableVoice()" style="border:none;background:#fff;color:#b76e79;padding:12px 16px;border-radius:999px;font-weight:900;font-size:12px;cursor:pointer;margin-top:10px;box-shadow:0 8px 20px rgba(0,0,0,.1)">🔊 TAP TO ENABLE AI VOICE FIRST</button>
+    <div style="text-align:left;margin-top:14px">
+      <input class="input" id="name1" placeholder="Your name...">
+      <input class="input" id="name2" placeholder="Your partner's name...">
+      <button class="big-btn" onclick="startGame()">▶️ START - 100 CARDS</button>
+    </div>
+  </div>
+</div>
+
+<div class="voice-pill hidden" id="speakingPill"><span>🔊</span><span id="speakingText">AI Speaking...</span></div>
+
+<script>
+const QUESTIONS=[
+ {cat:'PAST', q:'What is the biggest lesson you learned from your past relationship?', hint:'Not about who was wrong, but what changed you.', extra:'💡 If your partner answers this, listen till the end. Do not interrupt.'},
+ {cat:'PAST', q:'What habit from your ex still carries over into this relationship?', hint:'Could be a good habit, or a trauma.', extra:'Feel free to skip if you want.'},
+ {cat:'PAST', q:'When was the last time you cried because of love? Tell me.', hint:'', extra:'This is the most honest moment.'},
+ {cat:'PAST', q:'What was your biggest mistake in your previous relationship that you promised not to repeat?', hint:'', extra:''},
+ {cat:'PAST', q:'If you could talk to yourself 2 years ago about love, what would you say?', hint:'', extra:''},
+ {cat:'PAST', q:'Have you ever still thought about someone from your past? Be honest.', hint:'Thinking about someone does not mean you still love them.', extra:''},
+ {cat:'PAST', q:'What made your old relationship fail, even though it started so well?', hint:'', extra:''},
+ {cat:'PAST', q:'What do you regret never doing in your old relationship?', hint:'', extra:''},
+ {cat:'PAST', q:'Who had a harder time moving on, you or your ex?', hint:'', extra:''},
+ {cat:'PAST', q:'What did you learn about yourself from your worst heartbreak?', hint:'', extra:''},
+ {cat:'PAST', q:'If your ex suddenly texted "I miss you", what would you actually do?', hint:'Answer what you would really do.', extra:''},
+ {cat:'PAST', q:'What is something from your past you have never told me?', hint:'Now is the time.', extra:''},
+ {cat:'PAST', q:'Have you ever compared me to your ex? In what way?', hint:'Be honest, no getting mad at the listener.', extra:''},
+ {cat:'PAST', q:'Which relationship taught you the most about patience?', hint:'', extra:''},
+ {cat:'PAST', q:'What is your most embarrassing love moment?', hint:'The one that makes you want to hide when you remember it.', extra:''},
+ {cat:'PAST', q:'If this relationship failed, what would you miss the most?', hint:'', extra:''},
+ {cat:'PAST', q:'What made you finally brave enough to open your heart again after heartbreak?', hint:'', extra:''},
+ {cat:'PAST', q:'What do you wish your ex knew, but you never got to say?', hint:'', extra:''},
+ {cat:'FUTURE', q:'What is your plan for the next 2 years? Where am I in that plan?', hint:'Answer in detail, not just "go with the flow".', extra:'🔮 This is the most important question in this game.'},
+ {cat:'FUTURE', q:'When do you think is the right time to get married? At what age?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If we get married, where do you want to live? Own house, rent, or with parents?', hint:'', extra:''},
+ {cat:'FUTURE', q:'How many kids do you want? When?', hint:'Answer honestly, this is often a source of fights.', extra:''},
+ {cat:'FUTURE', q:'How would you manage money if we were married?', hint:'Who holds the money? Split?', extra:''},
+ {cat:'FUTURE', q:'What is your biggest dream that has not come true yet, and how can I help?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If one of us had to do long distance because of work, what would you choose?', hint:'', extra:''},
+ {cat:'FUTURE', q:'5 years from now, what do you imagine us doing?', hint:'Imagine in detail: in the morning, what are we doing?', extra:''},
+ {cat:'FUTURE', q:'What would you do if we had a huge fight after we are married?', hint:'', extra:''},
+ {cat:'FUTURE', q:'At what age do you want to retire and what will you do?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If you were given 1 billion tomorrow, what is the first thing you would do for us?', hint:'', extra:''},
+ {cat:'FUTURE', q:'What are you afraid might happen to our relationship in the future?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If I got seriously sick and could not do anything, would you still stay?', hint:'Answer looking into my eyes.', extra:''},
+ {cat:'FUTURE', q:'What kind of couple do you want us to be when we are old?', hint:'What kind of grandparents?', extra:''},
+ {cat:'FUTURE', q:'What are 3 things we must achieve together before we turn 30?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If we have kids, what kind of parent do you want to be?', hint:'', extra:''},
+ {cat:'FUTURE', q:'What would make you leave me? Where is the limit?', hint:'It is important to know each other limits.', extra:''},
+ {cat:'FUTURE', q:'Would you choose career or family if you had to choose?', hint:'', extra:''},
+ {cat:'FUTURE', q:'If we failed to get married, what would you do?', hint:'', extra:''},
+ {cat:'FUTURE', q:'What is your plan to make me still fall in love 10 years from now?', hint:'', extra:''},
+ {cat:'DEEP', q:'What are you most afraid people will find out about you?', hint:'What you have been hiding all this time.', extra:''},
+ {cat:'DEEP', q:'When was the last time you felt truly alone even though you were with me?', hint:'', extra:''},
+ {cat:'DEEP', q:'What do you need from me but have never dared to ask?', hint:'Ask now, while you are being asked.', extra:''},
+ {cat:'DEEP', q:'What about me sometimes makes you feel turned off but you never told me?', hint:'The listener is not allowed to get mad.', extra:''},
+ {cat:'DEEP', q:'If you could change 1 trait about yourself, what would it be?', hint:'', extra:''},
+ {cat:'DEEP', q:'What makes you feel not good enough for me?', hint:'', extra:''},
+ {cat:'DEEP', q:'What do you want me to understand without you having to say it?', hint:'', extra:''},
+ {cat:'DEEP', q:'Have you ever pretended to be happy in front of me when you were actually super sad?', hint:'When?', extra:''},
+ {cat:'DEEP', q:'What do you think about when you are alone late at night?', hint:'The one you think about most.', extra:''},
+ {cat:'DEEP', q:'If you could ask me 1 thing and I MUST answer honestly, what would it be?', hint:'Ask it now.', extra:''},
+ {cat:'DEEP', q:'What makes you feel loved but you are embarrassed to admit?', hint:'', extra:''},
+ {cat:'DEEP', q:'What do you do when you feel like I am starting to change?', hint:'', extra:''},
+ {cat:'DEEP', q:'Are you more afraid I will cheat or I will leave you?', hint:'', extra:''},
+ {cat:'DEEP', q:'What are you hiding from everyone, including me?', hint:'', extra:''},
+ {cat:'DEEP', q:'If our relationship was a song, what song would it be?', hint:'Why that song?', extra:''},
+ {cat:'DEEP', q:'What did you feel the first time you met me?', hint:'Your honest first impression.', extra:''},
+ {cat:'DEEP', q:'When did you feel "oh this is the one, I want to be serious"?', hint:'What was the moment?', extra:''},
+ {cat:'DEEP', q:'What makes you stay with me even though you have many other options?', hint:'', extra:''},
+ {cat:'DEEP', q:'If I left tomorrow without a word, what would you do?', hint:'', extra:''},
+ {cat:'DEEP', q:'What do you hope I remember about you if you are gone?', hint:'', extra:''},
+ {cat:'SPICY', q:'What first attracted you to me physically?', hint:'Be honest, no holding back.', extra:'🌶️ Answer in detail, not just "everything".'},
+ {cat:'SPICY', q:'What is your fantasy about us that you have never told me?', hint:'While in this game, it is safe.', extra:''},
+ {cat:'SPICY', q:'Do you like me more aggressive or more clingy?', hint:'', extra:''},
+ {cat:'SPICY', q:'What do I do that instantly makes your heart race?', hint:'', extra:''},
+ {cat:'SPICY', q:'Have you ever dreamed about me in a weird way? Tell me.', hint:'Which dream?', extra:''},
+ {cat:'SPICY', q:'If we were alone at home all day, what would you want to do?', hint:'In detail.', extra:''},
+ {cat:'SPICY', q:'What do you want me to do to you but you are too shy to ask?', hint:'', extra:''},
+ {cat:'SPICY', q:'Are you jealous? Which part of me makes you most jealous?', hint:'', extra:''},
+ {cat:'SPICY', q:'Which chat from me made you smile to yourself?', hint:'Which chat?', extra:''},
+ {cat:'SPICY', q:'If I wore what outfit, would you instantly get flustered?', hint:'', extra:''},
+ {cat:'SPICY', q:'Have you ever stalked me secretly? What did you find?', hint:'', extra:''},
+ {cat:'SPICY', q:'What would you do if I suddenly said "I miss you, come here now"?', hint:'', extra:''},
+ {cat:'SPICY', q:'Do you like me jealous or chill?', hint:'', extra:''},
+ {cat:'SPICY', q:'What is the naughtiest thing you have ever done for love?', hint:'', extra:''},
+ {cat:'SPICY', q:'Rate me 1-10 for romantic, and why not 10?', hint:'Answer + reason.', extra:''},
+ {cat:'FUN', q:'If I were food, what food would I be and why?', hint:'', extra:'😂 Just for fun.'},
+ {cat:'FUN', q:'Who farts more between us? Be honest.', hint:'', extra:''},
+ {cat:'FUN', q:'If we swapped lives for a day, what is the first thing you would do as me?', hint:'', extra:''},
+ {cat:'FUN', q:'What is my worst habit that is actually funny to you?', hint:'', extra:''},
+ {cat:'FUN', q:'If I became a celebrity, what kind of celebrity would I be?', hint:'', extra:''},
+ {cat:'FUN', q:'Who spends more between us? Prove it.', hint:'', extra:''},
+ {cat:'FUN', q:'What is the weirdest nickname you have given me in your head?', hint:'', extra:''},
+ {cat:'FUN', q:'If we fought in a soap opera, what would the title be?', hint:'', extra:''},
+ {cat:'FUN', q:'What is the dumbest thing we ever fought about?', hint:'', extra:''},
+ {cat:'FUN', q:'If I disappeared for 1 day, what is the first thing you would do?', hint:'', extra:''},
+ {cat:'FUN', q:'Who is more dramatic when sick?', hint:'', extra:''},
+ {cat:'FUN', q:'What song best describes our funny relationship?', hint:'Sing a little.', extra:''},
+ {cat:'FUN', q:'If we had a pet together, what would its name be?', hint:'', extra:''},
+ {cat:'FUN', q:'What would you do if I suddenly became super rich tomorrow?', hint:'', extra:''},
+ {cat:'LOVE', q:'What are 3 small things I do that make you feel loved?', hint:'Just the small ones.', extra:'💖 Remember this answer.'},
+ {cat:'LOVE', q:'When was the last time you felt "I love this person so much"?', hint:'When was the moment?', extra:''},
+ {cat:'LOVE', q:'What makes you sure I am the right person?', hint:'', extra:''},
+ {cat:'LOVE', q:'When I am sad, what do I need most from you in your opinion?', hint:'Check, is your guess right?', extra:''},
+ {cat:'LOVE', q:'What is my love language in your opinion? Is it right?', hint:'Check in WHAT\'S YOUR LL game.', extra:''},
+ {cat:'LOVE', q:'What do you do secretly for me that I never knew?', hint:'Reveal it now.', extra:''},
+ {cat:'LOVE', q:'If you could give me 1 gift that cannot be bought with money, what would it be?', hint:'', extra:''},
+ {cat:'LOVE', q:'What are you most grateful for about having me?', hint:'', extra:''},
+ {cat:'LOVE', q:'When we are far apart, what makes you still feel close to me?', hint:'', extra:''},
+ {cat:'LOVE', q:'What do you want me to do more often?', hint:'', extra:''},
+ {cat:'LOVE', q:'What do you want me to do less?', hint:'Be honest, no being sensitive.', extra:''},
+ {cat:'LOVE', q:'If you could relive 1 day with me, which day would you pick?', hint:'', extra:''},
+ {cat:'LOVE', q:'Say 3 things you like about me, while looking into my eyes.', hint:'Must look into eyes.', extra:''},
+];
+const DARES=[
+ 'Hug your partner for 30 seconds without talking.',
+ 'Kiss your partner on the forehead.',
+ 'Say "I love you" while looking into their eyes for 10 seconds.',
+ 'Imitate how your partner talks.',
+ 'Send a "I miss you" chat to your partner right now, even though they are next to you.',
+ 'Give your partner a shoulder massage for 1 minute.',
+ 'Sing a song that reminds you of your partner.',
+ 'Hold your partner\'s hand until the next card.',
+ 'Tell 1 embarrassing thing about you.',
+ 'Make tea / coffee for your partner now.',
+ 'Hug from behind for 20 seconds.',
+ 'Say 1 thing you love about your partner on camera (for story).'
+];
+let deck=[], idx=0, filter='ALL', name1='You', name2='Partner', answered=0, isFlipped=false, startPlayer=0;
+let voiceOn=true, voiceEnabled=false, currentDare='';
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    let j;
+    if(window.crypto && window.crypto.getRandomValues){
+      let arr=new Uint32Array(1); window.crypto.getRandomValues(arr);
+      j=arr[0] % (i+1);
+    } else { j=Math.floor(Math.random()*(i+1)); }
+    [a[i],a[j]]=[a[j],a[i]];
+  } return a;
+}
+
+// ===== AI VOICE ENGINE =====
+function speak(text, onEnd){
+  if(!voiceOn) return;
+  try{
+    speechSynthesis.cancel();
+    let u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US'; u.rate=1.0; u.pitch=1.05; u.volume=1;
+    let voices=speechSynthesis.getVoices();
+    let female=voices.find(v=>v.name.toLowerCase().includes('samantha')||v.name.toLowerCase().includes('female')||v.name.includes('Google US English')||v.name.includes('Zira'));
+    if(female) u.voice=female;
+    document.getElementById('speakingPill').classList.remove('hidden');
+    document.getElementById('speakingText').textContent='AI Speaking...';
+    u.onend=()=>{ document.getElementById('speakingPill').classList.add('hidden'); if(onEnd) onEnd(); };
+    u.onerror=()=>{ document.getElementById('speakingPill').classList.add('hidden'); };
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopVoice(){ try{speechSynthesis.cancel(); document.getElementById('speakingPill').classList.add('hidden');}catch(e){} }
+function enableVoice(){
+  voiceEnabled=true; voiceOn=true;
+  document.getElementById('voiceToggle').textContent='🔊 AI VOICE: ON';
+  document.getElementById('voiceToggle').classList.add('active');
+  document.getElementById('voiceEnableBanner').style.display='none';
+  // Unlock voices
+  if(speechSynthesis.getVoices().length===0){ speechSynthesis.onvoiceschanged=()=>{}; }
+  speakWelcome();
+}
+function toggleVoice(){
+  voiceOn=!voiceOn;
+  if(!voiceOn) stopVoice();
+  document.getElementById('voiceToggle').textContent=voiceOn?'🔊 AI VOICE: ON':'🔇 AI VOICE: OFF';
+  document.getElementById('voiceToggle').classList.toggle('active', voiceOn);
+  if(voiceOn && !voiceEnabled){ voiceEnabled=true; speakWelcome(); }
+  else if(voiceOn){ speak('AI voice is back on.'); }
+}
+function speakWelcome(){
+  let n1=name1!=='You'?name1:'';
+  let n2=name2!=='Partner'?name2:'';
+  let names = (n1 && n2) ? `${n1} and ${n2},` : '';
+  speak(`Welcome to My Ainun Card Couple. Hi ${names} Welcome to your couple cards game. I am your AI guide. We have one hundred questions about your past, your future, deep secrets, and love. Answer honestly, or just skip. Your game, your rules. Tap a card to reveal a question, and I will read it for you. Let's start, good luck, and have fun together.`);
+}
+function speakCurrent(){
+  let q=deck[idx]; if(!q) return;
+  speak(`Question for ${currentPlayer()}. Category ${q.cat}. ${q.q} ${q.hint||''}`);
+}
+function speakDare(){ if(currentDare) speak(`Your dare is: ${currentDare}`); }
+function speakResult(){
+  let txt=document.getElementById('resultText').textContent;
+  let sub=document.getElementById('resultSub').textContent;
+  speak(`${txt}. ${sub} Thank you for playing My Ainun Card Couple. I hope you learned something new about each other today.`);
+}
+function finishAndSpeakResult(){
+  let lastQ = deck[Math.max(0, idx-1)] ? deck[Math.max(0, idx-1)].q : 'your last question';
+  let resultTitle = `You and ${name2} answered ${answered} questions together!`;
+  let resultSub = `Your last question was: ${lastQ}. You talked about your past, your future, and your love. That is so sweet. Keep asking each other questions, keep listening, and keep choosing each other every day. This is My Ainun Card Couple, see you next time.`;
+  document.getElementById('resultCard').classList.remove('hidden');
+  document.getElementById('resultText').textContent=resultTitle;
+  document.getElementById('resultSub').textContent=resultSub;
+  document.getElementById('resultCard').scrollIntoView({behavior:'smooth'});
+  speak(`${resultTitle} ${resultSub}`);
+}
+
+function startGame(){
+ name1=document.getElementById('name1').value.trim()||'You';
+ name2=document.getElementById('name2').value.trim()||'Partner';
+ document.getElementById('homeScreen').classList.add('hidden');
+ startPlayer = Math.random() < 0.5 ? 0 : 1;
+ buildDeck(); renderCard();
+ // AI speaks after start
+ setTimeout(()=>{ speak(`Hi ${name1} and ${name2}, welcome to My Ainun Card Couple. Let's start. First question is for ${currentPlayer()}. Tap the card to reveal it.`); }, 400);
+}
+function buildDeck(){
+ let pool = filter==='ALL' ? [...QUESTIONS] : QUESTIONS.filter(q=>q.cat===filter);
+ deck=shuffle(shuffle(pool));
+ idx=0; answered=0;
+ document.getElementById('answeredCount').textContent='0';
+ document.getElementById('resultCard').classList.add('hidden');
+}
+function setFilter(f, el){
+ filter=f;
+ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+ el.classList.add('active');
+ buildDeck(); renderCard();
+ speak(`Okay, filter changed to ${f}. Let's play.`);
+}
+function currentPlayer(){
+ return (idx + startPlayer) % 2 === 0 ? name1 : name2;
+}
+function renderCard(){
+ let q=deck[idx]; if(!q) return;
+ document.getElementById('qCount').textContent=`CARD ${idx+1} / ${deck.length} • ${filter} • RANDOM`;
+ document.getElementById('prog').style.width=((idx+1)/deck.length*100)+'%';
+ let turn = currentPlayer();
+ document.getElementById('turnLabel').textContent=`Turn: ${turn}`;
+ document.getElementById('backCat').textContent=`${q.cat} • FOR ${turn.toUpperCase()}`;
+ document.getElementById('qCat').textContent= q.cat==='PAST'?'💔 PAST': q.cat==='FUTURE'?'🔮 FUTURE': q.cat==='DEEP'?'🫣 DEEP': q.cat==='SPICY'?'🌶️ SPICY': q.cat==='FUN'?'😂 FUN':'💖 LOVE';
+ document.getElementById('qNum').textContent=`Q ${idx+1}`;
+ document.getElementById('qFor').textContent=`FOR ${turn.toUpperCase()}`;
+ document.getElementById('qText').textContent=q.q;
+ document.getElementById('qHint').textContent=q.hint||'';
+ document.getElementById('qExtra').textContent=q.extra||'Feel free to answer or skip - no pressure.';
+ document.getElementById('flipCard').classList.remove('flipped');
+ isFlipped=false;
+ document.getElementById('dareBox').style.display='none';
+}
+function flipCard(){
+ isFlipped=!isFlipped;
+ document.getElementById('flipCard').classList.toggle('flipped', isFlipped);
+ if(isFlipped) speakCurrent();
+ else stopVoice();
+}
+function nextCard(){
+ answered++;
+ document.getElementById('answeredCount').textContent=answered;
+ idx++; if(idx>=deck.length){ idx=0; deck=shuffle(deck); speak('Deck finished! I reshuffled it for another round.'); }
+ renderCard();
+ // Auto speak next question after a short delay if card already flipped logic - we speak the turn
+ setTimeout(()=>{ speak(`Next card. This one is for ${currentPlayer()}. Tap the card to reveal the question.`); }, 350);
+}
+function prevCard(){ idx=Math.max(0, idx-1); renderCard(); speakCurrent(); }
+function shuffleDeck(){
+ deck=shuffle(deck);
+ startPlayer = Math.random() < 0.5 ? 0 : 1;
+ idx=0; renderCard();
+ speak('Shuffled! New random order. Good luck.');
+}
+function showDare(){
+ let d=DARES[Math.floor(Math.random()*DARES.length)];
+ currentDare=d;
+ document.getElementById('dareBox').style.display='block';
+ document.getElementById('dareText').textContent=d;
+ document.getElementById('dareBox').scrollIntoView({behavior:'smooth'});
+ speak(`Ooh, spicy dare! ${d}`);
+}
+function copySummary(){
+ let txt=`COUPLE CARDS - We already answered ${answered} questions! The most fun was: "${deck[Math.max(0,idx-1)]?.q}" - Try it too!`;
+ navigator.clipboard.writeText(txt); alert('Recap copied!');
+}
+function restart(){ location.reload(); }
+
+// Try auto-welcome on load (will work after first tap on most browsers)
+window.addEventListener('load', ()=>{
+  shuffle(QUESTIONS);
+  // Preload voices
+  if('speechSynthesis' in window){ speechSynthesis.getVoices(); }
+  setTimeout(()=>{
+    if(voiceOn && !voiceEnabled){
+      // Do not force speak before tap, banner will invite tap
+    }
+  }, 800);
+});
+// Any first tap on page = unlock voice and say welcome if not yet
+document.addEventListener('click', function firstTap(){
+  if(!voiceEnabled && 'speechSynthesis' in window){
+    // Don't auto speak on every click, only if user tapped enable banner - banner handles it
+  }
+}, {once:false});
+</script>
+</body>
+</html>
