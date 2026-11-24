@@ -80,7 +80,7 @@ body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100
 </head>
 <body>
 <div class="top">
-  <h1>CHESS MASTER <span>MY AINUN • HARDEST AI</span></h1>
+  <h1>CHESS MASTER <span>MY AINUN • HARDEST AI • NO DRAW</span></h1>
   <button class="btn btn-gold" onclick="newGame()">🔄 New</button>
 </div>
 
@@ -130,15 +130,18 @@ body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100
     <h3>MOVE HISTORY (<span id="moveCount">0</span>)</h3>
     <div class="moves" id="moveList"><span>No moves yet</span></div>
   </div>
+  <div class="card" style="background:#fff7d6;border:1px solid #ffcc66">
+    <h3>🏆 MY AINUN RULES - NO DRAW</h3>
+    <p style="font-size:11px;line-height:1.6">• Checkmate = Win<br>• Stalemate = Win for player who just moved (no more annoying draw!)<br>• No legal moves = You win!</p>
+  </div>
 </div>
 
-<!-- PLAY SCREEN -->
 <div class="overlay" id="playScreen">
   <div class="hero">
     <img src="myainuncatur.jpg" onerror="this.src='myainunmaybe.jpg'" alt="My Ainun Chess">
     <div class="hero-text">
       <h2>CHESS MASTER<span>MY AINUN</span></h2>
-      <p> HARDEST AI • Can you beat MASTER?</p>
+      <p> HARDEST AI • NO DRAW • Can you beat MASTER?</p>
     </div>
   </div>
   <div class="play-body">
@@ -161,9 +164,9 @@ body{background:#160807;font-family:Poppins,sans-serif;color:#fff;min-height:100
     <div style="background:#2a0a0a;border:1px solid #ffcc66;padding:10px;border-radius:12px;font-size:11px;line-height:1.6;margin-top:12px">
       <b style="color:#ffcc66">👑 MASTER = HARDEST:</b><br>
       • Minimax Depth 4 + Alpha-Beta Pruning<br>
-      • Piece-Square Table (posisi terbaik)<br>
+      • Piece-Square Table (fixed)<br>
       • Suka makan, jaga Raja, serang Skakmat<br>
-      • Hampir tidak bisa dikalahkan!
+      • Stalemate = Win, jadi AI gak bisa kabur ke DRAW!
     </div>
     <div class="voice-row">
       <input type="checkbox" class="switch" id="voiceToggle" checked>
@@ -227,7 +230,7 @@ function startFromPlay(){
   showAnnounce(`Welcome ${playerName}! Difficulty: ${difficulty.toUpperCase()}`);
 }
 
-// ============ CHESS ENGINE - FIXED ============
+// ============ CHESS ENGINE - FIXED NO ERROR VERSION ============
 const PIECES={ 'K':'♔','Q':'♕','R':'♖','B':'♗','N':'♘','P':'♙', 'k':'♚','q':'♛','r':'♜','b':'♝','n':'♞','p':'♟' };
 const PIECE_NAMES={ 'K':'King','Q':'Queen','R':'Rook','B':'Bishop','N':'Knight','P':'Pawn', 'k':'King','q':'Queen','r':'Rook','b':'Bishop','n':'Knight','p':'Pawn' };
 const VAL={ 'P':100,'N':320,'B':330,'R':500,'Q':900,'K':20000, 'p':-100,'n':-320,'b':-330,'r':-500,'q':-900,'k':-20000 };
@@ -241,26 +244,20 @@ const PST={
 };
 let board, turn, selected, legalMoves, history, capturedWhite, capturedBlack, flipped, mode, lastMove, checkPos;
 function initialBoard(){ return [['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']]; }
-function newGame(){ board=initialBoard(); turn='w'; selected=null; legalMoves=[]; history=[]; capturedWhite=[]; capturedBlack=[]; flipped=false; lastMove=null; checkPos=null; document.getElementById('overScreen').classList.add('hidden'); updateStatus('White to move', `${playerName}, select a white piece`); render(); updateEval(); }
+function newGame(){ board=initialBoard(); turn='w'; selected=null; legalMoves=[]; history=[]; capturedWhite=[]; capturedBlack=[]; flipped=false; lastMove=null; checkPos=null; document.getElementById('overScreen').classList.add('hidden'); updateStatus('White to move', playerName+', select a white piece'); render(); updateEval(); }
 function setMode(m, fromPlay=false){ mode=m; document.getElementById('mode2p').classList.toggle('active', m==='2p'); document.getElementById('modeAI').classList.toggle('active', m==='ai'); if(!fromPlay){ playMode=m; setPlayMode(m); } if(document.getElementById('playScreen').classList.contains('hidden')){ document.getElementById('blackName').textContent= m==='ai'? 'Computer '+difficulty.toUpperCase():'Player 2'; newGame(); } }
 function isWhite(p){ return p && p===p.toUpperCase(); }
 function isBlack(p){ return p && p===p.toLowerCase(); }
 function inBoard(r,c){ return r>=0 && r<8 && c>=0 && c<8; }
 function findKing(b,color){ let t=color==='w'?'K':'k'; for(let r=0;r<8;r++) for(let c=0;c<8;c++) if(b[r][c]===t) return [r,c]; return null; }
-
-// ===== FIXED isAttacked - KING DISTANCE & SLIDING BENAR =====
 function isAttacked(b,r,c,byColor){
-  // Pawn - FIXED: white pawn di r+1, black pawn di r-1
   let dir = byColor==='w'?1:-1;
   let pawn = byColor==='w'?'P':'p';
   for(let dc of [-1,1]){ let pr=r+dir, pc=c+dc; if(inBoard(pr,pc) && b[pr][pc]===pawn) return true; }
-  // Knight
   let knight = byColor==='w'?'N':'n';
   for(let [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){ let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]===knight) return true; }
-  // King - cek 1 petak sekitar saja
   let king = byColor==='w'?'K':'k';
   for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0&&dc===0) continue; let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]===king) return true; }
-  // Sliding: Rook / Bishop / Queen - berhenti di bidak pertama
   const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
   for(let [dr,dc] of dirs){
     let nr=r+dr, nc=c+dc;
@@ -276,7 +273,7 @@ function isAttacked(b,r,c,byColor){
           if(isStraight && up==='R') return true;
           if(isDiag && up==='B') return true;
         }
-        break; // FIXED: berhenti, jangan tembus bidak sendiri / musuh
+        break;
       }
       nr+=dr; nc+=dc;
     }
@@ -286,19 +283,21 @@ function isAttacked(b,r,c,byColor){
 function inCheck(b,color){ let k=findKing(b,color); if(!k) return false; return isAttacked(b,k[0],k[1], color==='w'?'b':'w'); }
 function getPseudoMoves(b,r,c){
   let p=b[r][c]; if(!p) return []; let moves=[]; let white=isWhite(p); let up=p.toUpperCase(); let dir=white?-1:1;
-  if(up==='P'){ let nr=r+dir; if(inBoard(nr,c)&&!b[nr][c]){ moves.push([nr,c]); if((white&&r===6)||(!white&&r===1)){ let nr2=r+dir*2; if(!b[nr2][c]) moves.push([nr2,c]); } } for(let dc of [-1,1]){ let nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]&&(white?isBlack(b[nr][nc]):isWhite(b[nr][nc]))) moves.push([nr,nc]); } }
+  if(up==='P'){ let nr=r+dir; if(inBoard(nr,c)&&!b[nr][c]){ moves.push([nr,c]); if((white&&r===6)||(!white&&r===1)){ let nr2=r+dir*2; if(inBoard(nr2,c)&&!b[nr2][c]) moves.push([nr2,c]); } } for(let dc of [-1,1]){ let nc=c+dc; if(inBoard(nr,nc)&&b[nr][nc]&&(white?isBlack(b[nr][nc]):isWhite(b[nr][nc]))) moves.push([nr,nc]); } }
   else if(up==='N'){ for(let [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){ let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&(!b[nr][nc]||(white?isBlack(b[nr][nc]):isWhite(b[nr][nc])))) moves.push([nr,nc]); } }
   else if(up==='K'){ for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0&&dc===0) continue; let nr=r+dr,nc=c+dc; if(inBoard(nr,nc)&&(!b[nr][nc]||(white?isBlack(b[nr][nc]):isWhite(b[nr][nc])))) moves.push([nr,nc]); } if(!inCheck(b, white?'w':'b')){ if(b[r][7]===(white?'R':'r')&&!b[r][5]&&!b[r][6]&&!isAttacked(b,r,5,white?'b':'w')&&!isAttacked(b,r,6,white?'b':'w')) moves.push([r,6,'castleK']); if(b[r][0]===(white?'R':'r')&&!b[r][1]&&!b[r][2]&&!b[r][3]&&!isAttacked(b,r,3,white?'b':'w')&&!isAttacked(b,r,2,white?'b':'w')) moves.push([r,2,'castleQ']); } }
   else { let dirs=[]; if(up==='B'||up==='Q') dirs.push([1,1],[1,-1],[-1,1],[-1,-1]); if(up==='R'||up==='Q') dirs.push([1,0],[-1,0],[0,1],[0,-1]); for(let [dr,dc] of dirs){ let nr=r+dr,nc=c+dc; while(inBoard(nr,nc)){ if(!b[nr][nc]) moves.push([nr,nc]); else { if(white?isBlack(b[nr][nc]):isWhite(b[nr][nc])) moves.push([nr,nc]); break; } nr+=dr; nc+=dc; } } }
   return moves;
 }
-// ===== FIXED getLegalMoves - capture ratu sekarang legal =====
 function getLegalMovesForBoard(b, r,c){
   let p=b[r][c]; if(!p) return []; let color=isWhite(p)?'w':'b';
   return getPseudoMoves(b,r,c).filter(m=>{
     let nb=b.map(row=>row.slice());
     let [nr,nc,castle]=m;
-    nb[nr][nc]=nb[r][c]; nb[r][c]=null; // capture: timpa bidak musuh, ratu hilang dari papan simulasi
+    // King cannot be captured: if target is opponent King, illegal
+    let target=b[nr][nc];
+    if(target && target.toUpperCase()==='K') return false;
+    nb[nr][nc]=nb[r][c]; nb[r][c]=null;
     if(castle==='castleK'){ nb[r][5]=nb[r][7]; nb[r][7]=null; }
     if(castle==='castleQ'){ nb[r][3]=nb[r][0]; nb[r][0]=null; }
     return !inCheck(nb,color);
@@ -307,22 +306,18 @@ function getLegalMovesForBoard(b, r,c){
 function getLegalMoves(r,c){ return getLegalMovesForBoard(board,r,c); }
 function getAllLegalForBoard(b,color){ let all=[]; for(let r=0;r<8;r++) for(let c=0;c<8;c++){ let p=b[r][c]; if(p&&(color==='w'?isWhite(p):isBlack(p))){ getLegalMovesForBoard(b,r,c).forEach(m=>all.push({from:[r,c],to:m})); } } return all; }
 function getAllLegal(color){ return getAllLegalForBoard(board,color); }
-
-// ============ EVALUATION + MINIMAX - FIXED ============
 function evaluateBoard(b){
   let score=0;
   for(let r=0;r<8;r++) for(let c=0;c<8;c++){
     let p=b[r][c]; if(!p) continue;
     let white=isWhite(p); let up=p.toUpperCase();
-    let val=VAL[p];
+    let val=Math.abs(VAL[p]);
     let pst=PST[up];
-    // FIXED: PST dari sudut putih untuk kedua warna, mirror untuk hitam
+    // FIXED: White uses (7-r), Black uses r - mirror correctly
     let idx = white ? (7-r)*8+c : r*8+c;
-    // Untuk hitam, mirror vertikal biar tabelnya bener
-    if(!white) idx = (7-r)*8+c; // hitam pakai mirror yang sama, tapi nilai dikurang
     let pstVal = pst[idx];
-    if(white) score += Math.abs(val) + pstVal;
-    else score -= Math.abs(val) + pstVal;
+    if(white) score += val + pstVal;
+    else score -= val + pstVal;
   }
   let wMoves=getAllLegalForBoard(b,'w').length;
   let bMoves=getAllLegalForBoard(b,'b').length;
@@ -344,9 +339,10 @@ function minimax(b, depth, alpha, beta, isMaximizing){
   let moves = getAllLegalForBoard(b, color);
   if(moves.length===0){
     if(inCheck(b,color)) return isMaximizing? -99999 : 99999;
-    return 0;
+    // FIXED: STALEMATE = WIN for player who just moved, NOT draw
+    // If it's maximizing's turn and no moves, maximizing loses (opponent just stalemated him = opponent wins)
+    return isMaximizing? -99999 : 99999;
   }
-  // FIXED: pakai 'b' bukan 'board' global - ini penyebab error gak bisa makan ratu
   moves.sort((a,b2)=>{
     let capA = b[a.to[0]][a.to[1]] ? Math.abs(VAL[b[a.to[0]][a.to[1]]]) : 0;
     let capB = b[b2.to[0]][b2.to[1]] ? Math.abs(VAL[b[b2.to[0]][b2.to[1]]]) : 0;
@@ -397,7 +393,6 @@ function updateEval(){
   document.getElementById('evalWhite').style.width=pct+'%';
   document.getElementById('evalText').textContent = ev===0? 'Equal 0.0' : ev>0? `White +${(ev/100).toFixed(1)}` : `Black +${(-ev/100).toFixed(1)}`;
 }
-
 function render(){
   const el=document.getElementById('board'); el.innerHTML='';
   let rows=[0,1,2,3,4,5,6,7], cols=[0,1,2,3,4,5,6,7];
@@ -421,7 +416,6 @@ function render(){
   document.getElementById('moveList').innerHTML= history.length? history.map((m,i)=>`<span>${Math.floor(i/2)+1}. ${m}</span>`).join('') : '<span>No moves yet</span>';
   document.getElementById('turnDot').textContent= turn==='w'? '♔':'♚';
 }
-// ===== FIXED onCell - klik capture langsung jalan =====
 function onCell(r,c){
   if(!document.getElementById('overScreen').classList.contains('hidden')) return;
   if(!document.getElementById('playScreen').classList.contains('hidden')) return;
@@ -430,12 +424,10 @@ function onCell(r,c){
   if(selected){
     let mv=legalMoves.find(m=>m[0]===r && m[1]===c);
     if(mv){ doMove(selected[0],selected[1],r,c,mv[2]); return; }
-    // FIXED: kalau klik bidak sendiri yang lain, pindah seleksi, jangan reset
     if(p && (turn==='w'? isWhite(p): isBlack(p))){
       selected=[r,c]; legalMoves=getLegalMoves(r,c);
       render(); return;
     }
-    // Klik petak kosong yang bukan legal -> batalin seleksi
     selected=null; legalMoves=[]; render(); return;
   }
   if(p && (turn==='w'? isWhite(p): isBlack(p))){
@@ -446,7 +438,10 @@ function onCell(r,c){
 }
 function doMove(fr,fc,tr,tc,castle){
   let piece=board[fr][fc];
+  if(!piece) return;
   let captured=board[tr][tc];
+  // Safety: never capture King
+  if(captured && captured.toUpperCase()==='K') return;
   let moverName = turn==='w'? document.getElementById('whiteName').textContent : document.getElementById('blackName').textContent;
   let moverColor = turn==='w'? 'White' : 'Black';
   let notation = piece.toUpperCase() + 'abcdefgh'[fc] + (8-fr) + (captured?'x':'-') + 'abcdefgh'[tc] + (8-tr);
@@ -472,31 +467,31 @@ function doMove(fr,fc,tr,tc,castle){
   checkPos=null;
   if(oppInCheck){ let k=findKing(board, turn); if(k) checkPos=k; }
   if(oppMoves.length===0){
+    // NO LEGAL MOVES = WIN FOR PLAYER WHO JUST MOVED (My Ainun Rule - NO DRAW)
+    let winner = turn==='w'?'Black':'White';
+    let winnerName = winner==='White'? document.getElementById('whiteName').textContent : document.getElementById('blackName').textContent;
+    let loserName = winner==='White'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
+    playSound('win');
+    let title = winner==='White'? 'WHITE WINS!' : 'BLACK WINS!';
+    let desc, voiceMsg;
     if(oppInCheck){
-      let winner = turn==='w'?'Black':'White';
-      let winnerName = winner==='White'? document.getElementById('whiteName').textContent : document.getElementById('blackName').textContent;
-      let loserName = winner==='White'? document.getElementById('blackName').textContent : document.getElementById('whiteName').textContent;
-      playSound('win');
-      let title = winner==='White'? 'WHITE WINS!' : 'BLACK WINS!';
-      let desc, voiceMsg;
-      if(mode==='ai'){
-        if(winner==='White'){ desc=`Congratulations ${playerName}! You beat the ${difficulty.toUpperCase()} Computer! You are a CHESS MASTER!`; voiceMsg=`Congratulations ${playerName}! You win! You beat the ${difficulty} computer! You are a chess master! Amazing!`; }
-        else { desc=`Oh no ${playerName}, ${difficulty.toUpperCase()} Computer wins. Checkmate! Try again, maybe next time you win!`; voiceMsg=`Oh no ${playerName}, you lose. The ${difficulty} computer wins. Don't give up, try again!`; }
-      } else { desc=`Checkmate! ${winnerName} wins. ${loserName} loses. Great game!`; voiceMsg=`Checkmate! ${winnerName} wins! ${loserName}, you lose. Great game!`; }
-      document.getElementById('overEmoji').textContent='🏆';
-      document.getElementById('overTitle').textContent=title;
-      document.getElementById('overDesc').textContent=desc;
-      document.getElementById('overScreen').classList.remove('hidden');
-      speak(voiceMsg, 0.95);
-      showAnnounce(title);
+      desc=`Checkmate! ${winnerName} wins. ${loserName} loses. Great game!`;
+      voiceMsg=`Checkmate! ${winnerName} wins! ${loserName}, you lose. Great game!`;
     } else {
-      document.getElementById('overEmoji').textContent='🤝';
-      document.getElementById('overTitle').textContent='DRAW! STALEMATE';
-      document.getElementById('overDesc').textContent='No legal moves. It is a draw!';
-      document.getElementById('overScreen').classList.remove('hidden');
-      speak('It is a draw! Stalemate! No winner.');
+      desc=`Stalemate! But in My Ainun rules, stalemate = win! ${winnerName} wins because ${loserName} has no moves left!`;
+      voiceMsg=`Stalemate! But in My Ainun rules, stalemate means win! ${winnerName} wins! Congratulations!`;
     }
-    updateStatus('Game Over', oppInCheck?'Checkmate!':'Stalemate');
+    if(mode==='ai'){
+      if(winner==='White'){ desc=`${oppInCheck?'Checkmate!':'Stalemate = Win!'} Congratulations ${playerName}! You beat the ${difficulty.toUpperCase()} Computer! You are a CHESS MASTER!`; voiceMsg=`Congratulations ${playerName}! You win! You beat the ${difficulty} computer! You are a chess master! Amazing!`; }
+      else { desc=`${oppInCheck?'Checkmate!':'Stalemate = Win for Computer!'} Oh no ${playerName}, ${difficulty.toUpperCase()} Computer wins. Try again!`; voiceMsg=`Oh no ${playerName}, you lose. The ${difficulty} computer wins. Don't give up, try again!`; }
+    }
+    document.getElementById('overEmoji').textContent='🏆';
+    document.getElementById('overTitle').textContent=title;
+    document.getElementById('overDesc').textContent=desc;
+    document.getElementById('overScreen').classList.remove('hidden');
+    speak(voiceMsg, 0.95);
+    showAnnounce(title);
+    updateStatus('Game Over', oppInCheck?'Checkmate!':'Stalemate = Win!');
     render(); updateEval(); return;
   }
   if(oppInCheck){
