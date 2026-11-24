@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHAT'S YOUR LL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;600;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Poppins,sans-serif;color:#3a2a2e;min-height:100vh;background:#f7ecec;overflow-x:hidden}
+body:before{content:'';position:fixed;inset:0;background:
+ radial-gradient(600px 400px at 10% 0%, #e8c4c4 0%, transparent 60%),
+ radial-gradient(500px 400px at 90% 20%, #d8a7a7 0%, transparent 60%),
+ radial-gradient(600px 500px at 50% 100%, #c9a0a0 0%, transparent 60%),
+ linear-gradient(180deg,#f9efef,#f3e0e0);
+ z-index:-2}
+body:after{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(183,110,121,.12) 1px, transparent 1px);background-size:22px 22px;z-index:-1;opacity:.6}
+.top{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);border-bottom:1px solid #e8c4c4;position:sticky;top:0;z-index:10}
+.top h1{font-family:Playfair Display,serif;font-size:18px;color:#8a4a52;line-height:1;letter-spacing:.5px}
+.top h1 span{font-family:Poppins;font-size:8px;letter-spacing:3px;color:#b76e79;display:block;font-weight:800}
+.btn{border:none;padding:10px 16px;border-radius:999px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-dusty{background:#b76e79;color:#fff;box-shadow:0 6px 20px rgba(183,110,121,.35)}
+.btn-white{background:#fff;color:#b76e79;border:1px solid #e8c4c4}
+.btn-ghost{background:rgba(255,255,255,.7);color:#8a4a52;border:1px solid #e8c4c4}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.progress{height:8px;background:#fff;border-radius:20px;overflow:hidden;margin:12px 0 6px;box-shadow:inset 0 0 0 1px #e8c4c4}
+.progress div{height:100%;background:linear-gradient(90deg,#d8a7a7,#b76e79,#8a4a52);transition:width .4s}
+.card{background:rgba(255,255,255,.92);padding:18px;border-radius:24px;box-shadow:0 15px 40px rgba(183,110,121,.15);margin-top:12px;border:1px solid #fff}
+.q-tag{display:inline-block;background:#f7ecec;color:#b76e79;padding:6px 11px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:1px}
+.q-title{font-family:Playfair Display,serif;font-size:21px;line-height:1.25;margin:10px 0 6px;font-weight:900;color:#3a2a2e}
+.q-desc{font-size:12px;color:#9a7a7a;line-height:1.6}
+.opt{padding:14px;border-radius:18px;border:1.5px solid #f0dede;margin-top:10px;cursor:pointer;display:flex;gap:12px;align-items:center;background:#fffdfd;transition:.15s}
+.opt:active{transform:scale(.98)}
+.opt:hover{border-color:#b76e79;background:#fdf2f2}
+.opt span{font-size:22px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#f7ecec;border-radius:12px;flex-shrink:0}
+.opt b{font-size:13px;display:block;line-height:1.35;color:#3a2a2e}
+.opt small{font-size:11px;color:#9a7a7a;line-height:1.4}
+.hidden{display:none!important}
+.result-emoji{font-size:64px;text-align:center}
+.bar{height:11px;background:#f0e0e0;border-radius:20px;overflow:hidden;margin:4px 0 10px}
+.bar div{height:100%;border-radius:20px;transition:width .8s}
+.stat{display:flex;justify-content:space-between;font-size:12px;font-weight:800}
+.pill{display:inline-block;padding:6px 11px;border-radius:999px;font-size:10px;font-weight:800;margin:3px}
+.input{width:100%;padding:15px;border-radius:16px;border:2px solid #d8a7a7;font-family:Poppins;font-weight:700;text-align:center;font-size:15px;outline:none;background:#fff}
+.input:focus{border-color:#b76e79}
+.overlay{position:fixed;inset:0;background:linear-gradient(180deg,#f9efef 0%, #e8c4c4 45%, #d8a7a7 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;overflow-y:auto;padding:0}
+.hero-img{width:100%;max-width:520px;height:420px;object-fit:cover;display:block}
+.hero-img-wrap{width:100%;max-width:520px;position:relative;background:#d8a7a7}
+.hero-img-wrap:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%, #f9efef 100%)}
+.hero-content{width:100%;max-width:520px;padding:0 20px 22px;margin-top:-70px;position:relative;z-index:2;text-align:center}
+.badge{display:inline-block;background:#fff;color:#b76e79;padding:7px 13px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:2px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.big-btn{width:100%;border:none;padding:16px;border-radius:999px;font-weight:900;font-size:15px;cursor:pointer;background:#3a2a2e;color:#fff;margin-top:14px;box-shadow:0 12px 30px rgba(58,42,46,.25)}
+.voice-bar{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px}
+.voice-bar button{border:1px solid #d8a7a7;background:#fff;color:#8a4a52;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer}
+.voice-bar button.active{background:#b76e79;color:#fff;border-color:#b76e79}
+</style>
+</head>
+<body>
+<div class="top"><h1>WHAT'S YOUR LL<span>LOVE LANGUAGE TEST • MY AINUN</span></h1><button class="btn btn-white" onclick="restart()">↻ Restart</button></div>
+
+<div class="wrap">
+  <div id="gameArea">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#8a4a52"><span id="qCount">QUESTION 1 / 20</span><span id="playerLabel">You</span></div>
+    <div class="progress"><div id="prog" style="width:5%"></div></div>
+
+    <div class="voice-bar">
+      <button id="voiceToggle" onclick="toggleVoice()">🔊 AI VOICE: ON</button>
+      <button onclick="speakCurrent()">▶️ Replay Voice</button>
+      <button onclick="stopVoice()">⏹ Stop</button>
+    </div>
+
+    <div class="card">
+      <span class="q-tag" id="qTag">SCENARIO</span>
+      <div class="q-title" id="qTitle">Loading...</div>
+      <div class="q-desc" id="qDesc"></div>
+      <div id="options"></div>
+    </div>
+    <p style="font-size:11px;color:#a08080;text-align:center;margin-top:10px;line-height:1.6">Pick the first thing that feels true.<br>Questions & answers are shuffled every play.</p>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="card" style="text-align:center">
+      <div class="result-emoji" id="rEmoji">💖</div>
+      <div style="font-size:11px;color:#b76e79;font-weight:800;letter-spacing:2px">YOUR MAIN LOVE LANGUAGE</div>
+      <div style="font-size:28px;font-weight:900;line-height:1.1;margin:6px 0;font-family:Playfair Display,serif" id="rTitle">-</div>
+      <div style="font-size:12px;color:#666;line-height:1.7" id="rDesc"></div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:10px" id="rPills"></div>
+      <div style="font-size:11px;color:#aaa;margin-top:8px" id="rAccuracy"></div>
+      <button class="btn btn-dusty" style="margin-top:12px" onclick="speakResult()">🔊 Hear My Result</button>
+    </div>
+    <div class="card">
+      <h3 style="font-size:12px;color:#8a4a52;margin-bottom:10px">📊 FULL BREAKDOWN</h3>
+      <div id="bars"></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:12px;color:#b76e79">💡 HOW TO MAKE YOU FALL</h3>
+      <p style="font-size:12px;color:#444;line-height:1.7" id="rTips"></p>
+      <h3 style="font-size:12px;color:#b76e79;margin-top:12px">🚫 WHAT TURNS YOU OFF</h3>
+      <p style="font-size:12px;color:#444;line-height:1.7" id="rNo"></p>
+      <h3 style="font-size:12px;color:#8a4a52;margin-top:12px">❤️ YOUR BEST MATCH</h3>
+      <p style="font-size:12px;color:#444;line-height:1.7" id="rMatch"></p>
+      <h3 style="font-size:12px;color:#8a4a52;margin-top:12px">🔍 WHY YOU DIDN'T REALIZE</h3>
+      <p style="font-size:12px;color:#444;line-height:1.7" id="rHidden"></p>
+    </div>
+    <div class="card" style="background:#3a2a2e;color:#fff">
+      <h3 style="font-size:12px;color:#e8c4c4">📱 CAPTION FOR STORY</h3>
+      <p id="captionText" style="font-size:12px;line-height:1.7;margin-top:6px;background:#ffffff15;padding:12px;border-radius:14px"></p>
+      <button class="btn btn-dusty" style="width:100%;margin-top:10px" onclick="copyCaption()">📋 Copy Caption</button>
+    </div>
+    <button class="big-btn" onclick="restart()">↻ Play Again - Questions Will Be Different</button>
+  </div>
+</div>
+
+<!-- FIRST SCREEN WITH YOUR IMAGE -->
+<div class="overlay" id="homeScreen">
+  <div class="hero-img-wrap">
+    <!-- PUT myainunwyll.jpg IN THE SAME FOLDER AS THIS HTML -->
+    <img class="hero-img" src="myainunwyll.jpg" alt="My Ainun" onerror="this.style.display='none'; this.parentElement.style.height='200px'; this.parentElement.style.background='linear-gradient(135deg,#d8a7a7,#b76e79)'">
+  </div>
+  <div class="hero-content">
+    <span class="badge">MY AINUN • WHAT'S YOUR LL</span>
+    <h2 style="font-family:Playfair Display,serif;font-size:38px;line-height:.95;color:#3a2a2e;margin-top:12px">What's Your<br><span style="color:#b76e79;font-style:italic">Love Language?</span></h2>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+      <span style="background:#fff;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;color:#8a4a52">💬 WORDS</span>
+      <span style="background:#fff;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;color:#8a4a52">⏰ TIME</span>
+      <span style="background:#fff;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;color:#8a4a52">🎁 GIFTS</span>
+      <span style="background:#fff;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;color:#8a4a52">🫶 SERVICE</span>
+      <span style="background:#fff;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;color:#8a4a52">🤗 TOUCH</span>
+    </div>
+    <div style="margin-top:16px;text-align:left">
+      <input class="input" id="nameInput" placeholder="Your name..." maxlength="15">
+      <button class="big-btn" onclick="startGame()">▶️ START TEST - 20 QUESTIONS</button>
+      <div class="voice-bar">
+        <button id="voiceToggle2" onclick="toggleVoice()">🔊 AI VOICE: ON</button>
+        <button onclick="speakIntro()">▶️ Hear Intro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL_QUESTIONS=[
+ {tag:'AFTER THE RAIN', title:'You come home soaked, clothes wet, phone dying. When you arrive, they...', desc:'Which one makes you think "lucky I have them"?', opts:[
+   {t:'Prepare a towel + dry clothes', d:'Without you asking, they already moved', k:'service', e:'🧺'},
+   {t:'Say "you poor thing, come tell me"', d:'They listen to your rainy story till the end', k:'words', e:'☔'},
+   {t:'Offer to watch a movie together to warm up', d:'They invite you to cuddle and watch till you sleep', k:'time', e:'🎬'},
+   {t:'Suddenly hand you warm tea + bread', d:'No idea where they got it, but it is there', k:'gifts', e:'🍵'},
+   {t:'Pull you into a hug right away', d:'Wet clothes, whatever, you need warmth', k:'touch', e:'🤗'},
+ ]},
+ {tag:'LATE NIGHT CHAT', title:'It is 11 PM, you are overthinking. Your phone buzzes. What do you hope it is?', desc:'', opts:[
+   {t:'A 3-minute voice note', d:'They talk + cheer you up', k:'words', e:'🎙️'},
+   {t:'"Video call? Just 10 minutes"', d:'They stay up to be with you', k:'time', e:'📱'},
+   {t:'A photo "this is for tomorrow"', d:'They already ordered something for you', k:'gifts', e:'📸'},
+   {t:'"Go sleep, I will handle it tomorrow"', d:'They help with the thing stressing you', k:'service', e:'😴'},
+   {t:'A hug sticker + "wish I could hug you now"', d:'Short chat but it hits', k:'touch', e:'🫂'},
+ ]},
+ {tag:'IN PUBLIC', title:'You are at the mall, super crowded. You suddenly feel most loved when they...', desc:'', opts:[
+   {t:'Tell their friends "this is my partner, cool right?"', d:'They brag about you', k:'words', e:'😎'},
+   {t:'Do not touch their phone at all', d:'Their focus is only you', k:'time', e:'📵'},
+   {t:'Suddenly stop at your favorite store', d:'"Oh this is the one you wanted yesterday"', k:'gifts', e:'🛍️'},
+   {t:'Carry your heavy shopping bags', d:'They take over without being asked', k:'service', e:'🛒'},
+   {t:'Suddenly wrap their arm around you', d:'In the crowd, they pull you close', k:'touch', e:'💞'},
+ ]},
+ {tag:'YOU ARE SICK', title:'You have a fever, cannot get up. What will you remember after you recover?', desc:'', opts:[
+   {t:'They prepare porridge + medicine on time', d:'They manage your whole schedule', k:'service', e:'🍲'},
+   {t:'They say "get well soon, I am worried"', d:'They check on you every hour', k:'words', e:'💬'},
+   {t:'They stay in the room until you fall asleep', d:'They do not leave even if bored', k:'time', e:'🛋️'},
+   {t:'They come with fruit + vitamins', d:'Their hands are full of bags', k:'gifts', e:'🍎'},
+   {t:'They put a cold compress on your forehead', d:'Their hand stays on your forehead', k:'touch', e:'🤒'},
+ ]},
+ {tag:'AFTER A FIGHT', title:'After a big fight, you are silent for 2 hours. What melts you first?', desc:'', opts:[
+   {t:'They hand you your favorite food', d:'No words, just food', k:'gifts', e:'🍔'},
+   {t:'They give in and talk first', d:'"Sorry, I was wrong, listen to me"', k:'words', e:'🙏'},
+   {t:'They stay home, do not leave', d:'Even silent, they do not leave you', k:'time', e:'🏠'},
+   {t:'They fix the problem, not just talk', d:'They directly fix what caused the fight', k:'service', e:'🔧'},
+   {t:'They suddenly hug you from behind', d:'No words, just a hug', k:'touch', e:'🤍'},
+ ]},
+ {tag:'MORNING', title:'Morning, you just woke up. What small thing instantly makes your mood good?', desc:'', opts:[
+   {t:'Breakfast is already on the table', d:'You did not ask, but it is there', k:'service', e:'🥞'},
+   {t:'A chat "good morning, you got this today"', d:'The first chat you see', k:'words', e:'🌅'},
+   {t:'Someone waiting to have breakfast with you', d:'They waited for you to wake up', k:'time', e:'☕'},
+   {t:'Your favorite coffee / milk on the table', d:'They remember what you like', k:'gifts', e:'🧋'},
+   {t:'A kiss on your forehead', d:'Before you open your eyes', k:'touch', e:'😘'},
+ ]},
+ {tag:'FRIEND ASKS', title:'Your friend asks "how is your partner so good?" What do you answer first?', desc:'Your spontaneous answer.', opts:[
+   {t:'"They are always there for me"', d:'They always accompany me', k:'time', e:'🫂'},
+   {t:'"They often give me little things"', d:'Often bring me something', k:'gifts', e:'🎁'},
+   {t:'"They always help me"', d:'Everything is helped', k:'service', e:'💪'},
+   {t:'"Their words are so sweet"', d:'Their words calm me', k:'words', e:'💌'},
+   {t:'"They are so clingy, cute"', d:'They love to cuddle', k:'touch', e:'🥰'},
+ ]},
+ {tag:'YOU SUCCEED', title:'You just won something / got a job. You tell them excitedly. They...', desc:'', opts:[
+   {t:'Shout "THAT IS INSANE, SO COOL!"', d:'Their reaction is super hype', k:'words', e:'🎉'},
+   {t:'Invite you to celebrate, "let us eat out!"', d:'They invite you to celebrate', k:'time', e:'🍽️'},
+   {t:'Come tomorrow with a small gift', d:'To celebrate your win', k:'gifts', e:'🎁'},
+   {t:'Help you prepare the next step', d:'"Okay, tomorrow we sort this out"', k:'service', e:'📋'},
+   {t:'Hug you tight', d:'Proud hug', k:'touch', e:'🤗'},
+ ]},
+ {tag:'LONG DISTANCE', title:'You are long distance for 1 week, cannot meet. What keeps you strong?', desc:'', opts:[
+   {t:'Video call every night, even sleepy', d:'Consistent every night', k:'time', e:'📹'},
+   {t:'Long chat every day', d:'Detailed stories all day', k:'words', e:'💬'},
+   {t:'A package suddenly arrives', d:'It contains what you need', k:'gifts', e:'📦'},
+   {t:'They order food when you are lazy', d:'Food delivery arrives suddenly', k:'service', e:'🛵'},
+   {t:'They say "in 1 week I will hug you"', d:'A promise to meet that keeps you going', k:'touch', e:'✈️'},
+ ]},
+ {tag:'MOVIE NIGHT', title:'Watching a movie together at home. Your favorite moment?', desc:'', opts:[
+   {t:'They prepare snacks + blanket', d:'Everything is ready', k:'service', e:'🍿'},
+   {t:'They say "you pick good movies"', d:'They praise your choice', k:'words', e:'🎬'},
+   {t:'Focus watching together till the end, no phone', d:'2 hours fully together', k:'time', e:'⏰'},
+   {t:'They suddenly hand you chocolate', d:'From their pocket', k:'gifts', e:'🍫'},
+   {t:'They lean their head on your shoulder', d:'Or the other way', k:'touch', e:'💤'},
+ ]},
+ {tag:'YOU ARE DOWN', title:'You are super down, do not want to tell anyone. What do they do that makes you finally open up?', desc:'', opts:[
+   {t:'They sit next to you, silent', d:'No forcing, but they stay', k:'time', e:'🪑'},
+   {t:'They say "just tell me, I will not judge"', d:'Their words make you feel safe', k:'words', e:'🫂'},
+   {t:'They hand you tissue + water', d:'Small thing but noticed', k:'gifts', e:'🧻'},
+   {t:'They help fix what makes you down', d:'They move to help', k:'service', e:'🧹'},
+   {t:'They rub your back slowly', d:'Without talking', k:'touch', e:'🖐️'},
+ ]},
+ {tag:'IMPORTANT DATE', title:'Your anniversary. You hope they...', desc:'', opts:[
+   {t:'Make something themselves, like a video / food', d:'Their effort shows', k:'service', e:'🎥'},
+   {t:'Write a long message', d:'Their words touch you', k:'words', e:'💌'},
+   {t:'Clear the whole day for you', d:'No other plans', k:'time', e:'📅'},
+   {t:'Give you something you wanted for a long time', d:'They remember your wishlist', k:'gifts', e:'🎁'},
+   {t:'Take you home + hug for a long time', d:'The goodbye moment is long', k:'touch', e:'🌙'},
+ ]},
+ {tag:'WALKING', title:'Walking together, crossing the street. They...', desc:'', opts:[
+   {t:'Pull your hand to the safe side', d:'Reflex to protect', k:'touch', e:'🤝'},
+   {t:'Say "be careful okay"', d:'While looking at you', k:'words', e:'⚠️'},
+   {t:'Walk slowly matching your pace', d:'They do not walk ahead', k:'time', e:'🚶'},
+   {t:'Suddenly buy you a drink', d:'Because you are thirsty', k:'gifts', e:'🥤'},
+   {t:'Carry your stuff', d:'So you are not tired', k:'service', e:'🛍️'},
+ ]},
+ {tag:'SOCIAL MEDIA', title:'You post a new photo. Which notification from them do you wait for?', desc:'', opts:[
+   {t:'Comment "you look so good!"', d:'Their comment is on top', k:'words', e:'🔥'},
+   {t:'They chat "hey that photo was when we walked"', d:'They remember the moment', k:'time', e:'📸'},
+   {t:'They send a link "this is good for you"', d:'They found something for you', k:'gifts', e:'🔗'},
+   {t:'They help edit / pick photos', d:'They help', k:'service', e:'🎨'},
+   {t:'They send a photo of you two hugging', d:'Old photo of you', k:'touch', e:'💑'},
+ ]},
+ {tag:'YOU ARE HUNGRY', title:'You say "I am hungry". Their reaction you like most?', desc:'', opts:[
+   {t:'"Okay I will cook"', d:'Straight to the kitchen', k:'service', e:'🍳'},
+   {t:'"What do you want to eat? I will join"', d:'Invite to eat together', k:'time', e:'🍜'},
+   {t:'"Wait 10 minutes, I ordered"', d:'Food arrives', k:'gifts', e:'🛵'},
+   {t:'"You are so cute when you are hungry"', d:'While laughing', k:'words', e:'😆'},
+   {t:'"Hug first while waiting"', d:'Hug first', k:'touch', e:'🤗'},
+ ]},
+ {tag:'STRESSED WITH WORK', title:'Tasks pile up, deadline tomorrow. They help by...', desc:'', opts:[
+   {t:'Accompanying you till late', d:'Even if they are also tired', k:'time', e:'🌙'},
+   {t:'Saying "you can do it, almost done"', d:'Cheering you on', k:'words', e:'💪'},
+   {t:'Buying you coffee + snacks', d:'So you do not get sleepy', k:'gifts', e:'☕'},
+   {t:'Helping do part of your work', d:'Directly helping', k:'service', e:'📚'},
+   {t:'Patting your head "rest a bit okay"', d:'Told to rest', k:'touch', e:'💆'},
+ ]},
+ {tag:'SURPRISE', title:'What kind of surprise do you like most?', desc:'', opts:[
+   {t:'They suddenly come to your house', d:'No plan, but they come', k:'time', e:'🏠'},
+   {t:'A surprise video message from them', d:'Sudden video', k:'words', e:'🎥'},
+   {t:'A gift on your table', d:'No occasion', k:'gifts', e:'🎁'},
+   {t:'Your room is already cleaned', d:'When you come home, it is tidy', k:'service', e:'✨'},
+   {t:'A hug from behind', d:'Surprise hug', k:'touch', e:'😍'},
+ ]},
+ {tag:'COMING HOME LATE', title:'You come home late alone. They...', desc:'', opts:[
+   {t:'Call you until you get home', d:'Accompanied on the phone', k:'time', e:'📞'},
+   {t:'Say "text me when you arrive"', d:'Care through chat', k:'words', e:'💬'},
+   {t:'Send you a ride location', d:'Already ordered', k:'gifts', e:'🚕'},
+   {t:'Come pick you up directly', d:'Without being asked', k:'service', e:'🏍️'},
+   {t:'When you arrive, hug "glad you are safe"', d:'Relieved hug', k:'touch', e:'🫂'},
+ ]},
+ {tag:'FRIEND BIRTHDAY', title:'At a friend birthday, you see another couple. What makes you jealous?', desc:'', opts:[
+   {t:'That couple who always praise each other', d:'In front of everyone', k:'words', e:'👏'},
+   {t:'That couple who stay together from start to end', d:'They do not separate', k:'time', e:'👫'},
+   {t:'That couple who bring a big gift', d:'Their gift is so thoughtful', k:'gifts', e:'🎁'},
+   {t:'That couple who always help each other', d:'Bring plates, etc', k:'service', e:'🍰'},
+   {t:'That couple who stay clingy', d:'Holding hands all the time', k:'touch', e:'💞'},
+ ]},
+ {tag:'YOU FAIL', title:'You fail at something important. What do you need them to do?', desc:'', opts:[
+   {t:'Say "one failure does not mean you are a failure"', d:'Their words calm you', k:'words', e:'🫂'},
+   {t:'Accompany you for an evening walk to calm down', d:'Invited to walk', k:'time', e:'🌇'},
+   {t:'Buy you ice cream / what you like', d:'To lift your mood', k:'gifts', e:'🍦'},
+   {t:'Help you find a solution / apply again', d:'Directly find a way out', k:'service', e:'🔍'},
+   {t:'Hug you silently', d:'No need to talk', k:'touch', e:'🤍'},
+ ]},
+ {tag:'WEEKEND', title:'Ideal weekend with them is...', desc:'', opts:[
+   {t:'A whole day just the two of us, no disturbance', d:'Total quality time', k:'time', e:'🏖️'},
+   {t:'Deep talk till late night', d:'Talk about the future', k:'words', e:'🌌'},
+   {t:'Shopping / food hunting together', d:'Snacking together', k:'gifts', e:'🍡'},
+   {t:'They help you clean house / tasks', d:'Productive together', k:'service', e:'🏠'},
+   {t:'Lying down together while hugging', d:'Lazy together', k:'touch', e:'🛋️'},
+ ]},
+ {tag:'YOU ARE JEALOUS', title:'You are jealous. What calms you down?', desc:'', opts:[
+   {t:'They explain calmly "you are the only one I love"', d:'Sincere explanation', k:'words', e:'💬'},
+   {t:'They come to you directly', d:'They come, not just chat', k:'time', e:'🏃'},
+   {t:'They buy you something to make up', d:'To apologize', k:'gifts', e:'🌹'},
+   {t:'They prove with action, like blocking that person', d:'Real proof', k:'service', e:'✅'},
+   {t:'They hug you "do not be jealous"', d:'Hug', k:'touch', e:'🤗'},
+ ]},
+ {tag:'MEMORY', title:'The memory you remember most from them until now is...', desc:'', opts:[
+   {t:'When they made something for you', d:'Their creation', k:'service', e:'🎨'},
+   {t:'When they said something touching', d:'Their words still stick', k:'words', e:'💌'},
+   {t:'When you walked together all day', d:'The moment', k:'time', e:'📸'},
+   {t:'When they gave you something', d:'You still keep the item', k:'gifts', e:'🎁'},
+   {t:'When you first hugged', d:'You still remember the feeling', k:'touch', e:'💞'},
+ ]},
+ {tag:'YOU ARE BUSY', title:'You are super busy, cannot reply. The one you appreciate most is the one who...', desc:'', opts:[
+   {t:'Still sends "good luck, no need to reply"', d:'They understand you', k:'words', e:'💬'},
+   {t:'Waits for you until free, not angry', d:'Patiently waiting', k:'time', e:'⏳'},
+   {t:'Sends food to your place', d:'So you do not skip meals', k:'gifts', e:'🍱'},
+   {t:'Helps with your work', d:'Your burden is less', k:'service', e:'💻'},
+   {t:'When you meet, hugs "tired huh?"', d:'First hug', k:'touch', e:'🤗'},
+ ]},
+ {tag:'BEST GIFT', title:'If you had to choose, you would rather be given...', desc:'', opts:[
+   {t:'Their free time fully for you', d:'A whole day', k:'time', e:'⏰'},
+   {t:'Words that make you cry happy', d:'Letter / video', k:'words', e:'😭'},
+   {t:'Something you wanted for a long time', d:'Your wishlist', k:'gifts', e:'🎁'},
+   {t:'Help you really need', d:'Helped', k:'service', e:'🙌'},
+   {t:'A very long hug', d:'Do not want to let go', k:'touch', e:'🫂'},
+ ]},
+ {tag:'NIGHTMARE', title:'You have a nightmare, wake up at 3 AM. They...', desc:'', opts:[
+   {t:'Wake up too, accompany you till you sleep again', d:'Staying up together', k:'time', e:'🌙'},
+   {t:'Say "it was just a dream, I am here"', d:'Calming', k:'words', e:'💬'},
+   {t:'Offer water + snacks', d:'To calm down', k:'gifts', e:'🥛'},
+   {t:'Turn on the light, help you calm', d:'Move to help', k:'service', e:'💡'},
+   {t:'Pull you into a hug till you sleep again', d:'Hug', k:'touch', e:'😴'},
+ ]},
+ {tag:'YOUR BIRTHDAY', title:'Your birthday, you hope they remember...', desc:'', opts:[
+   {t:'Spending time for you', d:'A whole day', k:'time', e:'🎂'},
+   {t:'Making the sweetest message', d:'Their words', k:'words', e:'💌'},
+   {t:'Giving the gift you want', d:'Their gift', k:'gifts', e:'🎁'},
+   {t:'Making a surprise / food', d:'Their effort', k:'service', e:'🍰'},
+   {t:'Kiss + hug first at 12 AM', d:'The moment', k:'touch', e:'💋'},
+ ]},
+ {tag:'YOU ARE ANGRY', title:'You are angry at them. What makes you calm fast?', desc:'', opts:[
+   {t:'They apologize sincerely', d:'Admit they are wrong', k:'words', e:'🙏'},
+   {t:'They do not leave, stay beside you', d:'Still there', k:'time', e:'🛋️'},
+   {t:'They buy your favorite food', d:'To make up', k:'gifts', e:'🍔'},
+   {t:'They fix what made you angry', d:'Directly fix it', k:'service', e:'🔧'},
+   {t:'They hug you even if you refuse', d:'Forced hug', k:'touch', e:'🤗'},
+ ]},
+ {tag:'YOU MISS THEM', title:'You miss them so much. What do you do?', desc:'', opts:[
+   {t:'Send a long chat about missing them', d:'Long chat', k:'words', e:'💬'},
+   {t:'Call / video call', d:'Want to hear their voice', k:'time', e:'📞'},
+   {t:'Look at the gift they gave', d:'Their items', k:'gifts', e:'🎁'},
+   {t:'Imagine them helping you', d:'Miss being helped', k:'service', e:'💭'},
+   {t:'Look at photos of you hugging', d:'Photos', k:'touch', e:'📸'},
+ ]},
+ {tag:'YOU ARE HAPPY', title:'You are super happy, want to share. You want them to...', desc:'', opts:[
+   {t:'Be happy too + praise you', d:'Hype together', k:'words', e:'🎉'},
+   {t:'Come right away to celebrate together', d:'Come', k:'time', e:'🏃'},
+   {t:'Treat you to something', d:'Treat', k:'gifts', e:'🍦'},
+   {t:'Help you make that happiness happen', d:'Help', k:'service', e:'🚀'},
+   {t:'Hug you + jump together', d:'Happy hug', k:'touch', e:'🙌'},
+ ]},
+];
+
+const results={
+ words:{title:'Words of Affirmation', emoji:'💬', color:'#b76e79', desc:'You feel most loved through WORDS. Praise, "I am proud of you", "you look amazing" - that is not just sweet talk for you, that is FUEL. One harsh word can make you overthink all night.', tips:'Say "I am proud of you" every day. Send long good morning texts. Praise them in front of others.', no:'Being left without news, being criticized in front of others, or being called "too sensitive" when you need to be heard.', match:'Best with Quality Time - they will stay with you while praising you all day.', hidden:'You kept picking answers with sweet words, but you thought it was just because you like talking. Actually, that is your Love Language.'},
+ time:{title:'Quality Time', emoji:'⏰', color:'#8a4a52', desc:'For you, love = TIME. Not about money. You want to be accompanied, talk without phones, walk together. If they are always busy, you feel unloved, even if they say "I love you" 100 times.', tips:'Turn off your phone when you are together. Schedule a date every week, even just an evening walk. Listen to their stories till the end.', no:'Playing with phone while together, promising to meet but always canceling, or talking but not focusing.', match:'Best with Words of Affirmation - they will praise you while spending the whole day with you.', hidden:'You always picked "stay / together / with me". You thought it was just because you feel lonely. Actually, that is proof you need Quality Time.'},
+ gifts:{title:'Receiving Gifts', emoji:'🎁', color:'#c9a0a0', desc:'You feel loved through GIVING. Not because you are materialistic! For you, a gift is proof "they remember me". A bubble tea brought suddenly feels more expensive than an iPhone, because they thought of you.', tips:'It does not have to be expensive! Bring their favorite snack, one flower, or a small thing they mentioned 2 weeks ago. They will remember it forever.', no:'Birthday forgotten, saying "later" all the time, or giving a careless gift.', match:'Best with Acts of Service - they will make a gift themselves for you.', hidden:'You often picked answers with food / items / bags. You thought it was because you were hungry. Actually, that is your Love Language.'},
+ service:{title:'Acts of Service', emoji:'🫶', color:'#a86a4a', desc:'For you, words are cheap. What is expensive is ACTION. You fall for someone who helps you without being asked. "I love you" in your version is "Okay, let me handle it".', tips:'Help them clean, pick them up, cook, help with their tasks. Do not ask "need help?", just help.', no:'Only promises, saying "good luck" but not helping at all.', match:'Best with Physical Touch - they will hug you after helping you.', hidden:'You always picked answers with action / helped / fixed. You thought it was because you are lazy. Actually, that is your Love Language.'},
+ touch:{title:'Physical Touch', emoji:'🤗', color:'#7a6a8a', desc:'You feel loved through TOUCH. Hugs, holding hands, patting your head. For you, a 10-second hug is more honest than 100 "I love you" texts. If they keep distance, you feel rejected.', tips:'Hug them when you meet & when you part. Hold hands when walking. Rub their back when they tell stories.', no:'Being rejected when you want a hug, keeping distance all the time, or no physical contact at all.', match:'Best with Acts of Service - they will help you while staying close.', hidden:'You always picked answers with hugs / holding hands / touch. You thought it was just because you are clingy. Actually, that is your Love Language.'}
+};
+
+let idx=0, scores={words:0,time:0,gifts:0,service:0,touch:0}, player='You', selectedQuestions=[], voiceOn=true, currentOpts=[];
+function speak(text){ if(!voiceOn) return; try{ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=1.0; u.pitch=1.05; let voices=speechSynthesis.getVoices(); let female=voices.find(v=>v.name.toLowerCase().includes('female')||v.name.includes('Samantha')||v.name.includes('Google US English')); if(female) u.voice=female; speechSynthesis.speak(u); }catch(e){} }
+function stopVoice(){ try{speechSynthesis.cancel();}catch(e){} }
+function toggleVoice(){ voiceOn=!voiceOn; if(!voiceOn) stopVoice(); document.getElementById('voiceToggle').textContent=voiceOn?'🔊 AI VOICE: ON':'🔇 AI VOICE: OFF'; document.getElementById('voiceToggle2').textContent=voiceOn?'🔊 AI VOICE: ON':'🔇 AI VOICE: OFF'; if(voiceOn) speakCurrent(); }
+function speakIntro(){ speak("Welcome to What's Your Love Language. I am your AI guide. Answer honestly. Do not overthink. Let's find how you really feel loved."); }
+function speakCurrent(){ let q=selectedQuestions[idx]; if(!q) return; let t=q.title+'. '+q.desc+'. Options: '+currentOpts.map((o,i)=>`Option ${i+1}: ${o.t}`).join('. '); speak(t); }
+function speakResult(){ let top=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0]; let r=results[top]; speak(`Your love language is ${r.title}. ${r.desc} How to make you fall: ${r.tips}`); }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function startGame(){
+ let n=document.getElementById('nameInput').value.trim(); if(n) player=n;
+ selectedQuestions=shuffle([...ALL_QUESTIONS]).slice(0,20);
+ idx=0; scores={words:0,time:0,gifts:0,service:0,touch:0};
+ document.getElementById('homeScreen').classList.add('hidden');
+ document.getElementById('playerLabel').textContent='👤 '+player;
+ renderQ();
+}
+function renderQ(){
+ let q=selectedQuestions[idx];
+ document.getElementById('qCount').textContent=`QUESTION ${idx+1} / 20`;
+ document.getElementById('prog').style.width=((idx)/20*100)+'%';
+ document.getElementById('qTag').textContent=q.tag;
+ document.getElementById('qTitle').textContent=q.title;
+ document.getElementById('qDesc').textContent=q.desc;
+ currentOpts=shuffle([...q.opts]);
+ document.getElementById('options').innerHTML=currentOpts.map(o=>`<div class="opt" onclick="pick('${o.k}')"><span>${o.e}</span><div><b>${o.t}</b><small>${o.d}</small></div></div>`).join('');
+ setTimeout(()=>speakCurrent(), 300);
+}
+function pick(k){ scores[k]++; idx++; if(idx>=20) showResult(); else renderQ(); }
+function showResult(){
+ stopVoice();
+ document.getElementById('gameArea').classList.add('hidden');
+ document.getElementById('resultArea').classList.remove('hidden');
+ let sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+ let top=sorted[0][0]; let res=results[top];
+ document.getElementById('rEmoji').textContent=res.emoji;
+ document.getElementById('rTitle').textContent=res.title;
+ document.getElementById('rTitle').style.color=res.color;
+ document.getElementById('rDesc').textContent=res.desc;
+ document.getElementById('rTips').textContent=res.tips;
+ document.getElementById('rNo').textContent=res.no;
+ document.getElementById('rMatch').textContent=res.match;
+ document.getElementById('rHidden').textContent=res.hidden;
+ document.getElementById('rAccuracy').textContent=`From 20 random questions, you picked ${top} ${sorted[0][1]} times`;
+ let total=20;
+ document.getElementById('bars').innerHTML=sorted.map(([k,v])=>{ let pct=Math.round(v/total*100); return `<div class="stat"><span>${results[k].emoji} ${results[k].title}</span><span>${pct}%</span></div><div class="bar"><div style="width:${pct}%;background:${results[k].color}"></div></div>`}).join('');
+ document.getElementById('rPills').innerHTML=sorted.slice(0,2).map(([k])=>`<span class="pill" style="background:${results[k].color};color:#fff">${results[k].emoji} ${results[k].title}</span>`).join('');
+ document.getElementById('captionText').textContent=`I thought my love language was Touch, but it is ${res.title} ${res.emoji} (${Math.round(sorted[0][1]/total*100)}%)! 20 random questions, cannot guess. Check yours! - ${player} | WHAT'S YOUR LL`;
+ setTimeout(()=>speakResult(), 500);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function copyCaption(){ navigator.clipboard.writeText(document.getElementById('captionText').textContent); alert('Caption copied!'); }
+function restart(){ stopVoice(); idx=0; scores={words:0,time:0,gifts:0,service:0,touch:0}; document.getElementById('resultArea').classList.add('hidden'); document.getElementById('gameArea').classList.remove('hidden'); document.getElementById('homeScreen').classList.remove('hidden'); }
+</script>
+</body>
+</html>
